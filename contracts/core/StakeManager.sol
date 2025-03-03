@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-only
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.23;
 
 import "../interfaces/IStakeManager.sol";
@@ -18,7 +18,7 @@ abstract contract StakeManager is IStakeManager {
     /// @inheritdoc IStakeManager
     function getDepositInfo(
         address account
-    ) public view returns (DepositInfo memory info) {
+    ) external view returns (DepositInfo memory info) {
         return deposits[account];
     }
 
@@ -84,7 +84,7 @@ abstract contract StakeManager is IStakeManager {
     }
 
     /// @inheritdoc IStakeManager
-    function addStake(uint32 unstakeDelaySec) public payable {
+    function addStake(uint32 unstakeDelaySec) external payable {
         DepositInfo storage info = deposits[msg.sender];
         require(unstakeDelaySec > 0, "must specify unstake delay");
         require(
