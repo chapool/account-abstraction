@@ -98,7 +98,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
             bytes calldata callData = userOp.callData;
             bytes memory innerCall;
             bytes4 methodSig;
-            assembly {
+            assembly ("memory-safe") {
                 let len := callData.length
                 if gt(len, 3) {
                     methodSig := calldataload(callData.offset)
@@ -250,6 +250,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
         address payable beneficiary
     ) external nonReentrant {
 
+        unchecked {
         uint256 opasLen = opsPerAggregator.length;
         uint256 totalOps = 0;
         for (uint256 i = 0; i < opasLen; i++) {
@@ -299,9 +300,9 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
                 opIndex++;
             }
         }
-        emit SignatureAggregatorChanged(address(0));
 
         _compensate(beneficiary, collected);
+        }
     }
 
     /**
@@ -472,6 +473,9 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
             }
             if (sender.code.length != 0)
                 revert FailedOp(opIndex, "AA10 sender already constructed");
+            if (initCode.length < 20 ) {
+                revert FailedOp(opIndex, "AA99 initCode too small");
+            }
             address sender1 = senderCreator().createSender{
                 gas: opInfo.mUserOp.verificationGasLimit
             }(initCode);
@@ -847,7 +851,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
     function _getOffsetOfMemoryBytes(
         bytes memory data
     ) internal pure returns (uint256 offset) {
-        assembly {
+        assembly ("memory-safe") {
             offset := data
         }
     }
