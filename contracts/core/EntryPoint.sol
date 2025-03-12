@@ -138,12 +138,14 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
                 _emitUserOperationEvent(opInfo, false, actualGasCost, actualGas);
                 collected = actualGasCost;
             } else {
+                uint256 freePtr = _getFreePtr();
                 emit PostOpRevertReason(
                     opInfo.userOpHash,
                     opInfo.mUserOp.sender,
                     opInfo.mUserOp.nonce,
                     Exec.getReturnData(REVERT_REASON_MAX_LEN)
                 );
+                _restoreFreePtr(freePtr);
 
                 uint256 actualGas = preGas - gasleft() + opInfo.preOpGas;
                 collected = _postExecution(
@@ -367,6 +369,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
         if (callData.length > 0) {
             bool success = Exec.call(mUserOp.sender, 0, callData, callGasLimit);
             if (!success) {
+                uint256 freePtr = _getFreePtr();
                 bytes memory result = Exec.getReturnData(REVERT_REASON_MAX_LEN);
                 if (result.length > 0) {
                     emit UserOperationRevertReason(
@@ -376,6 +379,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
                         result
                     );
                 }
+                _restoreFreePtr(freePtr);
                 mode = IPaymaster.PostOpMode.opReverted;
             }
         }
@@ -595,40 +599,71 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
      * @param opIndex                            - The operation index.
      * @param op                                 - The user operation.
      * @param opInfo                             - The operation info.
-     * @param requiredPreFund                    - The required prefund amount.
      * @return context                           - The Paymaster-provided value to be passed to the 'postOp' function later
      * @return validationData                    - The Paymaster's validationData.
      */
     function _validatePaymasterPrepayment(
         uint256 opIndex,
         PackedUserOperation calldata op,
-        UserOpInfo memory opInfo,
-        uint256 requiredPreFund
+        UserOpInfo memory opInfo
     ) internal virtual returns (bytes memory context, uint256 validationData) {
         unchecked {
             uint256 preGas = gasleft();
             MemoryUserOp memory mUserOp = opInfo.mUserOp;
             address paymaster = mUserOp.paymaster;
+            uint256 requiredPreFund = opInfo.prefund;
             if (!_tryDecrementDeposit(paymaster, requiredPreFund)) {
                 revert FailedOp(opIndex, "AA31 paymaster deposit too low");
             }
             uint256 pmVerificationGasLimit = mUserOp.paymasterVerificationGasLimit;
-            try
-            IPaymaster(paymaster).validatePaymasterUserOp{gas: pmVerificationGasLimit}(
-                op,
-                opInfo.userOpHash,
-                requiredPreFund
-            )
-            returns (bytes memory _context, uint256 _validationData) {
-                context = _context;
-                validationData = _validationData;
-            } catch {
-                revert FailedOpWithRevert(opIndex, "AA33 reverted", Exec.getReturnData(REVERT_REASON_MAX_LEN));
-            }
+            (context, validationData) = _callValidatePaymasterUserOp(opIndex, op, opInfo);
             if (preGas - gasleft() > pmVerificationGasLimit) {
                 revert FailedOp(opIndex, "AA36 over paymasterVerificationGasLimit");
             }
         }
+    }
+
+    function _callValidatePaymasterUserOp(
+        uint256 opIndex,
+        PackedUserOperation calldata op,
+        UserOpInfo memory opInfo
+    ) internal returns (bytes memory context, uint256 validationData)  {
+        uint256 freePtr = _getFreePtr();
+        bytes memory validatePaymasterCall = abi.encodeCall(
+            IPaymaster.validatePaymasterUserOp,
+            (op, opInfo.userOpHash, opInfo.prefund)
+        );
+        address paymaster = opInfo.mUserOp.paymaster;
+        uint256 paymasterVerificationGasLimit = opInfo.mUserOp.paymasterVerificationGasLimit;
+        bool success;
+        uint256 contextLength;
+        uint256 contextOffset;
+        uint256 maxContextLength;
+        uint256 len;
+        assembly ("memory-safe") {
+            success := call(paymasterVerificationGasLimit, paymaster, 0, add(validatePaymasterCall, 0x20), mload(validatePaymasterCall), 0, 0)
+            len := returndatasize()
+            // return data from validatePaymasterUserOp is (bytes context, validationData)
+            // encoded as:
+            // 32 bytes offset of context (always 64)
+            // 32 bytes of validationData
+            // 32 bytes of context length
+            // context data
+            // so entire buffer size is (at least) 96+content.length.
+            //
+            // we use freePtr, fetched before calling encodeCall, as return data pointer.
+            // this way we reuse that memory without unnecessary memory expansion
+            returndatacopy(freePtr, 0, len)
+            validationData := mload(add(freePtr, 32))
+            contextOffset := mload(freePtr)
+            maxContextLength := sub(len, 96)
+            context := add(freePtr, 64)
+            contextLength := mload(context)
+        }
+        if (!success || contextOffset != 64 || contextLength > maxContextLength) {
+            revert FailedOpWithRevert(opIndex, "AA33 reverted", Exec.getReturnData(REVERT_REASON_MAX_LEN));
+        }
+        finalizeAllocation(freePtr, len);
     }
 
     /**
@@ -707,7 +742,11 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
         uint256 preGas = gasleft();
         MemoryUserOp memory mUserOp = outOpInfo.mUserOp;
         _copyUserOpToMemory(userOp, mUserOp);
+
+        // getUserOpHash uses temporary allocations, no required after it returns
+        uint256 freePtr = _getFreePtr();
         outOpInfo.userOpHash = getUserOpHash(userOp);
+        _restoreFreePtr(freePtr);
 
         // Validate all numeric values in userOp are well below 128 bit, so they can safely be added
         // and multiplied without causing overflow.
@@ -722,6 +761,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
         require(maxGasValues <= type(uint120).max, FailedOp(opIndex, "AA94 gas values overflow"));
 
         uint256 requiredPreFund = _getRequiredPrefund(mUserOp);
+        outOpInfo.prefund = requiredPreFund;
         validationData = _validateAccountPrepayment(
             opIndex,
             userOp,
@@ -745,12 +785,10 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuardT
             (context, paymasterValidationData) = _validatePaymasterPrepayment(
                 opIndex,
                 userOp,
-                outOpInfo,
-                requiredPreFund
+                outOpInfo
             );
         }
         unchecked {
-            outOpInfo.prefund = requiredPreFund;
             outOpInfo.contextOffset = _getOffsetOfMemoryBytes(context);
             outOpInfo.preOpGas = preGas - gasleft() + userOp.preVerificationGas;
         }
