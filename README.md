@@ -145,3 +145,8 @@ contract MyAccount is BaseAccount {
 - [Unified ERC-4337 mempool](https://notes.ethereum.org/@yoav/unified-erc-4337-mempool)
 - [Bundler reference implementation](https://github.com/eth-infinitism/bundler)
 - [Discord server](http://discord.gg/fbDyENb6Y9)
+
+
+## 改善的内容
+- 把CPOPToken也改成可升级的
+- AAWallet内的其他资产能否提出ETH、ERC20、NFT
