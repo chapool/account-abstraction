@@ -9,15 +9,15 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../interfaces/ISenderCreator.sol";
 import "../interfaces/IEntryPoint.sol";
-import "./interfaces/ICPOPWalletManager.sol";
-import "./CPOPAccount.sol";
+import "./interfaces/IWalletManager.sol";
+import "./AAWallet.sol";
 
 /**
- * @title CPOPWalletManager
- * @notice Upgradeable factory contract for creating CPOP Account Abstraction wallets
+ * @title WalletManager
+ * @notice Upgradeable factory contract for creating AAWallets
  * @dev Creates deterministic wallet addresses using CREATE2 for Web2 user experience
  */
-contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradeable, UUPSUpgradeable {
+contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUPSUpgradeable {
     address public accountImplementation;
     ISenderCreator public senderCreator;
     
@@ -26,7 +26,7 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
     modifier onlyAuthorizedCreator() {
         require(
             authorizedCreators[msg.sender] || msg.sender == owner(),
-            "CPOPWalletManager: unauthorized creator"
+            "WalletManager: unauthorized creator"
         );
         _;
     }
@@ -38,20 +38,20 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
     /**
      * @notice Initialize the wallet manager
      * @param entryPoint The EntryPoint contract address
-     * @param cpopToken The CPOP token contract address
+     * @param Token The  token contract address
      * @param owner The owner of this contract
      */
-    function initialize(address entryPoint, address cpopToken, address owner) external initializer {
-        require(entryPoint != address(0), "CPOPWalletManager: invalid entryPoint");
-        require(cpopToken != address(0), "CPOPWalletManager: invalid cpopToken");
-        require(owner != address(0), "CPOPWalletManager: invalid owner");
+    function initialize(address entryPoint, address Token, address owner) external initializer {
+        require(entryPoint != address(0), "WalletManager: invalid entryPoint");
+        require(Token != address(0), "WalletManager: invalid Token");
+        require(owner != address(0), "WalletManager: invalid owner");
         
         // Initialize parent contracts
         __Ownable_init(owner);
         __UUPSUpgradeable_init();
         
         // Initialize contract state
-        accountImplementation = address(new CPOPAccount(entryPoint));
+        accountImplementation = address(new AAWallet(entryPoint));
         senderCreator = IEntryPoint(entryPoint).senderCreator();
         
         // Authorize the owner as a creator by default
@@ -60,15 +60,44 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
     }
 
     /**
-     * @notice Create a new CPOP account with deterministic address
+     * @notice Create a new  account with deterministic address
      */
     function createAccount(address owner, bytes32 salt) 
         external 
         override 
         returns (address account) 
     {
-        require(msg.sender == address(senderCreator), "CPOPWalletManager: only SenderCreator");
+        require(msg.sender == address(senderCreator), "WalletManager: only SenderCreator");
         account = _createAccount(owner, salt);
+    }
+
+    /**
+     * @notice Create a new  account with master signer via EntryPoint
+     * @dev This function can be called by EntryPoint for Web2 users via initCode
+     */
+    function createAccountWithMasterSigner(
+        address generatedOwner, 
+        bytes32 salt, 
+        address masterSigner
+    ) external returns (address account) {
+        require(msg.sender == address(senderCreator), "WalletManager: only SenderCreator");
+        require(masterSigner != address(0), "WalletManager: invalid master signer");
+        
+        address addr = getAccountAddress(generatedOwner, salt);
+        uint256 codeSize = addr.code.length;
+        
+        if (codeSize > 0) {
+            account = addr;
+        } else {
+            account = address(
+                new ERC1967Proxy{salt: salt}(
+                    accountImplementation,
+                    abi.encodeCall(AAWallet.initializeWithMasterSigner, (generatedOwner, masterSigner))
+                )
+            );
+        }
+        
+        emit AccountCreated(account, generatedOwner, salt);
     }
 
     /**
@@ -78,7 +107,7 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
         internal 
         returns (address account) 
     {
-        require(owner != address(0), "CPOPWalletManager: invalid owner");
+        require(owner != address(0), "WalletManager: invalid owner");
 
         address addr = getAccountAddress(owner, salt);
         uint256 codeSize = addr.code.length;
@@ -90,7 +119,7 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
         account = address(
             new ERC1967Proxy{salt: salt}(
                 accountImplementation,
-                abi.encodeCall(CPOPAccount.initialize, (owner))
+                abi.encodeCall(AAWallet.initialize, (owner))
             )
         );
 
@@ -122,7 +151,7 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
         onlyAuthorizedCreator
         returns (address account, address generatedOwner) 
     {
-        require(masterSigner != address(0), "CPOPWalletManager: invalid master signer");
+        require(masterSigner != address(0), "WalletManager: invalid master signer");
         
         // Generate owner based on master signer + identifier for better uniqueness
         generatedOwner = generateOwnerFromMasterSigner(masterSigner, identifier);
@@ -138,7 +167,7 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
             account = address(
                 new ERC1967Proxy{salt: salt}(
                     accountImplementation,
-                    abi.encodeCall(CPOPAccount.initializeWithMasterSigner, (generatedOwner, masterSigner))
+                    abi.encodeCall(AAWallet.initializeWithMasterSigner, (generatedOwner, masterSigner))
                 )
             );
         }
@@ -163,7 +192,7 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
                     type(ERC1967Proxy).creationCode,
                     abi.encode(
                         accountImplementation,
-                        abi.encodeCall(CPOPAccount.initialize, (owner))
+                        abi.encodeCall(AAWallet.initialize, (owner))
                     )
                 )
             )
@@ -181,6 +210,54 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
     {
         bytes32 salt = identifierToSalt(identifier);
         return getAccountAddress(owner, salt);
+    }
+
+    /**
+     * @notice Get Web2 account address using identifier and master signer
+     */
+    function getWeb2AccountAddress(string calldata identifier, address masterSigner) 
+        external 
+        view 
+        returns (address account) 
+    {
+        address generatedOwner = generateOwnerFromMasterSigner(masterSigner, identifier);
+        bytes32 salt = identifierToSalt(identifier);
+        return getAccountAddress(generatedOwner, salt);
+    }
+
+    /**
+     * @notice Generate initCode for Web2 users to enable EntryPoint deployment
+     * @param identifier User identifier string
+     * @param masterSigner Master signer address for Web2 user
+     * @return initCode Bytes for EntryPoint to deploy the account
+     */
+    function getWeb2InitCode(string calldata identifier, address masterSigner) 
+        external 
+        view 
+        returns (bytes memory initCode) 
+    {
+        address generatedOwner = generateOwnerFromMasterSigner(masterSigner, identifier);
+        bytes32 salt = identifierToSalt(identifier);
+        
+        initCode = abi.encodePacked(
+            address(this),
+            abi.encodeCall(this.createAccountWithMasterSigner, (generatedOwner, salt, masterSigner))
+        );
+    }
+
+    /**
+     * @notice Check if Web2 account is already deployed
+     * @param identifier User identifier string
+     * @param masterSigner Master signer address
+     * @return isDeployed True if account is already deployed
+     */
+    function isWeb2AccountDeployed(string calldata identifier, address masterSigner) 
+        external 
+        view 
+        returns (bool isDeployed) 
+    {
+        address accountAddress = this.getWeb2AccountAddress(identifier, masterSigner);
+        return accountAddress.code.length > 0;
     }
 
 
@@ -215,7 +292,7 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
         returns (address owner) 
     {
         // Combine master signer address with identifier for uniqueness
-        bytes32 hash = keccak256(abi.encodePacked("CPOP_MASTER_OWNER:", masterSigner, ":", identifier));
+        bytes32 hash = keccak256(abi.encodePacked("_MASTER_OWNER:", masterSigner, ":", identifier));
         return address(uint160(uint256(hash)));
     }
 
@@ -230,10 +307,10 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
     /**
      * @notice Update the account implementation
      * @dev Only owner can update implementation
-     * @param newImplementation New CPOPAccount implementation address
+     * @param newImplementation New AAWallet implementation address
      */
     function updateAccountImplementation(address newImplementation) external onlyOwner {
-        require(newImplementation != address(0), "CPOPWalletManager: invalid implementation");
+        require(newImplementation != address(0), "WalletManager: invalid implementation");
         accountImplementation = newImplementation;
     }
 
@@ -241,8 +318,8 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
      * @notice Authorize an address to create accounts
      */
     function authorizeCreator(address creator) external override onlyOwner {
-        require(creator != address(0), "CPOPWalletManager: invalid creator");
-        require(!authorizedCreators[creator], "CPOPWalletManager: already authorized");
+        require(creator != address(0), "WalletManager: invalid creator");
+        require(!authorizedCreators[creator], "WalletManager: already authorized");
         
         authorizedCreators[creator] = true;
         emit CreatorAuthorized(creator);
@@ -252,8 +329,8 @@ contract CPOPWalletManager is Initializable, ICPOPWalletManager, OwnableUpgradea
      * @notice Revoke authorization from an address
      */
     function revokeCreator(address creator) external override onlyOwner {
-        require(authorizedCreators[creator], "CPOPWalletManager: not authorized");
-        require(creator != owner(), "CPOPWalletManager: cannot revoke owner");
+        require(authorizedCreators[creator], "WalletManager: not authorized");
+        require(creator != owner(), "WalletManager: cannot revoke owner");
         
         authorizedCreators[creator] = false;
         emit CreatorRevoked(creator);

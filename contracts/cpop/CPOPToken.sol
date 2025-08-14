@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./interfaces/ICPOPToken.sol";
-import "./interfaces/ICPOPAccount.sol";
+import "./interfaces/IAAWallet.sol";
 
 /**
  * @title CPOPToken
@@ -178,7 +178,7 @@ contract CPOPToken is ICPOPToken, AccessControl, Pausable {
 
     /**
      * @notice Check if a transfer is authorized between two addresses
-     * @dev Only allows transfers between system contracts and CPOPAccount contracts
+     * @dev Only allows transfers between system contracts and AAWallet contracts
      */
     function isAuthorizedTransfer(address from, address to) public view override returns (bool) {
         // Allow transfers if both addresses are whitelisted (for system contracts)
@@ -186,18 +186,18 @@ contract CPOPToken is ICPOPToken, AccessControl, Pausable {
             return true;
         }
         
-        // Allow transfers involving CPOPAccount contracts
-        bool fromIsCPOPAccount = isCPOPAccount(from);
-        bool toIsCPOPAccount = isCPOPAccount(to);
+        // Allow transfers involving AAWallet contracts
+        bool fromIsAAWallet = isAAWallet(from);
+        bool toIsAAWallet = isAAWallet(to);
         
-        if (fromIsCPOPAccount || toIsCPOPAccount) {
-            // Allow transfers between CPOPAccounts
-            if (fromIsCPOPAccount && toIsCPOPAccount) {
+        if (fromIsAAWallet || toIsAAWallet) {
+            // Allow transfers between AAWallets
+            if (fromIsAAWallet && toIsAAWallet) {
                 return true;
             }
-            // Allow transfers between CPOPAccount and whitelisted system contracts
-            return (_whitelist[from] || fromIsCPOPAccount) && 
-                   (_whitelist[to] || toIsCPOPAccount);
+            // Allow transfers between AAWallet and whitelisted system contracts
+            return (_whitelist[from] || fromIsAAWallet) && 
+                   (_whitelist[to] || toIsAAWallet);
         }
         
         return false;
@@ -225,23 +225,23 @@ contract CPOPToken is ICPOPToken, AccessControl, Pausable {
     }
 
     /**
-     * @notice Check if an address is a CPOPAccount contract
-     * @dev Uses interface detection to identify CPOPAccount contracts
+     * @notice Check if an address is an AAWallet contract
+     * @dev Uses interface detection to identify AAWallet contracts
      * @param account The address to check
-     * @return True if the address is a CPOPAccount contract
+     * @return True if the address is an AAWallet contract
      */
-    function isCPOPAccount(address account) public view returns (bool) {
+    function isAAWallet(address account) public view override returns (bool) {
         if (account.code.length == 0) {
-            return false; // EOA cannot be CPOPAccount
+            return false; // EOA cannot be AAWallet
         }
         
-        try ICPOPAccount(account).supportsInterface(type(ICPOPAccount).interfaceId) returns (bool supported) {
+        try IAAWallet(account).supportsInterface(type(IAAWallet).interfaceId) returns (bool supported) {
             return supported;
         } catch {
-            // Fallback: check if the contract has CPOPAccount-specific functions
-            try ICPOPAccount(account).getOwner() returns (address) {
-                try ICPOPAccount(account).getMasterSigner() returns (address) {
-                    return true; // Has both functions, likely CPOPAccount
+            // Fallback: check if the contract has AAWallet-specific functions
+            try IAAWallet(account).getOwner() returns (address) {
+                try IAAWallet(account).getMasterSigner() returns (address) {
+                    return true; // Has both functions, likely AAWallet
                 } catch {
                     return false;
                 }

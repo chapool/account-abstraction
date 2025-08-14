@@ -109,11 +109,11 @@ interface ICPOPToken {
     function removeFromWhitelist(address account) external;
 
     /**
-     * @notice Check if an address is a CPOPAccount contract
+     * @notice Check if an address is an AAWallet contract
      * @param account The address to check
-     * @return True if the address is a CPOPAccount contract
+     * @return True if the address is an AAWallet contract
      */
-    function isCPOPAccount(address account) external view returns (bool);
+    function isAAWallet(address account) external view returns (bool);
 
     /**
      * @notice Mint tokens to multiple addresses in batch
