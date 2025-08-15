@@ -60,23 +60,17 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     }
 
     /**
-     * @notice Initialize the account with an owner
+     * @notice Initialize the account with an owner and optional master signer
+     * @param _owner The owner address (required)
+     * @param _masterSigner The master signer address (optional, can be zero address)
      */
-    function initialize(address _owner) external initializer {
+    function initialize(address _owner, address _masterSigner) external initializer {
         require(_owner != address(0), "AAWallet: invalid owner");
+        
         owner = _owner;
-        emit AccountInitialized(_owner, address(0));
-    }
-
-    /**
-     * @notice Initialize the account with an owner and master signer for Web2 users
-     */
-    function initializeWithMasterSigner(address _owner, address _masterSigner) external initializer {
-        require(_owner != address(0), "AAWallet: invalid owner");
-        require(_masterSigner != address(0), "AAWallet: invalid master signer");
-        owner = _owner;
-        masterSigner = _masterSigner;
-        emit AccountInitialized(_owner, _masterSigner);
+        masterSigner = _masterSigner; // Can be zero address if not needed
+        
+        emit AAWalletInitialized(_owner, _masterSigner);
     }
 
     /**

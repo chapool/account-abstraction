@@ -15,7 +15,7 @@ interface IAAWallet is IAccount, IERC165 {
      * @param owner The owner of the account
      * @param masterSigner The master signer address for Web2 users
      */
-    event AccountInitialized(address indexed owner, address indexed masterSigner);
+    event AAWalletInitialized(address indexed owner, address indexed masterSigner);
 
     /**
      * @notice Emitted when master signer is updated

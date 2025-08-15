@@ -92,7 +92,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
             account = address(
                 new ERC1967Proxy{salt: salt}(
                     accountImplementation,
-                    abi.encodeCall(AAWallet.initializeWithMasterSigner, (generatedOwner, masterSigner))
+                    abi.encodeCall(AAWallet.initialize, (generatedOwner, masterSigner))
                 )
             );
         }
@@ -119,7 +119,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         account = address(
             new ERC1967Proxy{salt: salt}(
                 accountImplementation,
-                abi.encodeCall(AAWallet.initialize, (owner))
+                abi.encodeCall(AAWallet.initialize, (owner, address(0)))
             )
         );
 
@@ -167,7 +167,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
             account = address(
                 new ERC1967Proxy{salt: salt}(
                     accountImplementation,
-                    abi.encodeCall(AAWallet.initializeWithMasterSigner, (generatedOwner, masterSigner))
+                    abi.encodeCall(AAWallet.initialize, (generatedOwner, masterSigner))
                 )
             );
         }
@@ -192,7 +192,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
                     type(ERC1967Proxy).creationCode,
                     abi.encode(
                         accountImplementation,
-                        abi.encodeCall(AAWallet.initialize, (owner))
+                        abi.encodeCall(AAWallet.initialize, (owner, address(0)))
                     )
                 )
             )
