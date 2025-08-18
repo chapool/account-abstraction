@@ -83,7 +83,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         require(msg.sender == address(senderCreator), "WalletManager: only SenderCreator");
         require(masterSigner != address(0), "WalletManager: invalid master signer");
         
-        address addr = getAccountAddress(generatedOwner, salt);
+        address addr = _getAccountAddressWithMasterSigner(generatedOwner, salt, masterSigner);
         uint256 codeSize = addr.code.length;
         
         if (codeSize > 0) {
@@ -158,7 +158,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         bytes32 salt = identifierToSalt(identifier);
         
         // Create account with master signer
-        address addr = getAccountAddress(generatedOwner, salt);
+        address addr = _getAccountAddressWithMasterSigner(generatedOwner, salt, masterSigner);
         uint256 codeSize = addr.code.length;
         
         if (codeSize > 0) {
@@ -185,6 +185,17 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         override 
         returns (address account) 
     {
+        return _getAccountAddressWithMasterSigner(owner, salt, address(0));
+    }
+    
+    /**
+     * @notice Get deterministic account address with master signer support
+     */
+    function _getAccountAddressWithMasterSigner(address owner, bytes32 salt, address masterSigner) 
+        internal 
+        view 
+        returns (address account) 
+    {
         return Create2.computeAddress(
             salt,
             keccak256(
@@ -192,7 +203,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
                     type(ERC1967Proxy).creationCode,
                     abi.encode(
                         accountImplementation,
-                        abi.encodeCall(AAWallet.initialize, (owner, address(0)))
+                        abi.encodeCall(AAWallet.initialize, (owner, masterSigner))
                     )
                 )
             )
@@ -222,7 +233,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     {
         address generatedOwner = generateOwnerFromMasterSigner(masterSigner, identifier);
         bytes32 salt = identifierToSalt(identifier);
-        return getAccountAddress(generatedOwner, salt);
+        return _getAccountAddressWithMasterSigner(generatedOwner, salt, masterSigner);
     }
 
     /**

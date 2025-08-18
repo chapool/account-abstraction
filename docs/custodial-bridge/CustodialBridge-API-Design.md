@@ -1,9 +1,9 @@
-# CustodialBridge API设计 - 基于go-starter框架
+# ChainBridge API设计 - 基于go-starter框架
 
 ## 项目结构
 
 ```
-custodial-bridge/
+chain-bridge/
 ├── api/                          # API定义目录 (Swagger规范)
 │   ├── swagger.yml               # 主Swagger文件
 │   ├── definitions/              # 数据模型定义
@@ -15,7 +15,7 @@ custodial-bridge/
 │   └── paths/                   # API路径定义
 │       ├── wallet.yml           # 钱包管理API
 │       ├── transfer.yml         # 转账操作API
-│       ├── assets.yml           # 资产查询API
+│       ├── assets.yml           # 资产查询API（Alchemy增强）
 │       ├── nft.yml              # NFT操作API
 │       └── system.yml           # 系统管理API
 ├── internal/
@@ -38,14 +38,14 @@ custodial-bridge/
 # api/swagger.yml
 swagger: "2.0"
 info:
-  title: "CustodialBridge API"
-  version: "1.0.0"
-  description: "Universal Wallet Relayer for Web2 developers"
+  title: "ChainBridge API"
+  version: "2.0.0"
+  description: "Universal Wallet Relayer with Alchemy Integration for Web2 developers"
   contact:
-    name: "CustodialBridge Team"
-    email: "tech@custodial-bridge.com"
+    name: "ChainBridge Team"
+    email: "tech@chain-bridge.com"
 
-host: "api.custodial-bridge.com"
+host: "api.chain-bridge.com"
 basePath: "/api/v1"
 schemes: ["https"]
 
@@ -70,7 +70,7 @@ tags:
   - name: "transfer"
     description: "Transfer operations"
   - name: "assets"
-    description: "Asset management operations"
+    description: "Asset management operations (Alchemy enhanced)"
   - name: "nft"
     description: "NFT operations"
   - name: "system"
@@ -506,10 +506,10 @@ ValidationError:
 go install github.com/go-swagger/go-swagger/cmd/swagger@latest
 
 # 生成服务器代码
-swagger generate server -f api/swagger.yml -A custodial-bridge
+swagger generate server -f api/swagger.yml -A chain-bridge
 
 # 生成客户端代码
-swagger generate client -f api/swagger.yml -A custodial-bridge
+swagger generate client -f api/swagger.yml -A chain-bridge
 ```
 
 #### 生成的代码结构
@@ -527,7 +527,7 @@ internal/
 │   │   │   └── post_transfer_batch.go
 │   │   └── assets/
 │   └── restapi/            # REST API配置
-│       ├── configure_custodial_bridge.go
+│       ├── configure_chain_bridge.go
 │       ├── server.go
 │       └── embedded_spec.go
 ```
@@ -542,9 +542,9 @@ package handlers
 import (
     "context"
     "github.com/go-openapi/runtime/middleware"
-    "github.com/your-org/custodial-bridge/internal/api/models"
-    "github.com/your-org/custodial-bridge/internal/api/operations/transfer"
-    "github.com/your-org/custodial-bridge/internal/service"
+    "github.com/your-org/chain-bridge/internal/api/models"
+    "github.com/your-org/chain-bridge/internal/api/operations/transfer"
+    "github.com/your-org/chain-bridge/internal/service"
 )
 
 type TransferHandler struct {
@@ -647,7 +647,7 @@ func (h *TransferHandler) validateTransferRequest(req *models.TransferRequest) e
 
 #### 主配置文件
 ```go
-// internal/api/restapi/configure_custodial_bridge.go
+// internal/api/restapi/configure_chain_bridge.go
 package restapi
 
 import (
@@ -658,17 +658,17 @@ import (
     "github.com/go-openapi/runtime"
     "github.com/go-openapi/runtime/middleware"
     
-    "github.com/your-org/custodial-bridge/internal/api/operations"
-    "github.com/your-org/custodial-bridge/internal/api/handlers"
+    "github.com/your-org/chain-bridge/internal/api/operations"
+    "github.com/your-org/chain-bridge/internal/api/handlers"
 )
 
-//go:generate swagger generate server --target ../../api --name CustodialBridge --spec ../../../api/swagger.yml --principal interface{}
+//go:generate swagger generate server --target ../../api --name ChainBridge --spec ../../../api/swagger.yml --principal interface{}
 
-func configureFlags(api *operations.CustodialBridgeAPI) {
+func configureFlags(api *operations.ChainBridgeAPI) {
     // api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
 }
 
-func configureAPI(api *operations.CustodialBridgeAPI) http.Handler {
+func configureAPI(api *operations.ChainBridgeAPI) http.Handler {
     // 配置API中间件
     api.ServeError = errors.ServeError
     
@@ -696,7 +696,7 @@ func configureAPI(api *operations.CustodialBridgeAPI) http.Handler {
     return setupGlobalMiddleware(api.Serve(setupMiddlewares))
 }
 
-func setupHandlers(api *operations.CustodialBridgeAPI) {
+func setupHandlers(api *operations.ChainBridgeAPI) {
     // 初始化依赖
     transferHandler := handlers.NewTransferHandler(
         transferService,
@@ -728,7 +728,7 @@ func setupGlobalMiddleware(handler http.Handler) http.Handler {
 
 .PHONY: generate
 generate: ## 生成API代码
-	swagger generate server -f api/swagger.yml -A custodial-bridge --exclude-main
+	swagger generate server -f api/swagger.yml -A chain-bridge --exclude-main
 
 .PHONY: validate
 validate: ## 验证Swagger规范
@@ -740,7 +740,7 @@ serve-docs: ## 启动文档服务器
 
 .PHONY: generate-client
 generate-client: ## 生成客户端SDK
-	swagger generate client -f api/swagger.yml -A custodial-bridge
+	swagger generate client -f api/swagger.yml -A chain-bridge
 
 .PHONY: test
 test: ## 运行测试
@@ -748,7 +748,7 @@ test: ## 运行测试
 
 .PHONY: build
 build: generate ## 构建应用
-	go build -o bin/custodial-bridge cmd/server/main.go
+	go build -o bin/chain-bridge cmd/server/main.go
 
 .PHONY: dev
 dev: generate ## 开发模式运行

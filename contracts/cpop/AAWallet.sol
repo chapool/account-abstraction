@@ -176,8 +176,9 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
      * @param _aggregator New aggregator address
      */
     function setAggregator(address _aggregator) external onlyOwner {
+        address oldAggregator = aggregatorAddress;
         aggregatorAddress = _aggregator;
-        emit AggregatorUpdated(aggregatorAddress, _aggregator);
+        emit AggregatorUpdated(oldAggregator, _aggregator);
     }
 
 
@@ -388,7 +389,6 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return interfaceId == type(IAAWallet).interfaceId || 
-               interfaceId == type(IAAWallet).interfaceId ||
                super.supportsInterface(interfaceId);
     }
 

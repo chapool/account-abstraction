@@ -126,12 +126,14 @@ contract GasPaymaster is BasePaymaster, IGasPaymaster, Pausable {
      * @inheritdoc IGasPaymaster
      */
     function estimateCost(uint256 gasAmount) public view override returns (uint256) {
-        return _getExchangeRateWithFallback() * gasAmount;
+        uint256 rate = _getExchangeRateWithFallback();
+        // Apply correct scaling: rate is tokens per 1 ether, gasAmount is in wei
+        return (rate * gasAmount) / 1 ether;
     }
 
     /**
      * @notice Get exchange rate from Oracle with fallback mechanism
-     * @return rate Exchange rate (Token per wei)
+     * @return rate Exchange rate (Token amount for 1 ether worth of gas)
      */
     function _getExchangeRateWithFallback() internal view returns (uint256 rate) {
         if (address(oracle) == address(0)) {
@@ -139,11 +141,11 @@ contract GasPaymaster is BasePaymaster, IGasPaymaster, Pausable {
         }
 
         try oracle.getTokenForETH(1 ether) returns (uint256 tokenForOneETH) {
-            // Convert to Token per wei
-            rate = tokenForOneETH / 1 ether;
+            // Keep full precision - tokenForOneETH is already tokens for 1 ether
+            rate = tokenForOneETH;
             
-            // Sanity check: rate should be reasonable
-            if (rate == 0 || rate > fallbackExchangeRate * 10) {
+            // Sanity check: rate should be reasonable compared to fallback (scaled properly)
+            if (rate == 0 || rate > fallbackExchangeRate * 1 ether * 10) {
                 return fallbackExchangeRate;
             }
             
@@ -155,7 +157,7 @@ contract GasPaymaster is BasePaymaster, IGasPaymaster, Pausable {
 
     /**
      * @notice Get exchange rate from Oracle with metadata
-     * @return rate Exchange rate (Token per wei)
+     * @return rate Exchange rate (Token amount for 1 ether worth of gas)
      * @return isFromOracle True if rate is from Oracle, false if fallback
      */
     function _getExchangeRateWithMetadata() internal view returns (uint256 rate, bool isFromOracle) {
@@ -164,10 +166,11 @@ contract GasPaymaster is BasePaymaster, IGasPaymaster, Pausable {
         }
 
         try oracle.getTokenForETH(1 ether) returns (uint256 tokenForOneETH) {
-            rate = tokenForOneETH / 1 ether;
+            // Keep full precision - tokenForOneETH is already tokens for 1 ether
+            rate = tokenForOneETH;
             
-            // Sanity check
-            if (rate == 0 || rate > fallbackExchangeRate * 10) {
+            // Sanity check: rate should be reasonable compared to fallback (scaled properly)
+            if (rate == 0 || rate > fallbackExchangeRate * 1 ether * 10) {
                 return (fallbackExchangeRate, false);
             }
             
@@ -219,7 +222,7 @@ contract GasPaymaster is BasePaymaster, IGasPaymaster, Pausable {
 
         // Get exchange rate with Oracle
         (uint256 exchangeRate, bool isFromOracle) = _getExchangeRateWithMetadata();
-        uint256 tokenCost = exchangeRate * maxCost;
+        uint256 tokenCost = (exchangeRate * maxCost) / 1 ether;
         
         // Emit fallback event if Oracle was not used
         if (!isFromOracle) {

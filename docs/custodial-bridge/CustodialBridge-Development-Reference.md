@@ -1,22 +1,23 @@
-# CustodialBridge 开发参考手册
+# ChainBridge 开发参考手册
 
 ## 项目概述
 
-**CustodialBridge** - 基于CPOP账户抽象技术栈的通用钱包Relayer服务，为Web2开发者提供托管式区块链资产管理的桥接服务。
+**ChainBridge** - 基于CPOP账户抽象技术栈的通用钱包Relayer服务，为Web2开发者提供托管式区块链资产管理的桥接服务。集成Alchemy API提供高性能的多链数据服务。
 
 ### 技术栈选择
 - **后端框架**: Go + [allaboutapps/go-starter](https://github.com/allaboutapps/go-starter)
 - **API设计**: Swagger-First开发模式
 - **数据库**: PostgreSQL + Redis
 - **区块链**: 基于CPOP账户抽象系统
+- **数据服务**: Alchemy API（替代自建RPC和数据同步）
 - **容器化**: Docker + Kubernetes
 
 ## 核心设计文档
 
 ### 1. 主要设计文档
-- `CustodialBridge-Design.md` - 完整系统设计文档
+- `CustodialBridge-Design.md` - 完整系统设计文档（已更新为ChainBridge）
 - `CustodialBridge-API-Design.md` - API设计和go-starter集成方案
-- `Chain-Sync-Strategy.md` - 链上链下数据同步策略
+- ~~`Chain-Sync-Strategy.md`~~ - ~~链上链下数据同步策略~~（已被Alchemy API替代）
 
 ### 2. 现有CPOP合约集成点
 
@@ -81,7 +82,7 @@ contract GasPaymaster {
 
 ### 目录结构
 ```
-custodial-bridge/                    # 新项目根目录
+chain-bridge/                    # 新项目根目录
 ├── README.md
 ├── Makefile
 ├── docker-compose.yml
@@ -121,9 +122,10 @@ custodial-bridge/                    # 新项目根目录
 │   ├── service/                   # 业务逻辑层
 │   │   ├── wallet/                # 钱包管理服务
 │   │   ├── transfer/              # 转账服务
-│   │   ├── asset/                 # 资产管理服务
+│   │   ├── asset/                 # 资产管理服务（Alchemy集成）
 │   │   ├── batch/                 # 批量处理服务
-│   │   └── sync/                  # 数据同步服务
+│   │   ├── application/           # 应用层服务（新增）
+│   │   └── alchemy/               # Alchemy API集成服务（新增）
 │   ├── repository/                # 数据访问层
 │   │   ├── user_wallet.go
 │   │   ├── user_balance.go
@@ -172,8 +174,8 @@ custodial-bridge/                    # 新项目根目录
 ### Phase 1: 基础框架搭建 (1-2周)
 ```bash
 # 1. 初始化go-starter项目
-git clone https://github.com/allaboutapps/go-starter.git custodial-bridge
-cd custodial-bridge
+git clone https://github.com/allaboutapps/go-starter.git chain-bridge
+cd chain-bridge
 
 # 2. 设置基础配置
 # - 修改go.mod模块名
@@ -186,37 +188,43 @@ cd custodial-bridge
 # - 配置Redis连接
 ```
 
-### Phase 2: CPOP集成 (2-3周) 
+### Phase 2: CPOP集成 + Alchemy API (2-3周) 
 ```bash
 # 1. 智能合约绑定生成
 abigen --abi contracts/cpop/interfaces/ICPOPToken.sol --pkg contracts --out internal/blockchain/contracts/cpop_token.go
 
-# 2. 实现核心服务
+# 2. Alchemy API集成
+# - 集成Alchemy SDK
+# - 实现AlchemyService包装器
+# - 配置多链连接
+
+# 3. 实现核心服务
 # - WalletService: AA钱包管理
-# - BalanceService: CPOP余额管理  
+# - BalanceService: CPOP余额管理（集成Alchemy）  
 # - BatchService: 批量处理引擎
 
-# 3. API实现
+# 4. API实现
 # - 钱包创建/查询API
 # - CPOP积分转账API
-# - 余额查询API
+# - 余额查询API（Alchemy增强）
 ```
 
-### Phase 3: 多链扩展 (3-4周)
+### Phase 3: 应用层功能 (2-3周)
 ```bash
-# 1. 多链客户端集成
-# - Ethereum, BSC, Polygon
-# - 统一区块链接口
+# 1. 应用层服务开发
+# - ActivityManager: 任务活动管理
+# - BatchRewardEngine: 积分批量发放
+# - UCardManager: U卡记录管理
 
-# 2. 资产管理扩展
-# - ERC20代币支持
-# - NFT资产管理
-# - 跨链余额统计
+# 2. 高级资产管理
+# - ERC20代币支持（基于Alchemy API）
+# - NFT资产管理（自动过滤垃圾NFT）
+# - 跨链余额统计（10-100x性能提升）
 
-# 3. 高级批量处理
-# - 多链批量优化
-# - Gas价格预测
-# - 智能路由选择
+# 3. 实时数据功能
+# - WebSocket事件推送
+# - 交易状态实时更新
+# - 价格数据集成
 ```
 
 ## 关键实现要点
@@ -362,28 +370,28 @@ var DefaultErrorConfig = ErrorHandler{
 #### 关键指标
 ```yaml
 # prometheus指标
-custodial_bridge_api_requests_total{endpoint, method, status}
-custodial_bridge_batch_processing_duration_seconds{chain}
-custodial_bridge_gas_saved_percentage{chain}
-custodial_bridge_balance_sync_lag_seconds{chain, token}
-custodial_bridge_transaction_success_rate{chain}
-custodial_bridge_database_connection_pool{state}
+chain_bridge_api_requests_total{endpoint, method, status}
+chain_bridge_batch_processing_duration_seconds{chain}
+chain_bridge_gas_saved_percentage{chain}
+chain_bridge_alchemy_api_latency_seconds{endpoint}
+chain_bridge_transaction_success_rate{chain}
+chain_bridge_database_connection_pool{state}
 ```
 
 #### 告警规则
 ```yaml
 # alerting规则
 - alert: HighAPILatency
-  expr: histogram_quantile(0.95, custodial_bridge_api_duration_seconds) > 1
+  expr: histogram_quantile(0.95, chain_bridge_api_duration_seconds) > 1
   
 - alert: LowGasSavings  
-  expr: custodial_bridge_gas_saved_percentage < 70
+  expr: chain_bridge_gas_saved_percentage < 70
   
-- alert: BalanceSyncLag
-  expr: custodial_bridge_balance_sync_lag_seconds > 300
+- alert: AlchemyAPILatency
+  expr: chain_bridge_alchemy_api_latency_seconds > 2
   
 - alert: TransactionFailureRate
-  expr: rate(custodial_bridge_transaction_failures_total[5m]) > 0.05
+  expr: rate(chain_bridge_transaction_failures_total[5m]) > 0.05
 ```
 
 ## 集成测试策略
@@ -436,14 +444,14 @@ WORKDIR /app
 COPY go.* ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -o custodial-bridge cmd/api-server/main.go
+RUN CGO_ENABLED=0 go build -o chain-bridge cmd/api-server/main.go
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /root/
-COPY --from=builder /app/custodial-bridge .
+COPY --from=builder /app/chain-bridge .
 COPY --from=builder /app/config ./config
-CMD ["./custodial-bridge"]
+CMD ["./chain-bridge"]
 ```
 
 ### 2. Kubernetes部署
@@ -452,7 +460,7 @@ CMD ["./custodial-bridge"]
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: custodial-bridge-api
+  name: chain-bridge-api
 spec:
   replicas: 3
   strategy:
@@ -464,7 +472,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: custodial-bridge:latest
+        image: chain-bridge:latest
         resources:
           requests:
             memory: "256Mi"
@@ -515,11 +523,11 @@ services:
 ### 项目初始化
 ```bash
 # 1. 克隆并初始化项目
-git clone https://github.com/allaboutapps/go-starter.git custodial-bridge
-cd custodial-bridge
+git clone https://github.com/allaboutapps/go-starter.git chain-bridge
+cd chain-bridge
 
 # 2. 修改模块名和基础配置
-find . -name "*.go" -exec sed -i 's|allaboutapps/go-starter|your-org/custodial-bridge|g' {} \;
+find . -name "*.go" -exec sed -i 's|allaboutapps/go-starter|your-org/chain-bridge|g' {} \;
 
 # 3. 安装依赖
 go mod tidy
@@ -568,4 +576,4 @@ curl -X POST http://localhost:8080/api/v1/transfer \
 - 故障恢复
 - 数据备份
 
-这份开发参考手册包含了CustodialBridge项目的完整技术栈、实施计划和关键实现细节，可以作为正式开发时的完整指南。
+这份开发参考手册包含了ChainBridge项目的完整技术栈、实施计划和关键实现细节，结合Alchemy API集成的性能优势，可以作为正式开发时的完整指南。
