@@ -37,10 +37,13 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     address public owner;
     address public masterSigner; // Master signer for Web2 users
     address public aggregatorAddress; // Aggregator for signature aggregation
-    address public immutable entryPointAddress;
+    address public entryPointAddress;
     
     // Session keys mapping
     mapping(address => SessionKeyData) public sessionKeys;
+    
+    // Authorized session key manager
+    address public authorizedSessionKeyManager;
 
     modifier onlyOwner() {
         require(msg.sender == owner || msg.sender == address(this), "AAWallet: not owner");
@@ -52,21 +55,21 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
         _;
     }
 
-    constructor(address _entryPoint) {
-        require(_entryPoint != address(0), "AAWallet: invalid entryPoint");
-        
-        entryPointAddress = _entryPoint;
+    constructor() {
         _disableInitializers();
     }
 
     /**
-     * @notice Initialize the account with an owner and optional master signer
+     * @notice Initialize the account with entryPoint, owner and optional master signer
+     * @param _entryPoint The EntryPoint contract address (required)
      * @param _owner The owner address (required)
      * @param _masterSigner The master signer address (optional, can be zero address)
      */
-    function initialize(address _owner, address _masterSigner) external initializer {
+    function initialize(address _entryPoint, address _owner, address _masterSigner) external initializer {
+        require(_entryPoint != address(0), "AAWallet: invalid entryPoint");
         require(_owner != address(0), "AAWallet: invalid owner");
         
+        entryPointAddress = _entryPoint;
         owner = _owner;
         masterSigner = _masterSigner; // Can be zero address if not needed
         
@@ -101,6 +104,14 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
         address oldMasterSigner = masterSigner;
         masterSigner = newMasterSigner;
         emit MasterSignerUpdated(oldMasterSigner, newMasterSigner);
+    }
+
+    /**
+     * @notice Set authorized session key manager (only owner can call)
+     * @param _sessionKeyManager The session key manager contract address
+     */
+    function setAuthorizedSessionKeyManager(address _sessionKeyManager) external onlyOwner {
+        authorizedSessionKeyManager = _sessionKeyManager;
     }
 
     /**
@@ -239,7 +250,8 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
         uint48 validAfter,
         uint48 validUntil,
         bytes32 permissions
-    ) external override onlyOwner {
+    ) external override {
+        require(msg.sender == owner || (masterSigner != address(0) && msg.sender == masterSigner) || msg.sender == authorizedSessionKeyManager, "AAWallet: not authorized");
         require(sessionKey != address(0), "AAWallet: invalid session key");
         require(validUntil > validAfter, "AAWallet: invalid time range");
         require(validUntil > block.timestamp, "AAWallet: session key already expired");
@@ -258,7 +270,8 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     /**
      * @notice Revoke a session key
      */
-    function revokeSessionKey(address sessionKey) external override onlyOwner {
+    function revokeSessionKey(address sessionKey) external override {
+        require(msg.sender == owner || (masterSigner != address(0) && msg.sender == masterSigner) || msg.sender == authorizedSessionKeyManager, "AAWallet: not authorized");
         require(sessionKeys[sessionKey].isActive, "AAWallet: session key not active");
         
         delete sessionKeys[sessionKey];
