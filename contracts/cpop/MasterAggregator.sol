@@ -28,6 +28,7 @@ contract MasterAggregator is
     // Master signer management
     mapping(address => bool) public authorizedMasters;
     mapping(address => mapping(address => bool)) public masterToWallets; // master => wallet => authorized
+    address[] public authorizedMastersList; // Array to track all authorized masters
     
     // Aggregation configuration
     uint256 public maxAggregatedOps = 50; // Maximum operations per aggregation
@@ -65,6 +66,7 @@ contract MasterAggregator is
         for (uint256 i = 0; i < _initialMasters.length; i++) {
             if (_initialMasters[i] != address(0)) {
                 authorizedMasters[_initialMasters[i]] = true;
+                authorizedMastersList.push(_initialMasters[i]); // Add to list
                 emit MasterAuthorized(_initialMasters[i], true);
             }
         }
@@ -98,6 +100,8 @@ contract MasterAggregator is
         bytes32 aggregatedHash = _createAggregatedHash(userOps, masterSigner, nonce);
         
         // Verify master signature
+        // Note: masterSignature was created by signing the ethHash from getMasterSigningData
+        // which already applied toEthSignedMessageHash(), so we need to recover from that
         bytes32 ethHash = aggregatedHash.toEthSignedMessageHash();
         address recovered = ethHash.recover(masterSignature);
         require(recovered == masterSigner, "MasterAggregator: invalid master signature");
@@ -226,14 +230,27 @@ contract MasterAggregator is
      */
     function _findMasterForWallet(address wallet) internal view returns (address master) {
         // Iterate through all authorized masters to find which one controls this wallet
-        // This could be optimized with a reverse mapping in production
-        for (uint256 i = 0; i < 100; i++) { // Reasonable limit to prevent gas issues
-            address potentialMaster = address(uint160(i + 1)); // Simple iteration
+        for (uint256 i = 0; i < authorizedMastersList.length; i++) {
+            address potentialMaster = authorizedMastersList[i];
             if (authorizedMasters[potentialMaster] && masterToWallets[potentialMaster][wallet]) {
                 return potentialMaster;
             }
         }
         return address(0);
+    }
+
+    /**
+     * @dev Remove master from the authorized list
+     */
+    function _removeMasterFromList(address master) internal {
+        for (uint256 i = 0; i < authorizedMastersList.length; i++) {
+            if (authorizedMastersList[i] == master) {
+                // Move last element to current position and remove last
+                authorizedMastersList[i] = authorizedMastersList[authorizedMastersList.length - 1];
+                authorizedMastersList.pop();
+                break;
+            }
+        }
     }
 
     /**
@@ -243,7 +260,18 @@ contract MasterAggregator is
      */
     function setMasterAuthorization(address master, bool authorized) external override onlyOwner {
         require(master != address(0), "MasterAggregator: invalid master");
+        
+        bool wasAuthorized = authorizedMasters[master];
         authorizedMasters[master] = authorized;
+        
+        if (authorized && !wasAuthorized) {
+            // Add to list when first authorized
+            authorizedMastersList.push(master);
+        } else if (!authorized && wasAuthorized) {
+            // Remove from list when deauthorized
+            _removeMasterFromList(master);
+        }
+        
         emit MasterAuthorized(master, authorized);
     }
 

@@ -78,6 +78,29 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     }
 
     /**
+     * @notice Initialize with aggregator (alternative initialization for WalletManager)
+     */
+    function initializeWithAggregator(
+        address _entryPoint, 
+        address _owner, 
+        address _masterSigner,
+        address _aggregator
+    ) external initializer {
+        require(_entryPoint != address(0), "AAWallet: invalid entryPoint");
+        require(_owner != address(0), "AAWallet: invalid owner");
+        
+        entryPointAddress = _entryPoint;
+        owner = _owner;
+        masterSigner = _masterSigner; // Can be zero address if not needed
+        aggregatorAddress = _aggregator; // Set aggregator during initialization
+        
+        emit AAWalletInitialized(_owner, _masterSigner);
+        if (_aggregator != address(0)) {
+            emit AggregatorUpdated(address(0), _aggregator);
+        }
+    }
+
+    /**
      * @notice Get the EntryPoint used by this account
      */
     function entryPoint() public view override returns (IEntryPoint) {
@@ -133,19 +156,21 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) internal override returns (uint256 validationData) {
-        // Check if this is an aggregated operation (empty signature means aggregator will handle)
-        if (userOp.signature.length == 0) {
-            // Verify aggregator is valid and this wallet has a master signer
-            if (masterSigner != address(0) && aggregatorAddress != address(0)) {
+        // Check if this should use aggregator validation
+        // Only use aggregator if: empty signature AND wallet is configured with aggregator AND master signer
+        if (userOp.signature.length == 0 && 
+            masterSigner != address(0) && 
+            aggregatorAddress != address(0)) {
+            // Check if aggregator address has code (is a contract)
+            if (aggregatorAddress.code.length > 0) {
                 // Additional security: verify aggregator recognizes this wallet-master relationship
-                try IMasterAggregator(aggregatorAddress).isWalletControlledByMaster(address(this), masterSigner) returns (bool isValid) {
-                    if (isValid) {
-                        return _packValidationData(ValidationData(aggregatorAddress, 0, 0));
-                    }
-                } catch {
-                    // If aggregator check fails, fall through to signature validation
+                bool isValid = IMasterAggregator(aggregatorAddress).isWalletControlledByMaster(address(this), masterSigner);
+                if (isValid) {
+                    // Return aggregator address packed in validation data
+                    return _packValidationData(ValidationData(aggregatorAddress, 0, 0));
                 }
             }
+            // If aggregator validation fails, return failure
             return SIG_VALIDATION_FAILED;
         }
         

@@ -33,7 +33,7 @@ describe("AAWallet - Simple Test", function () {
         const AAWalletFactory = (await ethers.getContractFactory("AAWallet")) as AAWallet__factory;
         
         console.log("Deploying AAWallet with EntryPoint:", entryPoint.address);
-        wallet = await AAWalletFactory.deploy(entryPoint.address);
+        wallet = await AAWalletFactory.deploy();
         await wallet.deployed();
         
         console.log("AAWallet deployed at:", wallet.address);

@@ -123,15 +123,22 @@ contract GasPriceOracle is
      * @inheritdoc IGasPriceOracle
      */
     function getTokenForETH(uint256 weiAmount) external view override returns (uint256 tokenAmount) {
+        if (weiAmount == 0) return 0;
+        
         (uint256 ethPriceUSD,) = this.getETHPriceUSD();
         (uint256 tokenPriceUSD,) = this.getTokenPriceUSD();
         
+        require(ethPriceUSD > 0, "GasPriceOracle: invalid ETH price");
         require(tokenPriceUSD > 0, "GasPriceOracle: invalid Token price");
         
-        // Calculate: weiAmount * ethPriceUSD / cpopPriceUSD
-        // Note: ETH has 18 decimals, prices have 8 decimals
-        uint256 ethValueUSD = (weiAmount * ethPriceUSD) / 1e18;
-        tokenAmount = (ethValueUSD * 1e18) / tokenPriceUSD;
+        // Calculate: weiAmount * ethPriceUSD / tokenPriceUSD
+        // Both prices have 8 decimals, weiAmount has 18 decimals
+        // Result should have 18 decimals (same as weiAmount/tokenAmount)
+        
+        // Check for overflow before multiplication
+        require(weiAmount <= type(uint256).max / ethPriceUSD, "GasPriceOracle: calculation overflow");
+        
+        tokenAmount = (weiAmount * ethPriceUSD) / tokenPriceUSD;
         
         return tokenAmount;
     }
@@ -140,14 +147,22 @@ contract GasPriceOracle is
      * @inheritdoc IGasPriceOracle
      */
     function getETHForToken(uint256 tokenAmount) external view override returns (uint256 weiAmount) {
+        if (tokenAmount == 0) return 0;
+        
         (uint256 ethPriceUSD,) = this.getETHPriceUSD();
         (uint256 tokenPriceUSD,) = this.getTokenPriceUSD();
         
         require(ethPriceUSD > 0, "GasPriceOracle: invalid ETH price");
+        require(tokenPriceUSD > 0, "GasPriceOracle: invalid Token price");
         
         // Calculate: tokenAmount * tokenPriceUSD / ethPriceUSD
-        uint256 tokenValueUSD = (tokenAmount * tokenPriceUSD) / 1e18;
-        weiAmount = (tokenValueUSD * 1e18) / ethPriceUSD;
+        // Both prices have 8 decimals, tokenAmount has 18 decimals
+        // Result should have 18 decimals (same as weiAmount)
+        
+        // Check for overflow before multiplication
+        require(tokenAmount <= type(uint256).max / tokenPriceUSD, "GasPriceOracle: calculation overflow");
+        
+        weiAmount = (tokenAmount * tokenPriceUSD) / ethPriceUSD;
         
         return weiAmount;
     }
@@ -159,6 +174,11 @@ contract GasPriceOracle is
         uint256 gasLimit,
         uint256 gasPrice
     ) external view override returns (uint256 tokenCost) {
+        if (gasLimit == 0 || gasPrice == 0) return 0;
+        
+        // Check for overflow before multiplication
+        require(gasLimit <= type(uint256).max / gasPrice, "GasPriceOracle: gas cost overflow");
+        
         uint256 totalGasCostWei = gasLimit * gasPrice;
         return this.getTokenForETH(totalGasCostWei);
     }

@@ -28,7 +28,7 @@ describe("AAWallet Initialize Debug", function () {
         
         // Deploy AAWallet
         const AAWalletFactory = (await ethers.getContractFactory("AAWallet")) as AAWallet__factory;
-        wallet = await AAWalletFactory.deploy(entryPoint.address);
+        wallet = await AAWalletFactory.deploy();
         await wallet.deployed();
         
         console.log("Contracts deployed");

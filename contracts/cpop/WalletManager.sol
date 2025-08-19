@@ -93,26 +93,30 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         if (codeSize > 0) {
             account = addr;
         } else {
+            // Use initializeWithAggregator if aggregator is available
+            bytes memory initData;
+            if (masterAggregatorAddress != address(0) && masterAggregatorAddress.code.length > 0) {
+                initData = abi.encodeCall(AAWallet.initializeWithAggregator, 
+                    (entryPointAddress, generatedOwner, masterSigner, masterAggregatorAddress));
+            } else {
+                initData = abi.encodeCall(AAWallet.initialize, 
+                    (entryPointAddress, generatedOwner, masterSigner));
+            }
+            
             account = address(
                 new ERC1967Proxy{salt: salt}(
                     accountImplementation,
-                    abi.encodeCall(AAWallet.initialize, (entryPointAddress, generatedOwner, masterSigner))
+                    initData
                 )
             );
-        }
-        
-        // Configure aggregator and register wallet-master relationship
-        if (masterAggregatorAddress != address(0)) {
-            // Set aggregator address in the wallet
-            try AAWallet(payable(account)).setAggregator(masterAggregatorAddress) {
-                // Register wallet-master relationship in aggregator
+            
+            // Register wallet-master relationship in aggregator if configured
+            if (masterAggregatorAddress != address(0) && masterAggregatorAddress.code.length > 0) {
                 try IMasterAggregator(masterAggregatorAddress).autoAuthorizeWallet(masterSigner, account) {
-                    // Successfully configured aggregation
+                    // Successfully registered wallet-master relationship
                 } catch {
                     // Aggregator authorization failed, wallet can still function without aggregation
                 }
-            } catch {
-                // Setting aggregator failed, wallet can still function without aggregation
             }
         }
         

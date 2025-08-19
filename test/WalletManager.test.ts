@@ -552,7 +552,7 @@ describe("WalletManager - Unit Tests", function () {
             
             // Deploy new implementation
             const AAWalletFactory = (await ethers.getContractFactory("AAWallet")) as AAWallet__factory;
-            const newImplementation = await AAWalletFactory.deploy(entryPoint.address);
+            const newImplementation = await AAWalletFactory.deploy();
             await newImplementation.deployed();
             
             await walletManager.connect(owner).updateAccountImplementation(newImplementation.address);
@@ -570,7 +570,7 @@ describe("WalletManager - Unit Tests", function () {
 
         it("should only allow owner to update implementation", async function () {
             const AAWalletFactory = (await ethers.getContractFactory("AAWallet")) as AAWallet__factory;
-            const newImplementation = await AAWalletFactory.deploy(entryPoint.address);
+            const newImplementation = await AAWalletFactory.deploy();
             await newImplementation.deployed();
             
             await expect(

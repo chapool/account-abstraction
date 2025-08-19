@@ -35,7 +35,7 @@ describe("AAWallet - Proxy Pattern Test", function () {
 
         // Deploy AAWallet implementation
         walletFactory = (await ethers.getContractFactory("AAWallet")) as AAWallet__factory;
-        walletImplementation = await walletFactory.deploy(entryPoint.address);
+        walletImplementation = await walletFactory.deploy();
         await walletImplementation.deployed();
         console.log("AAWallet implementation deployed at:", walletImplementation.address);
     });
@@ -44,7 +44,7 @@ describe("AAWallet - Proxy Pattern Test", function () {
         console.log("Testing that implementation contract rejects initialization");
         
         // This should fail because _disableInitializers() was called in constructor
-        await expect(walletImplementation.initialize(ownerAddress, ethers.constants.AddressZero))
+        await expect(walletImplementation.initialize(entryPoint.address, ownerAddress, ethers.constants.AddressZero))
             .to.be.reverted;
             
         console.log("✓ Implementation correctly rejects initialization");
@@ -55,6 +55,7 @@ describe("AAWallet - Proxy Pattern Test", function () {
         
         // Encode initialization call
         const initData = walletImplementation.interface.encodeFunctionData("initialize", [
+            entryPoint.address,
             ownerAddress, 
             ethers.constants.AddressZero
         ]);
@@ -135,6 +136,7 @@ describe("AAWallet - Proxy Pattern Test", function () {
         try {
             // Encode initialization call with master signer
             const initData = walletImplementation.interface.encodeFunctionData("initialize", [
+                entryPoint.address,
                 ownerAddress, 
                 masterSignerAddress
             ]);
