@@ -42,12 +42,10 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     /**
      * @notice Initialize the wallet manager
      * @param entryPoint The EntryPoint contract address
-     * @param Token The  token contract address
      * @param owner The owner of this contract
      */
-    function initialize(address entryPoint, address Token, address owner) external initializer {
+    function initialize(address entryPoint, address owner) external initializer {
         require(entryPoint != address(0), "WalletManager: invalid entryPoint");
-        require(Token != address(0), "WalletManager: invalid Token");
         require(owner != address(0), "WalletManager: invalid owner");
         
         // Initialize parent contracts

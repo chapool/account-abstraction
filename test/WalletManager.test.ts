@@ -52,7 +52,6 @@ describe("WalletManager - Unit Tests", function () {
         // Deploy proxy and initialize
         const proxyData = WalletManagerFactory.interface.encodeFunctionData("initialize", [
             entryPoint.address,
-            TOKEN_ADDRESS,
             ownerAddress
         ]);
 
@@ -78,7 +77,7 @@ describe("WalletManager - Unit Tests", function () {
 
         it("should not allow re-initialization", async function () {
             await expect(
-                walletManager.initialize(entryPoint.address, TOKEN_ADDRESS, ownerAddress)
+                walletManager.initialize(entryPoint.address, ownerAddress)
             ).to.be.reverted;
         });
 
@@ -88,7 +87,6 @@ describe("WalletManager - Unit Tests", function () {
             
             const proxyData = WalletManagerFactory.interface.encodeFunctionData("initialize", [
                 ethers.constants.AddressZero,
-                TOKEN_ADDRESS,
                 ownerAddress
             ]);
 
@@ -98,29 +96,12 @@ describe("WalletManager - Unit Tests", function () {
             ).to.be.revertedWith("WalletManager: invalid entryPoint");
         });
 
-        it("should revert with invalid Token", async function () {
-            const WalletManagerFactory = (await ethers.getContractFactory("WalletManager")) as WalletManager__factory;
-            const walletManagerImpl = await WalletManagerFactory.deploy();
-            
-            const proxyData = WalletManagerFactory.interface.encodeFunctionData("initialize", [
-                entryPoint.address,
-                ethers.constants.AddressZero,
-                ownerAddress
-            ]);
-
-            const ProxyFactory = await ethers.getContractFactory("ERC1967Proxy");
-            await expect(
-                ProxyFactory.deploy(walletManagerImpl.address, proxyData)
-            ).to.be.revertedWith("WalletManager: invalid Token");
-        });
-
         it("should revert with invalid owner", async function () {
             const WalletManagerFactory = (await ethers.getContractFactory("WalletManager")) as WalletManager__factory;
             const walletManagerImpl = await WalletManagerFactory.deploy();
             
             const proxyData = WalletManagerFactory.interface.encodeFunctionData("initialize", [
                 entryPoint.address,
-                TOKEN_ADDRESS,
                 ethers.constants.AddressZero
             ]);
 

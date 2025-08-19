@@ -140,10 +140,9 @@ interface IWalletManager {
     /**
      * @notice Initialize the wallet manager (for upgradeable contracts)
      * @param entryPoint The EntryPoint contract address
-     * @param Token The  token contract address  
      * @param owner The owner of this contract
      */
-    function initialize(address entryPoint, address Token, address owner) external;
+    function initialize(address entryPoint, address owner) external;
 
     /**
      * @notice Update the account implementation
