@@ -83,6 +83,7 @@ interface IAAWallet is IAccount, IERC165 {
      */
     event SessionKeyValidation(address indexed sessionKey, bytes32 userOpHash);
 
+
     // Session Keys Functions
     /**
      * @notice Add a session key with time and permission constraints
@@ -129,4 +130,17 @@ interface IAAWallet is IAccount, IERC165 {
         address target,
         bytes4 selector
     ) external view returns (bool canExecute);
+
+    // Aggregator Functions
+    /**
+     * @notice Set aggregator address for signature aggregation
+     * @param _aggregator The aggregator contract address
+     */
+    function setAggregator(address _aggregator) external;
+
+    /**
+     * @notice Get the current aggregator address
+     * @return The aggregator contract address
+     */
+    function getAggregator() external view returns (address);
 }

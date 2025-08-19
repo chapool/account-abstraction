@@ -43,9 +43,9 @@ describe("MasterAggregator - Complete Real-World Scenario Tests", function () {
     let user2Address: string;
     let user3Address: string;
 
-    const MASTER_PRIVATE_KEY_1 = ethers.id("test_master_key_1");
-    const MASTER_PRIVATE_KEY_2 = ethers.id("test_master_key_2");
-    const SESSION_KEY_PRIVATE = ethers.id("test_session_key");
+    const MASTER_PRIVATE_KEY_1 = ethers.utils.id("test_master_key_1");
+    const MASTER_PRIVATE_KEY_2 = ethers.utils.id("test_master_key_2");
+    const SESSION_KEY_PRIVATE = ethers.utils.id("test_session_key");
 
     before(async function () {
         // Get signers

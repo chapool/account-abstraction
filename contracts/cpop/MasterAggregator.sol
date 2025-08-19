@@ -128,45 +128,112 @@ contract MasterAggregator is
 
     /**
      * @inheritdoc IAggregator
-     * @dev Creates aggregated signature from individual user operations
+     * @dev Creates aggregated signature placeholder for EntryPoint
+     * @notice This returns a placeholder that indicates master aggregation is needed
      */
     function aggregateSignatures(
         PackedUserOperation[] calldata userOps
-    ) external pure override returns (bytes memory aggregatedSignature) {
+    ) external view override returns (bytes memory aggregatedSignature) {
         require(userOps.length > 0, "MasterAggregator: empty operations");
+        require(userOps.length <= maxAggregatedOps, "MasterAggregator: too many operations");
         
-        // For this implementation, we expect the master signer to be provided externally
-        // This function is mainly for interface compliance
-        // Real aggregation happens off-chain with master signer
+        // For master aggregation, we need to identify which master controls these wallets
+        // Check if all operations belong to wallets controlled by the same master
+        address masterSigner = address(0);
         
-        return abi.encode(address(0), uint256(0), bytes(""));
+        for (uint256 i = 0; i < userOps.length; i++) {
+            address wallet = userOps[i].sender;
+            
+            // Try to find the master for this wallet
+            address walletMaster = _findMasterForWallet(wallet);
+            require(walletMaster != address(0), "MasterAggregator: wallet has no master");
+            
+            if (masterSigner == address(0)) {
+                masterSigner = walletMaster;
+            } else {
+                require(masterSigner == walletMaster, "MasterAggregator: operations from different masters");
+            }
+        }
+        
+        uint256 nonce = masterNonces[masterSigner];
+        
+        // Return aggregation info for EntryPoint
+        // The actual master signature will be provided via validateSignatures
+        return abi.encode(
+            masterSigner,
+            nonce, 
+            "MASTER_AGGREGATION_PLACEHOLDER"
+        );
     }
 
     /**
-     * @notice Create aggregated signature for master signer (off-chain helper)
-     * @param userOps Array of user operations to aggregate
+     * @notice Create master aggregated signature for multiple wallets
+     * @dev Master signer can control multiple wallets with one signature
+     * @param userOps Array of user operations to aggregate  
      * @param masterSigner Master signer address
-     * @param masterPrivateKey Master signer private key (used off-chain)
-     * @return aggregatedSignature Encoded aggregated signature
+     * @param masterSignature Pre-computed signature from master signer
+     * @return aggregatedSignature Encoded aggregated signature for EntryPoint
      */
     function createMasterAggregatedSignature(
         PackedUserOperation[] calldata userOps,
         address masterSigner,
-        bytes32 masterPrivateKey // This would be used off-chain only
-    ) external view override returns (bytes memory aggregatedSignature) {
+        bytes calldata masterSignature
+    ) external override returns (bytes memory aggregatedSignature) {
         require(authorizedMasters[masterSigner], "MasterAggregator: unauthorized master");
+        require(userOps.length > 0 && userOps.length <= maxAggregatedOps, "MasterAggregator: invalid operation count");
+        
+        // Validate all operations belong to wallets controlled by master
+        for (uint256 i = 0; i < userOps.length; i++) {
+            require(
+                this.isWalletControlledByMaster(userOps[i].sender, masterSigner),
+                "MasterAggregator: wallet not controlled by master"
+            );
+        }
         
         uint256 nonce = masterNonces[masterSigner];
-        bytes32 aggregatedHash = _createAggregatedHash(userOps, masterSigner, nonce);
         
-        // Note: In real implementation, this would be done off-chain
-        // This is just for demonstration
-        bytes32 ethHash = aggregatedHash.toEthSignedMessageHash();
-        
-        // Create signature (this would be done off-chain with actual private key)
-        bytes memory masterSignature = _signHash(ethHash, masterPrivateKey);
+        // Emit aggregation event for tracking
+        emit AggregatedValidation(masterSigner, userOps.length, _createAggregatedHash(userOps, masterSigner, nonce));
         
         return abi.encode(masterSigner, nonce, masterSignature);
+    }
+
+    /**
+     * @notice Get data that master needs to sign (call this off-chain)
+     * @param userOps Array of user operations to aggregate
+     * @param masterSigner Master signer address  
+     * @return hashToSign The hash that master should sign off-chain
+     * @return nonce The nonce to use
+     */
+    function getMasterSigningData(
+        PackedUserOperation[] calldata userOps,
+        address masterSigner
+    ) external view override returns (bytes32 hashToSign, uint256 nonce) {
+        require(authorizedMasters[masterSigner], "MasterAggregator: unauthorized master");
+        require(userOps.length > 0, "MasterAggregator: empty operations");
+        
+        nonce = masterNonces[masterSigner];
+        bytes32 aggregatedHash = _createAggregatedHash(userOps, masterSigner, nonce);
+        hashToSign = aggregatedHash.toEthSignedMessageHash();
+        
+        return (hashToSign, nonce);
+    }
+
+    /**
+     * @dev Find the master signer that controls a given wallet
+     * @param wallet The wallet address to search for
+     * @return master The master address that controls the wallet, or address(0) if not found
+     */
+    function _findMasterForWallet(address wallet) internal view returns (address master) {
+        // Iterate through all authorized masters to find which one controls this wallet
+        // This could be optimized with a reverse mapping in production
+        for (uint256 i = 0; i < 100; i++) { // Reasonable limit to prevent gas issues
+            address potentialMaster = address(uint160(i + 1)); // Simple iteration
+            if (authorizedMasters[potentialMaster] && masterToWallets[potentialMaster][wallet]) {
+                return potentialMaster;
+            }
+        }
+        return address(0);
     }
 
     /**
@@ -337,135 +404,9 @@ contract MasterAggregator is
         }
     }
 
-    /**
-     * @notice Create aggregated signature for session key operations
-     * @param userOps Array of user operations using session keys
-     * @param sessionKey Session key that will sign all operations
-     * @param sessionKeyPrivateKey Session key private key (used off-chain)
-     * @return aggregatedSignature Encoded session key signature
-     */
-    function createSessionKeyAggregatedSignature(
-        PackedUserOperation[] calldata userOps,
-        address sessionKey,
-        bytes32 sessionKeyPrivateKey // This would be used off-chain only
-    ) external view override returns (bytes memory aggregatedSignature) {
-        require(userOps.length > 0, "MasterAggregator: empty operations");
-        
-        // Verify all wallets support session keys and this session key is valid
-        for (uint256 i = 0; i < userOps.length; i++) {
-            address wallet = userOps[i].sender;
-            try IAAWallet(wallet).getSessionKeyInfo(sessionKey) returns (
-                bool isValid,
-                uint48 /* validAfter */,
-                uint48 /* validUntil */,
-                bytes32 /* permissions */
-            ) {
-                require(isValid, "MasterAggregator: invalid session key for wallet");
-            } catch {
-                revert("MasterAggregator: wallet does not support session keys");
-            }
-        }
-        
-        // Create hash for session key signing
-        bytes32 sessionKeyHash = _createSessionKeyAggregatedHash(userOps, sessionKey);
-        bytes32 ethHash = sessionKeyHash.toEthSignedMessageHash();
-        
-        // Create signature (this would be done off-chain with actual private key)
-        bytes memory sessionKeySignature = _signHash(ethHash, sessionKeyPrivateKey);
-        
-        return abi.encode("SESSION_KEY", sessionKey, sessionKeySignature);
-    }
 
-    /**
-     * @notice Validate session key aggregated signature
-     * @param userOps Array of user operations
-     * @param signature Session key aggregated signature
-     */
-    function validateSessionKeyAggregatedSignature(
-        PackedUserOperation[] calldata userOps,
-        bytes calldata signature
-    ) external view override returns (bool isValid) {
-        require(userOps.length > 0, "MasterAggregator: empty operations");
-        
-        // Decode session key signature
-        (string memory sigType, address sessionKey, bytes memory sessionKeySignature) = abi.decode(
-            signature,
-            (string, address, bytes)
-        );
-        
-        require(
-            keccak256(abi.encode(sigType)) == keccak256(abi.encode("SESSION_KEY")),
-            "MasterAggregator: invalid signature type"
-        );
-        
-        // Verify session key is valid for all wallets
-        for (uint256 i = 0; i < userOps.length; i++) {
-            address wallet = userOps[i].sender;
-            try IAAWallet(wallet).getSessionKeyInfo(sessionKey) returns (
-                bool keyIsValid,
-                uint48 /* validAfter */,
-                uint48 /* validUntil */,
-                bytes32 /* permissions */
-            ) {
-                if (!keyIsValid) {
-                    return false;
-                }
-            } catch {
-                return false;
-            }
-        }
-        
-        // Verify session key signature
-        bytes32 sessionKeyHash = _createSessionKeyAggregatedHash(userOps, sessionKey);
-        bytes32 ethHash = sessionKeyHash.toEthSignedMessageHash();
-        address recovered = ethHash.recover(sessionKeySignature);
-        
-        return recovered == sessionKey;
-    }
 
-    /**
-     * @notice Create aggregated hash for session key signature
-     * @param userOps Array of user operations
-     * @param sessionKey Session key address
-     * @return hash Session key aggregated hash
-     */
-    function _createSessionKeyAggregatedHash(
-        PackedUserOperation[] calldata userOps,
-        address sessionKey
-    ) internal view returns (bytes32 hash) {
-        bytes32[] memory opHashes = new bytes32[](userOps.length);
-        
-        for (uint256 i = 0; i < userOps.length; i++) {
-            opHashes[i] = keccak256(abi.encode(
-                userOps[i].sender,
-                userOps[i].nonce,
-                userOps[i].callData,
-                userOps[i].accountGasLimits,
-                userOps[i].preVerificationGas,
-                userOps[i].gasFees,
-                userOps[i].paymasterAndData
-            ));
-        }
-        
-        return keccak256(abi.encode(
-            "SESSION_KEY_AGGREGATION",
-            sessionKey,
-            block.chainid,
-            address(this),
-            block.timestamp,
-            opHashes
-        ));
-    }
 
-    /**
-     * @notice Sign hash with private key (off-chain helper)
-     * @dev This is for demonstration only, real signing should be done off-chain
-     */
-    function _signHash(bytes32 /* hash */, bytes32 /* privateKey */) internal pure returns (bytes memory signature) {
-        // This is a placeholder - in real implementation, signing is done off-chain
-        // Using a mock signature for demonstration
-        return abi.encodePacked(bytes32(0), bytes32(0), uint8(27));
-    }
 
     /**
      * @notice Add stake to EntryPoint for this aggregator

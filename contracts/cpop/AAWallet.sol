@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "../core/BaseAccount.sol";
 import "../core/Helpers.sol";
 import "./interfaces/IAAWallet.sol";
+import "./interfaces/IMasterAggregator.sol";
 
 /**
  * @title AAWallet
@@ -134,9 +135,16 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     ) internal override returns (uint256 validationData) {
         // Check if this is an aggregated operation (empty signature means aggregator will handle)
         if (userOp.signature.length == 0) {
-            // Return aggregator address if master signer is set
+            // Verify aggregator is valid and this wallet has a master signer
             if (masterSigner != address(0) && aggregatorAddress != address(0)) {
-                return _packValidationData(ValidationData(aggregatorAddress, 0, 0));
+                // Additional security: verify aggregator recognizes this wallet-master relationship
+                try IMasterAggregator(aggregatorAddress).isWalletControlledByMaster(address(this), masterSigner) returns (bool isValid) {
+                    if (isValid) {
+                        return _packValidationData(ValidationData(aggregatorAddress, 0, 0));
+                    }
+                } catch {
+                    // If aggregator check fails, fall through to signature validation
+                }
             }
             return SIG_VALIDATION_FAILED;
         }

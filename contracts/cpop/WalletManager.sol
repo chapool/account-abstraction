@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../interfaces/ISenderCreator.sol";
 import "../interfaces/IEntryPoint.sol";
 import "./interfaces/IWalletManager.sol";
+import "./interfaces/IMasterAggregator.sol";
 import "./AAWallet.sol";
 
 /**
@@ -20,6 +21,8 @@ import "./AAWallet.sol";
 contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUPSUpgradeable {
     address public accountImplementation;
     ISenderCreator public senderCreator;
+    address public entryPointAddress; // Store entryPoint address for later use
+    address public masterAggregatorAddress; // MasterAggregator for signature aggregation
     
     mapping(address => bool) private authorizedCreators;
 
@@ -51,7 +54,8 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         __UUPSUpgradeable_init();
         
         // Initialize contract state
-        accountImplementation = address(new AAWallet(entryPoint));
+        entryPointAddress = entryPoint;
+        accountImplementation = address(new AAWallet());
         senderCreator = IEntryPoint(entryPoint).senderCreator();
         
         // Authorize the owner as a creator by default
@@ -92,9 +96,24 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
             account = address(
                 new ERC1967Proxy{salt: salt}(
                     accountImplementation,
-                    abi.encodeCall(AAWallet.initialize, (generatedOwner, masterSigner))
+                    abi.encodeCall(AAWallet.initialize, (entryPointAddress, generatedOwner, masterSigner))
                 )
             );
+        }
+        
+        // Configure aggregator and register wallet-master relationship
+        if (masterAggregatorAddress != address(0)) {
+            // Set aggregator address in the wallet
+            try AAWallet(payable(account)).setAggregator(masterAggregatorAddress) {
+                // Register wallet-master relationship in aggregator
+                try IMasterAggregator(masterAggregatorAddress).autoAuthorizeWallet(masterSigner, account) {
+                    // Successfully configured aggregation
+                } catch {
+                    // Aggregator authorization failed, wallet can still function without aggregation
+                }
+            } catch {
+                // Setting aggregator failed, wallet can still function without aggregation
+            }
         }
         
         emit AccountCreated(account, generatedOwner, salt);
@@ -119,7 +138,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         account = address(
             new ERC1967Proxy{salt: salt}(
                 accountImplementation,
-                abi.encodeCall(AAWallet.initialize, (owner, address(0)))
+                abi.encodeCall(AAWallet.initialize, (entryPointAddress, owner, address(0)))
             )
         );
 
@@ -167,7 +186,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
             account = address(
                 new ERC1967Proxy{salt: salt}(
                     accountImplementation,
-                    abi.encodeCall(AAWallet.initialize, (generatedOwner, masterSigner))
+                    abi.encodeCall(AAWallet.initialize, (entryPointAddress, generatedOwner, masterSigner))
                 )
             );
         }
@@ -203,7 +222,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
                     type(ERC1967Proxy).creationCode,
                     abi.encode(
                         accountImplementation,
-                        abi.encodeCall(AAWallet.initialize, (owner, masterSigner))
+                        abi.encodeCall(AAWallet.initialize, (entryPointAddress, owner, masterSigner))
                     )
                 )
             )
@@ -323,6 +342,16 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     function updateAccountImplementation(address newImplementation) external onlyOwner {
         require(newImplementation != address(0), "WalletManager: invalid implementation");
         accountImplementation = newImplementation;
+    }
+
+    /**
+     * @notice Set MasterAggregator address
+     * @dev Only owner can set the aggregator
+     * @param aggregator MasterAggregator contract address
+     */
+    function setMasterAggregator(address aggregator) external onlyOwner {
+        require(aggregator != address(0), "WalletManager: invalid aggregator");
+        masterAggregatorAddress = aggregator;
     }
 
     /**

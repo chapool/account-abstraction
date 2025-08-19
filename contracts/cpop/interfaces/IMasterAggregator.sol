@@ -142,42 +142,32 @@ interface IMasterAggregator is IAggregator {
 
     // Session Key Support
 
-    /**
-     * @notice Create aggregated signature for session key operations
-     * @param userOps Array of user operations using session keys
-     * @param sessionKey Session key that will sign all operations
-     * @param sessionKeyPrivateKey Session key private key (used off-chain)
-     * @return aggregatedSignature Encoded session key signature
-     */
-    function createSessionKeyAggregatedSignature(
-        PackedUserOperation[] calldata userOps,
-        address sessionKey,
-        bytes32 sessionKeyPrivateKey
-    ) external view returns (bytes memory aggregatedSignature);
+
+    // Master Control Signature Creation (Secure)
 
     /**
-     * @notice Validate session key aggregated signature
-     * @param userOps Array of user operations
-     * @param signature Session key aggregated signature
-     * @return isValid True if signature is valid
-     */
-    function validateSessionKeyAggregatedSignature(
-        PackedUserOperation[] calldata userOps,
-        bytes calldata signature
-    ) external view returns (bool isValid);
-
-    // Master Signature Creation (Off-chain Helper)
-
-    /**
-     * @notice Create aggregated signature for master signer (off-chain helper)
-     * @param userOps Array of user operations to aggregate
+     * @notice Create master aggregated signature for multiple wallets
+     * @dev Master signer can control multiple wallets with one signature
+     * @param userOps Array of user operations to aggregate  
      * @param masterSigner Master signer address
-     * @param masterPrivateKey Master signer private key (used off-chain)
-     * @return aggregatedSignature Encoded aggregated signature
+     * @param masterSignature Pre-computed signature from master signer
+     * @return aggregatedSignature Encoded aggregated signature for EntryPoint
      */
     function createMasterAggregatedSignature(
         PackedUserOperation[] calldata userOps,
         address masterSigner,
-        bytes32 masterPrivateKey
-    ) external view returns (bytes memory aggregatedSignature);
+        bytes calldata masterSignature
+    ) external returns (bytes memory aggregatedSignature);
+
+    /**
+     * @notice Get data that master needs to sign (call this off-chain)
+     * @param userOps Array of user operations to aggregate
+     * @param masterSigner Master signer address  
+     * @return hashToSign The hash that master should sign off-chain
+     * @return nonce The nonce to use
+     */
+    function getMasterSigningData(
+        PackedUserOperation[] calldata userOps,
+        address masterSigner
+    ) external view returns (bytes32 hashToSign, uint256 nonce);
 }

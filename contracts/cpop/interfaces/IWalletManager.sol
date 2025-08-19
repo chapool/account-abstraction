@@ -152,6 +152,12 @@ interface IWalletManager {
     function updateAccountImplementation(address newImplementation) external;
 
     /**
+     * @notice Set MasterAggregator address
+     * @param aggregator MasterAggregator contract address
+     */
+    function setMasterAggregator(address aggregator) external;
+
+    /**
      * @notice Authorize an address to create accounts
      * @param creator The address to authorize
      */
