@@ -186,4 +186,30 @@ interface IWalletManager {
      * @return True if authorized
      */
     function isAuthorizedCreator(address creator) external view returns (bool);
+
+    /**
+     * @notice Get account address using user's own wallet address as owner
+     * @param userOwner User's existing wallet address as owner
+     * @param identifier User identifier for generating salt
+     * @param masterSigner Master signer for transaction control
+     * @return account Predicted AA wallet address
+     */
+    function getUserAccountAddress(
+        address userOwner, 
+        string calldata identifier, 
+        address masterSigner
+    ) external view returns (address account);
+
+    /**
+     * @notice Create account using user's own wallet address as owner
+     * @param userOwner User's existing wallet address as owner
+     * @param identifier User identifier for generating salt
+     * @param masterSigner Master signer for transaction control
+     * @return account The created AA wallet address
+     */
+    function createUserAccount(
+        address userOwner,
+        string calldata identifier,
+        address masterSigner
+    ) external returns (address account);
 }

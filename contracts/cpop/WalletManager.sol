@@ -241,6 +241,22 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     }
 
     /**
+     * @notice Get account address using user's own wallet address as owner
+     * @param userOwner User's existing wallet address as owner
+     * @param identifier User identifier for generating salt
+     * @param masterSigner Master signer for transaction control
+     * @return account Predicted AA wallet address
+     */
+    function getUserAccountAddress(
+        address userOwner, 
+        string calldata identifier, 
+        address masterSigner
+    ) external view returns (address account) {
+        bytes32 salt = identifierToSalt(identifier);
+        return _getAccountAddressWithMasterSigner(userOwner, salt, masterSigner);
+    }
+
+    /**
      * @notice Generate initCode for Web2 users to enable EntryPoint deployment
      * @param identifier User identifier string
      * @param masterSigner Master signer address for Web2 user
@@ -384,6 +400,25 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
      */
     function isAuthorizedCreator(address creator) external view override returns (bool) {
         return authorizedCreators[creator] || creator == owner();
+    }
+
+    /**
+     * @notice Create account using user's own wallet address as owner
+     * @param userOwner User's existing wallet address as owner
+     * @param identifier User identifier for generating salt
+     * @param masterSigner Master signer for transaction control
+     * @return account The created AA wallet address
+     */
+    function createUserAccount(
+        address userOwner,
+        string calldata identifier,
+        address masterSigner
+    ) external onlyAuthorizedCreator returns (address account) {
+        require(userOwner != address(0), "WalletManager: invalid user owner");
+        require(masterSigner != address(0), "WalletManager: invalid master signer");
+        
+        bytes32 salt = identifierToSalt(identifier);
+        account = createWallet(userOwner, salt, masterSigner);
     }
 
 }
