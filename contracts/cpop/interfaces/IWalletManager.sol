@@ -157,6 +157,18 @@ interface IWalletManager {
     function setMasterAggregator(address aggregator) external;
 
     /**
+     * @notice Set default master signer
+     * @param masterSigner Default master signer address
+     */
+    function setDefaultMasterSigner(address masterSigner) external;
+
+    /**
+     * @notice Get default master signer
+     * @return Default master signer address
+     */
+    function getDefaultMasterSigner() external view returns (address);
+
+    /**
      * @notice Authorize an address to create accounts
      * @param creator The address to authorize
      */
