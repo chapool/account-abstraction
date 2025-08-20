@@ -52,4 +52,6 @@ interface ICPOPToken {
     // Batch operations for gas efficiency
     function batchMint(address[] calldata recipients, uint256[] calldata amounts) external;
     function batchBurn(address[] calldata accounts, uint256[] calldata amounts) external;
+    function batchTransfer(address[] calldata recipients, uint256[] calldata amounts) external;
+    function batchTransferFrom(address[] calldata from, address[] calldata to, uint256[] calldata amounts) external;
 }

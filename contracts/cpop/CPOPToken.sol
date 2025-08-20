@@ -244,4 +244,74 @@ contract CPOPToken is ICPOPToken {
             emit Transfer(from, address(0), amount);
         }
     }
+    
+    /**
+     * @notice Transfer tokens to multiple addresses in batch
+     * @dev Gas-optimized batch operation for transfers from caller
+     */
+    function batchTransfer(address[] calldata recipients, uint256[] calldata amounts) external {
+        if (recipients.length != amounts.length) revert ArrayLengthMismatch();
+        if (recipients.length == 0) revert EmptyArray();
+        
+        uint256 totalAmount = 0;
+        
+        // Calculate total amount to transfer
+        unchecked {
+            for (uint256 i = 0; i < amounts.length; i++) {
+                totalAmount += amounts[i];
+            }
+        }
+        
+        // Check sender has sufficient balance (will revert on underflow)
+        balanceOf[msg.sender] -= totalAmount;
+        
+        // Execute transfers
+        unchecked {
+            for (uint256 i = 0; i < recipients.length; i++) {
+                address to = recipients[i];
+                uint256 amount = amounts[i];
+                
+                balanceOf[to] += amount;
+                emit Transfer(msg.sender, to, amount);
+            }
+        }
+    }
+    
+    /**
+     * @notice Transfer tokens between multiple address pairs in batch
+     * @dev Gas-optimized batch operation - ADMIN_ROLE bypasses allowance checks
+     */
+    function batchTransferFrom(
+        address[] calldata from,
+        address[] calldata to, 
+        uint256[] calldata amounts
+    ) external {
+        if (from.length != to.length || from.length != amounts.length) revert ArrayLengthMismatch();
+        if (from.length == 0) revert EmptyArray();
+        
+        bool isAdmin = hasRole(msg.sender, ADMIN_ROLE);
+        
+        for (uint256 i = 0; i < from.length; i++) {
+            address fromAddr = from[i];
+            address toAddr = to[i];
+            uint256 amount = amounts[i];
+            
+            // Admin role bypasses allowance checks
+            if (!isAdmin) {
+                uint256 allowed = allowance[fromAddr][msg.sender];
+                if (allowed != type(uint256).max) {
+                    allowance[fromAddr][msg.sender] = allowed - amount; // Will revert on underflow
+                }
+            }
+            
+            // Transfer tokens
+            balanceOf[fromAddr] -= amount; // Will revert on underflow
+            
+            unchecked {
+                balanceOf[toAddr] += amount;
+            }
+            
+            emit Transfer(fromAddr, toAddr, amount);
+        }
+    }
 }
