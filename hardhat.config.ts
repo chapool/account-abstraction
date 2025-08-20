@@ -29,6 +29,13 @@ function getNetwork (name: string): { url: string, accounts: { mnemonic: string 
   // return getNetwork1(`wss://${name}.infura.io/ws/v3/${process.env.INFURA_ID}`)
 }
 
+function getNetworkWithPrivateKey (url: string, privateKey: string): { url: string, accounts: string[] } {
+  return {
+    url,
+    accounts: [privateKey]
+  }
+}
+
 const optimizedCompilerSettings = {
   version: '0.8.28',
   settings: {
@@ -62,7 +69,20 @@ const config: HardhatUserConfig = {
     // github action starts localgeth service, for gas calculations
     localgeth: { url: 'http://localgeth:8545' },
     sepolia: getNetwork('sepolia'),
-    proxy: getNetwork1('http://localhost:8545')
+    proxy: getNetwork1('http://localhost:8545'),
+    bscTestnet: {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+      chainId: 97,
+      gasPrice: 20000000000,
+      accounts: ['0x05255b4e0db26fca40df4999ff8e72ce12130ef6afb39db9ce83436c6076b58f']
+    },
+    hashkeyTestnet: {
+      url: 'https://testnet.hsk.xyz',
+      chainId: 133,
+      gasPrice: 30000000000,
+      accounts: ['0xd8930e1e484f11002d262207542a5f994c96ca4788e2d47aaf9a6ccebffb2edd'],
+      timeout: 60000
+    }
   },
   mocha: {
     timeout: 10000
