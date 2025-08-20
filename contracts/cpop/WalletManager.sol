@@ -6,26 +6,44 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../interfaces/ISenderCreator.sol";
 import "../interfaces/IEntryPoint.sol";
-import "./interfaces/IWalletManager.sol";
 import "./interfaces/IMasterAggregator.sol";
 import "./AAWallet.sol";
 
 /**
- * @title WalletManager
- * @notice Upgradeable factory contract for creating AAWallets
- * @dev Creates deterministic wallet addresses using CREATE2 for Web2 user experience
+ * @title WalletManager v2 - Simplified EOA + Master Architecture
+ * @notice Simplified factory contract for creating AA wallets using EOA + Master signer pattern
+ * @dev Creates deterministic wallet addresses using owner EOA + master signer combination
  */
-contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUPSUpgradeable {
+contract WalletManager is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public accountImplementation;
     ISenderCreator public senderCreator;
-    address public entryPointAddress; // Store entryPoint address for later use
-    address public masterAggregatorAddress; // MasterAggregator for signature aggregation
-    address public defaultMasterSigner; // System-wide default master signer
+    address public entryPointAddress;
+    address public masterAggregatorAddress;
+    address public defaultMasterSigner;
     
     mapping(address => bool) private authorizedCreators;
+
+    /**
+     * @notice Emitted when a new AA wallet is created
+     * @param account The address of the created AA wallet
+     * @param owner The EOA owner address
+     * @param masterSigner The master signer address
+     */
+    event AccountCreated(address indexed account, address indexed owner, address indexed masterSigner);
+
+    /**
+     * @notice Emitted when an address is authorized as account creator
+     * @param creator The authorized creator address
+     */
+    event CreatorAuthorized(address indexed creator);
+
+    /**
+     * @notice Emitted when an address is removed from authorized creators
+     * @param creator The removed creator address
+     */
+    event CreatorRevoked(address indexed creator);
 
     modifier onlyAuthorizedCreator() {
         require(
@@ -65,21 +83,27 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         emit CreatorAuthorized(owner);
     }
 
+    // ============================================
+    // CORE WALLET CREATION FUNCTIONS
+    // ============================================
+
     /**
      * @notice Core wallet creation function - ALL wallet creation goes through this
-     * @param owner The wallet owner address
-     * @param salt Deterministic salt for CREATE2
+     * @param owner The wallet owner EOA address
      * @param masterSigner Master signer for aggregation (use address(0) for default)
      * @return account The created wallet address
      */
-    function createWallet(address owner, bytes32 salt, address masterSigner) public returns (address account) {
+    function createWallet(address owner, address masterSigner) public returns (address account) {
         require(owner != address(0), "WalletManager: invalid owner");
         
         // Use default master signer if none provided
         address actualMasterSigner = masterSigner != address(0) ? masterSigner : defaultMasterSigner;
         
+        // Generate deterministic salt from owner + master combination
+        bytes32 salt = _generateSalt(owner, actualMasterSigner);
+        
         // Check if wallet already exists
-        address addr = _getAccountAddressWithMasterSigner(owner, salt, actualMasterSigner);
+        address addr = _getAccountAddress(owner, actualMasterSigner);
         uint256 codeSize = addr.code.length;
         
         if (codeSize > 0) {
@@ -112,94 +136,67 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
             }
             
             // Only emit event when wallet is actually created
-            emit AccountCreated(account, owner, salt);
+            emit AccountCreated(account, owner, actualMasterSigner);
         }
     }
 
     /**
-     * @notice Legacy function for EntryPoint compatibility
-     * @dev Routes through core createWallet function
+     * @notice Create account for Web2 users (simplified)
+     * @param owner User's EOA address
+     * @param masterSigner Master signer for transaction control
+     * @return account The created AA wallet address
      */
-    function createAccount(address owner, bytes32 salt) 
-        external 
-        override 
-        returns (address account) 
-    {
-        require(msg.sender == address(senderCreator), "WalletManager: only SenderCreator");
-        return createWallet(owner, salt, address(0));
+    function createUserAccount(
+        address owner,
+        address masterSigner
+    ) external onlyAuthorizedCreator returns (address account) {
+        require(owner != address(0), "WalletManager: invalid owner");
+        require(masterSigner != address(0), "WalletManager: invalid master signer");
+        
+        return createWallet(owner, masterSigner);
     }
 
     /**
-     * @notice Legacy function for EntryPoint with master signer
-     * @dev Routes through core createWallet function
+     * @notice Legacy function for EntryPoint compatibility
+     * @dev Routes through core createWallet function with provided parameters
      */
     function createAccountWithMasterSigner(
-        address generatedOwner, 
-        bytes32 salt, 
+        address owner, 
         address masterSigner
     ) external returns (address account) {
         require(msg.sender == address(senderCreator), "WalletManager: only SenderCreator");
         require(masterSigner != address(0), "WalletManager: invalid master signer");
-        return createWallet(generatedOwner, salt, masterSigner);
+        return createWallet(owner, masterSigner);
     }
 
+    // ============================================
+    // ADDRESS PREDICTION FUNCTIONS
+    // ============================================
+
     /**
-     * @notice Convenience function: Create account using string identifier
-     * @dev Routes through core createWallet function with default master signer
+     * @notice Get deterministic AA wallet address
+     * @param owner User's EOA address
+     * @param masterSigner Master signer address
+     * @return account Predicted AA wallet address
      */
-    function createAccountWithIdentifier(address owner, string calldata identifier) 
+    function getAccountAddress(address owner, address masterSigner) 
         external 
-        override 
-        returns (address account) 
-    {
-        bytes32 salt = identifierToSalt(identifier);
-        return createWallet(owner, salt, address(0));
-    }
-
-    /**
-     * @notice Convenience function: Create Web2 account with master signer
-     * @dev Routes through core createWallet function with generated owner
-     */
-    function createWeb2AccountWithMasterSigner(
-        string calldata identifier, 
-        address masterSigner
-    ) 
-        external 
-        override 
-        onlyAuthorizedCreator
-        returns (address account, address generatedOwner) 
-    {
-        require(masterSigner != address(0), "WalletManager: invalid master signer");
-        
-        // Generate owner based on master signer + identifier for better uniqueness
-        generatedOwner = generateOwnerFromMasterSigner(masterSigner, identifier);
-        bytes32 salt = identifierToSalt(identifier);
-        
-        // Create account through core function
-        account = createWallet(generatedOwner, salt, masterSigner);
-    }
-
-
-    /**
-     * @notice Get deterministic account address
-     */
-    function getAccountAddress(address owner, bytes32 salt) 
-        public 
         view 
-        override 
         returns (address account) 
     {
-        return _getAccountAddressWithMasterSigner(owner, salt, address(0));
+        return _getAccountAddress(owner, masterSigner != address(0) ? masterSigner : defaultMasterSigner);
     }
-    
+
     /**
-     * @notice Get deterministic account address with master signer support
+     * @notice Internal function to compute deterministic address
      */
-    function _getAccountAddressWithMasterSigner(address owner, bytes32 salt, address masterSigner) 
+    function _getAccountAddress(address owner, address masterSigner) 
         internal 
         view 
         returns (address account) 
     {
+        bytes32 salt = _generateSalt(owner, masterSigner);
+        
         return Create2.computeAddress(
             salt,
             keccak256(
@@ -215,124 +212,60 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     }
 
     /**
-     * @notice Get deterministic address using string identifier
+     * @notice Generate deterministic salt from owner and master signer
      */
-    function getAccountAddressWithIdentifier(address owner, string calldata identifier) 
-        external 
-        view 
-        override 
-        returns (address account) 
-    {
-        bytes32 salt = identifierToSalt(identifier);
-        return getAccountAddress(owner, salt);
+    function _generateSalt(address owner, address masterSigner) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked("WALLET_V2:", owner, ":", masterSigner));
     }
 
-    /**
-     * @notice Get Web2 account address using identifier and master signer
-     */
-    function getWeb2AccountAddress(string calldata identifier, address masterSigner) 
-        external 
-        view 
-        returns (address account) 
-    {
-        address generatedOwner = generateOwnerFromMasterSigner(masterSigner, identifier);
-        bytes32 salt = identifierToSalt(identifier);
-        return _getAccountAddressWithMasterSigner(generatedOwner, salt, masterSigner);
-    }
+    // ============================================
+    // ENTRYPOINT INTEGRATION
+    // ============================================
 
     /**
-     * @notice Get account address using user's own wallet address as owner
-     * @param userOwner User's existing wallet address as owner
-     * @param identifier User identifier for generating salt
-     * @param masterSigner Master signer for transaction control
-     * @return account Predicted AA wallet address
-     */
-    function getUserAccountAddress(
-        address userOwner, 
-        string calldata identifier, 
-        address masterSigner
-    ) external view returns (address account) {
-        bytes32 salt = identifierToSalt(identifier);
-        return _getAccountAddressWithMasterSigner(userOwner, salt, masterSigner);
-    }
-
-    /**
-     * @notice Generate initCode for Web2 users to enable EntryPoint deployment
-     * @param identifier User identifier string
-     * @param masterSigner Master signer address for Web2 user
+     * @notice Generate initCode for EntryPoint deployment
+     * @param owner User's EOA address
+     * @param masterSigner Master signer address
      * @return initCode Bytes for EntryPoint to deploy the account
      */
-    function getWeb2InitCode(string calldata identifier, address masterSigner) 
+    function getInitCode(address owner, address masterSigner) 
         external 
         view 
         returns (bytes memory initCode) 
     {
-        address generatedOwner = generateOwnerFromMasterSigner(masterSigner, identifier);
-        bytes32 salt = identifierToSalt(identifier);
-        
         initCode = abi.encodePacked(
             address(this),
-            abi.encodeCall(this.createAccountWithMasterSigner, (generatedOwner, salt, masterSigner))
+            abi.encodeCall(this.createAccountWithMasterSigner, (owner, masterSigner))
         );
     }
 
     /**
-     * @notice Check if Web2 account is already deployed
-     * @param identifier User identifier string
+     * @notice Check if account is already deployed
+     * @param owner User's EOA address
      * @param masterSigner Master signer address
      * @return isDeployed True if account is already deployed
      */
-    function isWeb2AccountDeployed(string calldata identifier, address masterSigner) 
+    function isAccountDeployed(address owner, address masterSigner) 
         external 
         view 
         returns (bool isDeployed) 
     {
-        address accountAddress = this.getWeb2AccountAddress(identifier, masterSigner);
+        address accountAddress = _getAccountAddress(
+            owner, 
+            masterSigner != address(0) ? masterSigner : defaultMasterSigner
+        );
         return accountAddress.code.length > 0;
     }
 
+    // ============================================
+    // MANAGEMENT FUNCTIONS
+    // ============================================
 
     /**
      * @notice Get the account implementation address
      */
-    function getImplementation() external view override returns (address) {
+    function getImplementation() external view returns (address) {
         return accountImplementation;
-    }
-
-    /**
-     * @notice Convert string identifier to deterministic salt
-     */
-    function identifierToSalt(string calldata identifier) 
-        public 
-        pure 
-        override 
-        returns (bytes32 salt) 
-    {
-        return keccak256(abi.encodePacked(identifier));
-    }
-
-
-    /**
-     * @notice Generate deterministic owner address from master signer and identifier
-     * @dev This creates unique owner addresses even with the same identifier across different master signers
-     */
-    function generateOwnerFromMasterSigner(address masterSigner, string calldata identifier) 
-        public 
-        pure 
-        override 
-        returns (address owner) 
-    {
-        // Combine master signer address with identifier for uniqueness
-        bytes32 hash = keccak256(abi.encodePacked("_MASTER_OWNER:", masterSigner, ":", identifier));
-        return address(uint160(uint256(hash)));
-    }
-
-    /**
-     * @notice Authorize contract upgrades
-     * @dev Only owner can authorize upgrades
-     */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
-        // Additional upgrade logic can be added here if needed
     }
 
     /**
@@ -376,7 +309,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     /**
      * @notice Authorize an address to create accounts
      */
-    function authorizeCreator(address creator) external override onlyOwner {
+    function authorizeCreator(address creator) external onlyOwner {
         require(creator != address(0), "WalletManager: invalid creator");
         require(!authorizedCreators[creator], "WalletManager: already authorized");
         
@@ -387,7 +320,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     /**
      * @notice Revoke authorization from an address
      */
-    function revokeCreator(address creator) external override onlyOwner {
+    function revokeCreator(address creator) external onlyOwner {
         require(authorizedCreators[creator], "WalletManager: not authorized");
         require(creator != owner(), "WalletManager: cannot revoke owner");
         
@@ -398,27 +331,15 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     /**
      * @notice Check if an address is authorized to create accounts
      */
-    function isAuthorizedCreator(address creator) external view override returns (bool) {
+    function isAuthorizedCreator(address creator) external view returns (bool) {
         return authorizedCreators[creator] || creator == owner();
     }
 
     /**
-     * @notice Create account using user's own wallet address as owner
-     * @param userOwner User's existing wallet address as owner
-     * @param identifier User identifier for generating salt
-     * @param masterSigner Master signer for transaction control
-     * @return account The created AA wallet address
+     * @notice Authorize contract upgrades
+     * @dev Only owner can authorize upgrades
      */
-    function createUserAccount(
-        address userOwner,
-        string calldata identifier,
-        address masterSigner
-    ) external onlyAuthorizedCreator returns (address account) {
-        require(userOwner != address(0), "WalletManager: invalid user owner");
-        require(masterSigner != address(0), "WalletManager: invalid master signer");
-        
-        bytes32 salt = identifierToSalt(identifier);
-        account = createWallet(userOwner, salt, masterSigner);
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
+        // Additional upgrade logic can be added here if needed
     }
-
 }
