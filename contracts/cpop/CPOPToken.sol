@@ -199,4 +199,49 @@ contract CPOPToken is ICPOPToken {
     function decimals() external pure returns (uint8) {
         return DECIMALS;
     }
+    
+    /**
+     * @notice Mint tokens to multiple addresses in batch
+     * @dev Gas-optimized batch operation for minting - only MINTER_ROLE
+     */
+    function batchMint(address[] calldata recipients, uint256[] calldata amounts) external {
+        if (!hasRole(msg.sender, MINTER_ROLE)) revert AccessDenied();
+        if (recipients.length != amounts.length) revert ArrayLengthMismatch();
+        if (recipients.length == 0) revert EmptyArray();
+        
+        unchecked {
+            for (uint256 i = 0; i < recipients.length; i++) {
+                address to = recipients[i];
+                uint256 amount = amounts[i];
+                
+                totalSupply += amount;
+                balanceOf[to] += amount;
+                
+                emit Transfer(address(0), to, amount);
+            }
+        }
+    }
+    
+    /**
+     * @notice Burn tokens from multiple addresses in batch  
+     * @dev Gas-optimized batch operation for burning - only BURNER_ROLE
+     */
+    function batchBurn(address[] calldata accounts, uint256[] calldata amounts) external {
+        if (!hasRole(msg.sender, BURNER_ROLE)) revert AccessDenied();
+        if (accounts.length != amounts.length) revert ArrayLengthMismatch();
+        if (accounts.length == 0) revert EmptyArray();
+        
+        for (uint256 i = 0; i < accounts.length; i++) {
+            address from = accounts[i];
+            uint256 amount = amounts[i];
+            
+            balanceOf[from] -= amount; // Will revert on underflow (checked math)
+            
+            unchecked {
+                totalSupply -= amount; // Safe since we checked balance above
+            }
+            
+            emit Transfer(from, address(0), amount);
+        }
+    }
 }

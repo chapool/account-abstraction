@@ -10,6 +10,8 @@ interface ICPOPToken {
     // Custom errors
     error AccessDenied();
     error InvalidRole();
+    error ArrayLengthMismatch();
+    error EmptyArray();
 
     // Role constants (bit flags) - as public constants
     function ADMIN_ROLE() external view returns (uint8);
@@ -46,4 +48,8 @@ interface ICPOPToken {
     function burn(uint256 amount) external;
     function burnFrom(address from, uint256 amount) external;
     function adminBurn(address from, uint256 amount) external;
+    
+    // Batch operations for gas efficiency
+    function batchMint(address[] calldata recipients, uint256[] calldata amounts) external;
+    function batchBurn(address[] calldata accounts, uint256[] calldata amounts) external;
 }
