@@ -11,10 +11,10 @@ interface ICPOPToken {
     error AccessDenied();
     error InvalidRole();
 
-    // Role constants (bit flags)
-    function ADMIN_ROLE() external pure returns (uint8);
-    function MINTER_ROLE() external pure returns (uint8);
-    function BURNER_ROLE() external pure returns (uint8);
+    // Role constants (bit flags) - as public constants
+    function ADMIN_ROLE() external view returns (uint8);
+    function MINTER_ROLE() external view returns (uint8);
+    function BURNER_ROLE() external view returns (uint8);
 
     // Standard ERC20 events
     event Transfer(address indexed from, address indexed to, uint256 value);

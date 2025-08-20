@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "./interfaces/ICPOPToken.sol";
+
 /**
  * @title CPOPToken - Gas Optimized Role-Based ERC20
  * @notice Ultra gas-efficient ERC20 implementation with lightweight role system
  * @dev Uses bit-packed roles for minimal gas overhead while supporting multiple contracts
  */
-contract CPOPToken {
-    // Custom errors for gas optimization
-    error AccessDenied();
-    error InvalidRole();
-    
+contract CPOPToken is ICPOPToken {
     // Role constants (bit flags for gas efficiency)
     uint8 public constant ADMIN_ROLE = 1;     // 0001 - Can manage roles
     uint8 public constant MINTER_ROLE = 2;    // 0010 - Can mint tokens
@@ -27,14 +25,6 @@ contract CPOPToken {
     
     // Role management - gas efficient bit-packed roles
     mapping(address => uint8) public roles;
-    
-    // Events (required by ERC20)
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-    
-    // Role events
-    event RoleGranted(address indexed account, uint8 role);
-    event RoleRevoked(address indexed account, uint8 role);
     
     constructor(address _admin, uint256 _initialSupply) {
         // Grant all roles to initial admin
