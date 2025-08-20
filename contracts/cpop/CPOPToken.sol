@@ -1,282 +1,212 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "./interfaces/ICPOPToken.sol";
-import "./interfaces/IAAWallet.sol";
-
 /**
- * @title CPOPToken
- * @notice A gas-optimized token for CPOP ecosystem internal circulation
- * @dev Non-standard ERC20 - only allows transfers between whitelisted addresses
- * Optimized for gas efficiency by removing unnecessary features like allowances
+ * @title CPOPToken - Gas Optimized Role-Based ERC20
+ * @notice Ultra gas-efficient ERC20 implementation with lightweight role system
+ * @dev Uses bit-packed roles for minimal gas overhead while supporting multiple contracts
  */
-contract CPOPToken is ICPOPToken, AccessControl, Pausable {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-
-    string public constant name = "CPOP Token";
-    string public constant symbol = "CPOP";
-    uint8 public constant decimals = 18;
-
-    uint256 private _totalSupply;
-    mapping(address => uint256) private _balances;
-    mapping(address => bool) private _whitelist;
-
-    // Removed onlyWhitelisted modifier - now using smart interface detection only
-
-    modifier validTransfer(address from, address to) {
-        require(isAuthorizedTransfer(from, to), "CPOPToken: unauthorized transfer");
-        _;
-    }
-
-    constructor(address admin) {
-        require(admin != address(0), "CPOPToken: admin cannot be zero address");
+contract CPOPToken {
+    // Custom errors for gas optimization
+    error AccessDenied();
+    error InvalidRole();
+    
+    // Role constants (bit flags for gas efficiency)
+    uint8 public constant ADMIN_ROLE = 1;     // 0001 - Can manage roles
+    uint8 public constant MINTER_ROLE = 2;    // 0010 - Can mint tokens
+    uint8 public constant BURNER_ROLE = 4;    // 0100 - Can burn tokens from any address
+    
+    // ERC20 basic storage - packed into single slot where possible
+    string public constant NAME = "CPOP Token";
+    string public constant SYMBOL = "CPOP";
+    uint8 public constant DECIMALS = 18;
+    
+    uint256 public totalSupply;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    
+    // Role management - gas efficient bit-packed roles
+    mapping(address => uint8) public roles;
+    
+    // Events (required by ERC20)
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    
+    // Role events
+    event RoleGranted(address indexed account, uint8 role);
+    event RoleRevoked(address indexed account, uint8 role);
+    
+    constructor(address _admin, uint256 _initialSupply) {
+        // Grant all roles to initial admin
+        roles[_admin] = ADMIN_ROLE | MINTER_ROLE | BURNER_ROLE;
         
-        _grantRole(DEFAULT_ADMIN_ROLE, admin);
-        _grantRole(ADMIN_ROLE, admin);
-        _grantRole(MINTER_ROLE, admin);
-        _grantRole(BURNER_ROLE, admin);
+        totalSupply = _initialSupply;
+        balanceOf[_admin] = _initialSupply;
+        
+        emit Transfer(address(0), _admin, _initialSupply);
+        emit RoleGranted(_admin, ADMIN_ROLE);
+        emit RoleGranted(_admin, MINTER_ROLE);
+        emit RoleGranted(_admin, BURNER_ROLE);
     }
-
+    
     /**
-     * @notice Get the total supply of tokens
+     * @notice Check if an address has a specific role
+     * @dev Uses bitwise operations for gas efficiency
      */
-    function totalSupply() external view override returns (uint256) {
-        return _totalSupply;
+    function hasRole(address account, uint8 role) public view returns (bool) {
+        return (roles[account] & role) != 0;
     }
-
+    
     /**
-     * @notice Get the balance of an account
+     * @notice Grant a role to an address
+     * @dev Only ADMIN_ROLE can grant roles
      */
-    function balanceOf(address account) external view override returns (uint256) {
-        return _balances[account];
+    function grantRole(address account, uint8 role) external {
+        if (!hasRole(msg.sender, ADMIN_ROLE)) revert AccessDenied();
+        if (role == 0 || role > 7) revert InvalidRole(); // Valid roles: 1, 2, 4 and combinations
+        
+        roles[account] |= role;
+        emit RoleGranted(account, role);
     }
-
+    
     /**
-     * @notice Transfer tokens between whitelisted addresses
+     * @notice Revoke a role from an address
+     * @dev Only ADMIN_ROLE can revoke roles
      */
-    function transfer(address to, uint256 amount) 
-        external 
-        override 
-        whenNotPaused 
-        validTransfer(msg.sender, to)
-        returns (bool) 
-    {
-        _transfer(msg.sender, to, amount);
+    function revokeRole(address account, uint8 role) external {
+        if (!hasRole(msg.sender, ADMIN_ROLE)) revert AccessDenied();
+        if (role == 0 || role > 7) revert InvalidRole();
+        
+        roles[account] &= ~role;
+        emit RoleRevoked(account, role);
+    }
+    
+    /**
+     * @notice Transfer tokens
+     * @dev Gas optimized - minimal checks
+     */
+    function transfer(address to, uint256 amount) external returns (bool) {
+        balanceOf[msg.sender] -= amount; // Will revert on underflow (Solidity 0.8+)
+        
+        // Unchecked block for gas optimization - safe since we checked underflow above
+        unchecked {
+            balanceOf[to] += amount;
+        }
+        
+        emit Transfer(msg.sender, to, amount);
         return true;
     }
-
+    
     /**
-     * @notice Mint new tokens to any address
+     * @notice Approve spender
+     * @dev Gas optimized approval
      */
-    function mint(address to, uint256 amount) 
-        external 
-        override 
-        onlyRole(MINTER_ROLE) 
-        whenNotPaused 
-    {
-        require(to != address(0), "CPOPToken: mint to zero address");
-        require(amount > 0, "CPOPToken: mint amount must be positive");
-
-        _totalSupply += amount;
-        _balances[to] += amount;
-
-        emit Mint(to, amount);
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+    
+    /**
+     * @notice Transfer from approved amount
+     * @dev Gas optimized transferFrom
+     */
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        uint256 allowed = allowance[from][msg.sender];
+        
+        // Check allowance (will revert if insufficient)
+        if (allowed != type(uint256).max) {
+            allowance[from][msg.sender] = allowed - amount;
+        }
+        
+        // Transfer tokens
+        balanceOf[from] -= amount; // Will revert on underflow
+        
+        unchecked {
+            balanceOf[to] += amount;
+        }
+        
+        emit Transfer(from, to, amount);
+        return true;
+    }
+    
+    /**
+     * @notice Mint new tokens (MINTER_ROLE required)
+     * @dev Can be called by any address with MINTER_ROLE
+     */
+    function mint(address to, uint256 amount) external {
+        if (!hasRole(msg.sender, MINTER_ROLE)) revert AccessDenied();
+        
+        unchecked {
+            totalSupply += amount;
+            balanceOf[to] += amount;
+        }
+        
         emit Transfer(address(0), to, amount);
     }
-
+    
     /**
-     * @notice Burn tokens from any address
+     * @notice Burn tokens from caller's balance
+     * @dev Gas optimized burn
      */
-    function burn(address from, uint256 amount) 
-        external 
-        override 
-        onlyRole(BURNER_ROLE) 
-        whenNotPaused 
-    {
-        require(from != address(0), "CPOPToken: burn from zero address");
-        require(amount > 0, "CPOPToken: burn amount must be positive");
-        require(_balances[from] >= amount, "CPOPToken: burn amount exceeds balance");
-
-        _balances[from] -= amount;
-        _totalSupply -= amount;
-
-        emit Burn(from, amount);
+    function burn(uint256 amount) external {
+        balanceOf[msg.sender] -= amount; // Will revert on underflow
+        
+        unchecked {
+            totalSupply -= amount;
+        }
+        
+        emit Transfer(msg.sender, address(0), amount);
+    }
+    
+    /**
+     * @notice Burn tokens from specific address (with approval or BURNER_ROLE)
+     * @dev BURNER_ROLE can burn from any address, others need approval
+     */
+    function burnFrom(address from, uint256 amount) external {
+        // BURNER_ROLE can burn from any address without approval
+        if (!hasRole(msg.sender, BURNER_ROLE)) {
+            uint256 allowed = allowance[from][msg.sender];
+            if (allowed != type(uint256).max) {
+                allowance[from][msg.sender] = allowed - amount;
+            }
+        }
+        
+        balanceOf[from] -= amount; // Will revert on underflow
+        
+        unchecked {
+            totalSupply -= amount;
+        }
+        
         emit Transfer(from, address(0), amount);
     }
-
+    
     /**
-     * @notice Mint tokens to multiple addresses in batch
-     * @dev Gas-optimized batch operation for minting
-     * @param recipients Array of addresses to mint tokens to
-     * @param amounts Array of amounts to mint to each address
+     * @notice Admin burn - burn tokens from any address without approval
+     * @dev Only BURNER_ROLE can call this function
      */
-    function batchMint(address[] calldata recipients, uint256[] calldata amounts) 
-        external 
-        override 
-        onlyRole(MINTER_ROLE) 
-        whenNotPaused 
-    {
-        require(recipients.length == amounts.length, "CPOPToken: arrays length mismatch");
-        require(recipients.length > 0, "CPOPToken: empty arrays");
+    function adminBurn(address from, uint256 amount) external {
+        if (!hasRole(msg.sender, BURNER_ROLE)) revert AccessDenied();
         
-        for (uint256 i = 0; i < recipients.length; i++) {
-            address to = recipients[i];
-            uint256 amount = amounts[i];
-            
-            require(to != address(0), "CPOPToken: mint to zero address");
-            require(amount > 0, "CPOPToken: mint amount must be positive");
-            
-            _totalSupply += amount;
-            _balances[to] += amount;
-            
-            emit Mint(to, amount);
-            emit Transfer(address(0), to, amount);
-        }
-    }
-
-    /**
-     * @notice Burn tokens from multiple addresses in batch
-     * @dev Gas-optimized batch operation for burning
-     * @param accounts Array of addresses to burn tokens from
-     * @param amounts Array of amounts to burn from each address
-     */
-    function batchBurn(address[] calldata accounts, uint256[] calldata amounts) 
-        external 
-        override 
-        onlyRole(BURNER_ROLE) 
-        whenNotPaused 
-    {
-        require(accounts.length == amounts.length, "CPOPToken: arrays length mismatch");
-        require(accounts.length > 0, "CPOPToken: empty arrays");
+        balanceOf[from] -= amount; // Will revert on underflow
         
-        for (uint256 i = 0; i < accounts.length; i++) {
-            address from = accounts[i];
-            uint256 amount = amounts[i];
-            
-            require(from != address(0), "CPOPToken: burn from zero address");
-            require(amount > 0, "CPOPToken: burn amount must be positive");
-            require(_balances[from] >= amount, "CPOPToken: burn amount exceeds balance");
-            
-            _balances[from] -= amount;
-            _totalSupply -= amount;
-            
-            emit Burn(from, amount);
-            emit Transfer(from, address(0), amount);
-        }
-    }
-
-    /**
-     * @notice Check if an address is whitelisted
-     */
-    function isWhitelisted(address account) external view override returns (bool) {
-        return _whitelist[account];
-    }
-
-    /**
-     * @notice Check if a transfer is authorized between two addresses
-     * @dev Only allows transfers between system contracts and AAWallet contracts
-     */
-    function isAuthorizedTransfer(address from, address to) public view override returns (bool) {
-        // Allow transfers if both addresses are whitelisted (for system contracts)
-        if (_whitelist[from] && _whitelist[to]) {
-            return true;
+        unchecked {
+            totalSupply -= amount;
         }
         
-        // Allow transfers involving AAWallet contracts
-        bool fromIsAAWallet = isAAWallet(from);
-        bool toIsAAWallet = isAAWallet(to);
-        
-        if (fromIsAAWallet || toIsAAWallet) {
-            // Allow transfers between AAWallets
-            if (fromIsAAWallet && toIsAAWallet) {
-                return true;
-            }
-            // Allow transfers between AAWallet and whitelisted system contracts
-            return (_whitelist[from] || fromIsAAWallet) && 
-                   (_whitelist[to] || toIsAAWallet);
-        }
-        
-        return false;
+        emit Transfer(from, address(0), amount);
     }
-
-    /**
-     * @notice Add an address to the whitelist
-     */
-    function addToWhitelist(address account) external override onlyRole(ADMIN_ROLE) {
-        require(account != address(0), "CPOPToken: cannot whitelist zero address");
-        require(!_whitelist[account], "CPOPToken: address already whitelisted");
-
-        _whitelist[account] = true;
-        emit WhitelistAdded(account);
+    
+    // ERC20 metadata functions for compatibility
+    function name() external pure returns (string memory) {
+        return NAME;
     }
-
-    /**
-     * @notice Remove an address from the whitelist
-     */
-    function removeFromWhitelist(address account) external override onlyRole(ADMIN_ROLE) {
-        require(_whitelist[account], "CPOPToken: address not whitelisted");
-
-        _whitelist[account] = false;
-        emit WhitelistRemoved(account);
+    
+    function symbol() external pure returns (string memory) {
+        return SYMBOL;
     }
-
-    /**
-     * @notice Check if an address is an AAWallet contract
-     * @dev Uses interface detection to identify AAWallet contracts
-     * @param account The address to check
-     * @return True if the address is an AAWallet contract
-     */
-    function isAAWallet(address account) public view override returns (bool) {
-        if (account.code.length == 0) {
-            return false; // EOA cannot be AAWallet
-        }
-        
-        try IAAWallet(account).supportsInterface(type(IAAWallet).interfaceId) returns (bool supported) {
-            return supported;
-        } catch {
-            // Fallback: check if the contract has AAWallet-specific functions
-            try IAAWallet(account).getOwner() returns (address) {
-                try IAAWallet(account).getMasterSigner() returns (address) {
-                    return true; // Has both functions, likely AAWallet
-                } catch {
-                    return false;
-                }
-            } catch {
-                return false;
-            }
-        }
-    }
-
-    /**
-     * @notice Internal transfer function
-     */
-    function _transfer(address from, address to, uint256 amount) internal {
-        require(from != address(0), "CPOPToken: transfer from zero address");
-        require(to != address(0), "CPOPToken: transfer to zero address");
-        require(amount > 0, "CPOPToken: transfer amount must be positive");
-        require(_balances[from] >= amount, "CPOPToken: transfer amount exceeds balance");
-
-        _balances[from] -= amount;
-        _balances[to] += amount;
-
-        emit Transfer(from, to, amount);
-    }
-
-    /**
-     * @notice Pause the contract (emergency function)
-     */
-    function pause() external onlyRole(ADMIN_ROLE) {
-        _pause();
-    }
-
-    /**
-     * @notice Unpause the contract
-     */
-    function unpause() external onlyRole(ADMIN_ROLE) {
-        _unpause();
+    
+    function decimals() external pure returns (uint8) {
+        return DECIMALS;
     }
 }
