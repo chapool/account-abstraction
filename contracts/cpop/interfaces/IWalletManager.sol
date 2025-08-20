@@ -111,6 +111,30 @@ interface IWalletManager {
     function getImplementation() external view returns (address);
 
     /**
+     * @notice Get the account implementation address (alias)
+     * @return The address of the AAWallet implementation
+     */
+    function accountImplementation() external view returns (address);
+
+    /**
+     * @notice Get the EntryPoint address
+     * @return The EntryPoint contract address
+     */
+    function entryPointAddress() external view returns (address);
+
+    /**
+     * @notice Get the MasterAggregator address
+     * @return The MasterAggregator contract address
+     */
+    function masterAggregatorAddress() external view returns (address);
+
+    /**
+     * @notice Get the SenderCreator address
+     * @return The SenderCreator contract address
+     */
+    function senderCreator() external view returns (address);
+
+    /**
      * @notice Update the account implementation
      * @param newImplementation New AAWallet implementation address
      */
