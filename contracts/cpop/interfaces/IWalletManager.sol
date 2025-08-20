@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "../../interfaces/ISenderCreator.sol";
+
 /**
  * @title IWalletManager v2 - Simplified EOA + Master Interface
  * @notice Simplified interface for Wallet Manager using EOA + Master signer pattern
@@ -132,7 +134,7 @@ interface IWalletManager {
      * @notice Get the SenderCreator address
      * @return The SenderCreator contract address
      */
-    function senderCreator() external view returns (address);
+    function senderCreator() external view returns (ISenderCreator);
 
     /**
      * @notice Update the account implementation

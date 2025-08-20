@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../interfaces/ISenderCreator.sol";
 import "../interfaces/IEntryPoint.sol";
 import "./interfaces/IMasterAggregator.sol";
+import "./interfaces/IWalletManager.sol";
 import "./AAWallet.sol";
 
 /**
@@ -16,7 +17,7 @@ import "./AAWallet.sol";
  * @notice Simplified factory contract for creating AA wallets using EOA + Master signer pattern
  * @dev Creates deterministic wallet addresses using owner EOA + master signer combination
  */
-contract WalletManager is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUPSUpgradeable {
     address public accountImplementation;
     ISenderCreator public senderCreator;
     address public entryPointAddress;
@@ -24,26 +25,6 @@ contract WalletManager is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public defaultMasterSigner;
     
     mapping(address => bool) private authorizedCreators;
-
-    /**
-     * @notice Emitted when a new AA wallet is created
-     * @param account The address of the created AA wallet
-     * @param owner The EOA owner address
-     * @param masterSigner The master signer address
-     */
-    event AccountCreated(address indexed account, address indexed owner, address indexed masterSigner);
-
-    /**
-     * @notice Emitted when an address is authorized as account creator
-     * @param creator The authorized creator address
-     */
-    event CreatorAuthorized(address indexed creator);
-
-    /**
-     * @notice Emitted when an address is removed from authorized creators
-     * @param creator The removed creator address
-     */
-    event CreatorRevoked(address indexed creator);
 
     modifier onlyAuthorizedCreator() {
         require(
