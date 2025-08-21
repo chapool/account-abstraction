@@ -92,10 +92,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         } else {
             // All wallets use unified initialization with optional aggregator
             bytes memory initData = abi.encodeCall(AAWallet.initialize,
-                (entryPointAddress, owner, actualMasterSigner, 
-                 masterAggregatorAddress != address(0) && masterAggregatorAddress.code.length > 0 
-                    ? masterAggregatorAddress 
-                    : address(0)));
+                (entryPointAddress, owner, actualMasterSigner, masterAggregatorAddress));
             
             account = address(
                 new ERC1967Proxy{salt: salt}(
