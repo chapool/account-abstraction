@@ -91,8 +91,10 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
             account = addr;
         } else {
             // All wallets use unified initialization with optional aggregator
-            bytes memory initData = abi.encodeCall(AAWallet.initialize,
-                (entryPointAddress, owner, actualMasterSigner, masterAggregatorAddress));
+            bytes memory initData = abi.encodeCall(
+                AAWallet.initialize,
+                (entryPointAddress, owner, actualMasterSigner, masterAggregatorAddress)
+            );
             
             account = address(
                 new ERC1967Proxy{salt: salt}(
@@ -103,7 +105,10 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
             
             // Register wallet-master relationship in aggregator if configured
             if (masterAggregatorAddress != address(0) && masterAggregatorAddress.code.length > 0) {
-                try IMasterAggregator(masterAggregatorAddress).autoAuthorizeWallet(actualMasterSigner, account) {
+                try IMasterAggregator(masterAggregatorAddress).autoAuthorizeWallet(
+                    actualMasterSigner, 
+                    account
+                ) {
                     // Successfully registered wallet-master relationship
                 } catch {
                     // Aggregator authorization failed, wallet can still function without aggregation
