@@ -122,7 +122,8 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     }
 
     /**
-     * @notice Set a new master signer (only current master signer can call)
+     * @notice Set a new master signer (only master signer can call)
+     * @dev Master signer can manage itself
      */
     function setMasterSigner(address newMasterSigner) external override onlyMasterSigner {
         address oldMasterSigner = masterSigner;
@@ -131,10 +132,11 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     }
 
     /**
-     * @notice Set authorized session key manager (only owner can call)
+     * @notice Set authorized session key manager (only master signer can call)
+     * @dev Master signer manages daily operations including session key management
      * @param _sessionKeyManager The session key manager contract address
      */
-    function setAuthorizedSessionKeyManager(address _sessionKeyManager) external onlyOwner {
+    function setAuthorizedSessionKeyManager(address _sessionKeyManager) external onlyMasterSigner {
         authorizedSessionKeyManager = _sessionKeyManager;
     }
 
@@ -216,10 +218,11 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     }
 
     /**
-     * @notice Set aggregator address (only owner can set)
+     * @notice Set aggregator address (only master signer can set)
+     * @dev Master signer controls batch operation infrastructure
      * @param _aggregator New aggregator address
      */
-    function setAggregator(address _aggregator) external onlyOwner {
+    function setAggregator(address _aggregator) external onlyMasterSigner {
         address oldAggregator = aggregatorAddress;
         aggregatorAddress = _aggregator;
         emit AggregatorUpdated(oldAggregator, _aggregator);
@@ -238,11 +241,12 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     }
 
     /**
-     * @notice Authorize contract upgrades
+     * @notice Authorize contract upgrades (only master signer can upgrade)
+     * @dev Master signer has full control over contract upgrades
      */
     function _authorizeUpgrade(address newImplementation) internal view override {
         (newImplementation); // suppress unused parameter warning
-        require(msg.sender == owner, "AAWallet: only owner can upgrade");
+        require(msg.sender == masterSigner, "AAWallet: only master signer can upgrade");
     }
 
     /**
@@ -267,9 +271,10 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     }
 
     /**
-     * @notice Withdraw deposit from EntryPoint
+     * @notice Withdraw deposit from EntryPoint (only master signer can call)
+     * @dev Master signer manages daily operations including deposit management
      */
-    function withdrawDepositTo(address payable withdrawAddress, uint256 amount) external onlyOwner {
+    function withdrawDepositTo(address payable withdrawAddress, uint256 amount) external onlyMasterSigner {
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
