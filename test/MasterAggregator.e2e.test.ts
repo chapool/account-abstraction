@@ -125,7 +125,7 @@ describe("MasterAggregator - End-to-End handleAggregatedOps Tests", function () 
 
     async function createTestWallets() {
         // Create wallets directly with aggregator configuration
-        // Use simpler approach: create wallets directly with initializeWithAggregator
+        // Use simpler approach: create wallets directly with initialize
         
         const AAWalletFactory = await ethers.getContractFactory("AAWallet");
         const ProxyFactory = await ethers.getContractFactory("ERC1967Proxy");
@@ -135,7 +135,7 @@ describe("MasterAggregator - End-to-End handleAggregatedOps Tests", function () 
         await walletImpl.deployed();
         
         // Create wallet 1 with aggregator
-        const initData1 = walletImpl.interface.encodeFunctionData("initializeWithAggregator", [
+        const initData1 = walletImpl.interface.encodeFunctionData("initialize", [
             entryPoint.address,
             ownerAddress, // Use our test account as owner
             masterSigner1Address,
@@ -152,7 +152,7 @@ describe("MasterAggregator - End-to-End handleAggregatedOps Tests", function () 
         ) as AAWallet;
         
         // Create wallet 2 with aggregator
-        const initData2 = walletImpl.interface.encodeFunctionData("initializeWithAggregator", [
+        const initData2 = walletImpl.interface.encodeFunctionData("initialize", [
             entryPoint.address,
             ownerAddress, // Use our test account as owner
             masterSigner1Address,

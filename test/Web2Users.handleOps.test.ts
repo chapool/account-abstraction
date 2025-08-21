@@ -130,7 +130,7 @@ describe("Web2 Users - handleOps Flow Test", function () {
         await walletImpl.deployed();
 
         // Create wallet 1 for web2User1
-        const initData1 = walletImpl.interface.encodeFunctionData("initializeWithAggregator", [
+        const initData1 = walletImpl.interface.encodeFunctionData("initialize", [
             entryPoint.address,
             web2User1Address, // User1 owns their wallet
             masterSignerAddress,
@@ -147,7 +147,7 @@ describe("Web2 Users - handleOps Flow Test", function () {
         ) as AAWallet;
 
         // Create wallet 2 for web2User2
-        const initData2 = walletImpl.interface.encodeFunctionData("initializeWithAggregator", [
+        const initData2 = walletImpl.interface.encodeFunctionData("initialize", [
             entryPoint.address,
             web2User2Address, // User2 owns their wallet
             masterSignerAddress,
@@ -164,7 +164,7 @@ describe("Web2 Users - handleOps Flow Test", function () {
         ) as AAWallet;
 
         // Create wallet 3 for web2User3
-        const initData3 = walletImpl.interface.encodeFunctionData("initializeWithAggregator", [
+        const initData3 = walletImpl.interface.encodeFunctionData("initialize", [
             entryPoint.address,
             web2User3Address, // User3 owns their wallet
             masterSignerAddress,

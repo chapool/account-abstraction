@@ -144,17 +144,4 @@ interface IAAWallet is IAccount, IERC165 {
      */
     function getAggregator() external view returns (address);
 
-    /**
-     * @notice Initialize with aggregator (alternative initialization)
-     * @param _entryPoint The EntryPoint contract address
-     * @param _owner The owner address
-     * @param _masterSigner The master signer address (optional)
-     * @param _aggregator The aggregator contract address
-     */
-    function initializeWithAggregator(
-        address _entryPoint, 
-        address _owner, 
-        address _masterSigner,
-        address _aggregator
-    ) external;
 }

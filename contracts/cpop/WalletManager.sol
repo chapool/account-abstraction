@@ -90,15 +90,12 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         if (codeSize > 0) {
             account = addr;
         } else {
-            // All wallets use MasterAggregator initialization if available
-            bytes memory initData;
-            if (masterAggregatorAddress != address(0) && masterAggregatorAddress.code.length > 0) {
-                initData = abi.encodeCall(AAWallet.initializeWithAggregator, 
-                    (entryPointAddress, owner, actualMasterSigner, masterAggregatorAddress));
-            } else {
-                initData = abi.encodeCall(AAWallet.initialize, 
-                    (entryPointAddress, owner, actualMasterSigner));
-            }
+            // All wallets use unified initialization with optional aggregator
+            bytes memory initData = abi.encodeCall(AAWallet.initialize,
+                (entryPointAddress, owner, actualMasterSigner, 
+                 masterAggregatorAddress != address(0) && masterAggregatorAddress.code.length > 0 
+                    ? masterAggregatorAddress 
+                    : address(0)));
             
             account = address(
                 new ERC1967Proxy{salt: salt}(
@@ -185,7 +182,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
                     type(ERC1967Proxy).creationCode,
                     abi.encode(
                         accountImplementation,
-                        abi.encodeCall(AAWallet.initialize, (entryPointAddress, owner, masterSigner))
+                        abi.encodeCall(AAWallet.initialize, (entryPointAddress, owner, masterSigner, address(0)))
                     )
                 )
             )

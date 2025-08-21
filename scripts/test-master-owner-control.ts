@@ -39,7 +39,8 @@ async function testMasterOwnerControl() {
     const initData = AAWallet.interface.encodeFunctionData("initialize", [
         entryPoint.address,
         owner.address,
-        masterSigner.address
+        masterSigner.address,
+        ethers.constants.AddressZero // no aggregator initially
     ]);
     
     const proxy = await ERC1967Proxy.deploy(aaWalletImpl.address, initData);

@@ -61,29 +61,16 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     }
 
     /**
-     * @notice Initialize the account with entryPoint, owner and optional master signer
+     * @notice Initialize the account with entryPoint, owner, optional master signer and aggregator
      * @param _entryPoint The EntryPoint contract address (required)
      * @param _owner The owner address (required)
      * @param _masterSigner The master signer address (optional, can be zero address)
+     * @param _aggregator The aggregator contract address (optional, can be zero address)
      */
-    function initialize(address _entryPoint, address _owner, address _masterSigner) external initializer {
-        require(_entryPoint != address(0), "AAWallet: invalid entryPoint");
-        require(_owner != address(0), "AAWallet: invalid owner");
-        
-        entryPointAddress = _entryPoint;
-        owner = _owner;
-        masterSigner = _masterSigner; // Can be zero address if not needed
-        
-        emit AAWalletInitialized(_owner, _masterSigner);
-    }
-
-    /**
-     * @notice Initialize with aggregator (alternative initialization for WalletManager)
-     */
-    function initializeWithAggregator(
+    function initialize(
         address _entryPoint, 
         address _owner, 
-        address _masterSigner,
+        address _masterSigner, 
         address _aggregator
     ) external initializer {
         require(_entryPoint != address(0), "AAWallet: invalid entryPoint");
@@ -92,7 +79,7 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
         entryPointAddress = _entryPoint;
         owner = _owner;
         masterSigner = _masterSigner; // Can be zero address if not needed
-        aggregatorAddress = _aggregator; // Set aggregator during initialization
+        aggregatorAddress = _aggregator; // Can be zero address if not needed
         
         emit AAWalletInitialized(_owner, _masterSigner);
         if (_aggregator != address(0)) {
