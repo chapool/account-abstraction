@@ -184,7 +184,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
                     type(ERC1967Proxy).creationCode,
                     abi.encode(
                         accountImplementation,
-                        abi.encodeCall(AAWallet.initialize, (entryPointAddress, owner, masterSigner, address(0)))
+                        abi.encodeCall(AAWallet.initialize, (entryPointAddress, owner, masterSigner, masterAggregatorAddress))
                     )
                 )
             )
