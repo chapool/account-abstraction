@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "./interfaces/IAAWallet.sol";
+import "./interfaces/IAAccount.sol";
 import "./interfaces/ISessionKeyManager.sol";
 
 /**
@@ -90,7 +90,7 @@ contract SessionKeyManager is
         require(account != address(0), "SessionKeyManager: invalid account");
         
         // Verify the account is actually controlled by the master signer
-        try IAAWallet(account).getMasterSigner() returns (address accountMaster) {
+        try IAAccount(account).getMasterSigner() returns (address accountMaster) {
             require(accountMaster == masterSigner, "SessionKeyManager: master signer mismatch");
         } catch {
             revert("SessionKeyManager: account verification failed");
@@ -177,7 +177,7 @@ contract SessionKeyManager is
         // Add session key to all registered accounts
         address[] memory accounts = masterSignerAccounts[masterSigner];
         for (uint256 i = 0; i < accounts.length; i++) {
-            try IAAWallet(accounts[i]).addSessionKey(
+            try IAAccount(accounts[i]).addSessionKey(
                 sessionKey,
                 validAfter,
                 validUntil,
@@ -212,7 +212,7 @@ contract SessionKeyManager is
                 continue;
             }
             
-            try IAAWallet(op.account).addSessionKey(
+            try IAAccount(op.account).addSessionKey(
                 op.sessionKey,
                 op.validAfter,
                 op.validUntil,
@@ -237,7 +237,7 @@ contract SessionKeyManager is
         uint256 successCount = 0;
         
         for (uint256 i = 0; i < accounts.length; i++) {
-            try IAAWallet(accounts[i]).revokeSessionKey(sessionKey) {
+            try IAAccount(accounts[i]).revokeSessionKey(sessionKey) {
                 successCount++;
             } catch {
                 // Continue with next account

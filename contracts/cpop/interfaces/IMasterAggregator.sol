@@ -20,12 +20,12 @@ interface IMasterAggregator is IAggregator {
     event MasterAuthorized(address indexed master, bool authorized);
 
     /**
-     * @notice Emitted when a wallet authorization status changes for a master signer
+     * @notice Emitted when a Account authorization status changes for a master signer
      * @param master Master signer address
-     * @param wallet Wallet address
-     * @param authorized Whether the wallet is authorized
+     * @param Account Account address
+     * @param authorized Whether the Account is authorized
      */
-    event WalletAuthorized(address indexed master, address indexed wallet, bool authorized);
+    event AccountAuthorized(address indexed master, address indexed Account, bool authorized);
 
     /**
      * @notice Emitted when aggregated validation is performed
@@ -45,12 +45,12 @@ interface IMasterAggregator is IAggregator {
     function authorizedMasters(address master) external view returns (bool authorized);
 
     /**
-     * @notice Check if a wallet is controlled by a master signer
+     * @notice Check if a Account is controlled by a master signer
      * @param master Master signer address
-     * @param wallet Wallet address
-     * @return authorized True if the wallet is authorized for the master
+     * @param Account Account address
+     * @return authorized True if the Account is authorized for the master
      */
-    function masterToWallets(address master, address wallet) external view returns (bool authorized);
+    function masterToAccounts(address master, address Account) external view returns (bool authorized);
 
     /**
      * @notice Get the current nonce for a master signer
@@ -67,31 +67,31 @@ interface IMasterAggregator is IAggregator {
     function setMasterAuthorization(address master, bool authorized) external;
 
     /**
-     * @notice Set wallet authorization for a master signer
+     * @notice Set Account authorization for a master signer
      * @param master Master signer address
-     * @param wallet Wallet address
+     * @param Account Account address
      * @param authorized Whether to authorize or deauthorize
      */
-    function setWalletAuthorization(address master, address wallet, bool authorized) external;
+    function setAccountAuthorization(address master, address Account, bool authorized) external;
 
     /**
-     * @notice Batch set wallet authorization for a master signer
+     * @notice Batch set Account authorization for a master signer
      * @param master Master signer address
-     * @param wallets Array of wallet addresses
+     * @param Accounts Array of Account addresses
      * @param authorized Whether to authorize or deauthorize
      */
-    function batchSetWalletAuthorization(
+    function batchSetAccountAuthorization(
         address master,
-        address[] calldata wallets,
+        address[] calldata Accounts,
         bool authorized
     ) external;
 
     /**
-     * @notice Auto-authorize wallet by verifying master signer relationship
-     * @param wallet Wallet address
+     * @notice Auto-authorize Account by verifying master signer relationship
+     * @param Account Account address
      * @param master Master signer address
      */
-    function autoAuthorizeWallet(address wallet, address master) external;
+    function autoAuthorizeAccount(address Account, address master) external;
 
     // Configuration
 
@@ -114,15 +114,15 @@ interface IMasterAggregator is IAggregator {
      */
     function updateConfig(uint256 _maxAggregatedOps, uint256 _validationWindow) external;
 
-    // Wallet Validation
+    // Account Validation
 
     /**
-     * @notice Check if wallet is controlled by master signer
-     * @param wallet Wallet address
+     * @notice Check if Account is controlled by master signer
+     * @param Account Account address
      * @param master Master signer address
-     * @return isValid True if wallet is controlled by master
+     * @return isValid True if Account is controlled by master
      */
-    function isWalletControlledByMaster(address wallet, address master) external view returns (bool isValid);
+    function isAccountControlledByMaster(address Account, address master) external view returns (bool isValid);
 
     /**
      * @notice Get current nonce for master signer
@@ -146,8 +146,8 @@ interface IMasterAggregator is IAggregator {
     // Master Control Signature Creation (Secure)
 
     /**
-     * @notice Create master aggregated signature for multiple wallets
-     * @dev Master signer can control multiple wallets with one signature
+     * @notice Create master aggregated signature for multiple Accounts
+     * @dev Master signer can control multiple Accounts with one signature
      * @param userOps Array of user operations to aggregate  
      * @param masterSigner Master signer address
      * @param masterSignature Pre-computed signature from master signer

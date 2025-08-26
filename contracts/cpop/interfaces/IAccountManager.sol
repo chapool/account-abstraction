@@ -4,14 +4,14 @@ pragma solidity ^0.8.28;
 import "../../interfaces/ISenderCreator.sol";
 
 /**
- * @title IWalletManager v2 - Simplified EOA + Master Interface
- * @notice Simplified interface for Wallet Manager using EOA + Master signer pattern
- * @dev Creates deterministic wallet addresses using owner EOA + master signer combination
+ * @title IAccountManager v2 - Simplified EOA + Master Interface
+ * @notice Simplified interface for Account Manager using EOA + Master signer pattern
+ * @dev Creates deterministic Account addresses using owner EOA + master signer combination
  */
-interface IWalletManager {
+interface IAccountManager {
     /**
-     * @notice Emitted when a new AA wallet is created
-     * @param account The address of the created AA wallet
+     * @notice Emitted when a new AA Account is created
+     * @param account The address of the created AA Account
      * @param owner The EOA owner address  
      * @param masterSigner The master signer address
      */
@@ -30,22 +30,22 @@ interface IWalletManager {
     event CreatorRevoked(address indexed creator);
 
     // ============================================
-    // CORE WALLET CREATION FUNCTIONS
+    // CORE Account CREATION FUNCTIONS
     // ============================================
 
     /**
-     * @notice Core wallet creation function
-     * @param owner The wallet owner EOA address
+     * @notice Core Account creation function
+     * @param owner The Account owner EOA address
      * @param masterSigner Master signer for aggregation (use address(0) for default)
-     * @return account The created wallet address
+     * @return account The created Account address
      */
-    function createWallet(address owner, address masterSigner) external returns (address account);
+    function createAccount(address owner, address masterSigner) external returns (address account);
 
     /**
      * @notice Create account for Web2 users (simplified)
      * @param owner User's EOA address
      * @param masterSigner Master signer for transaction control
-     * @return account The created AA wallet address
+     * @return account The created AA Account address
      */
     function createUserAccount(
         address owner,
@@ -54,7 +54,7 @@ interface IWalletManager {
 
     /**
      * @notice Legacy function for EntryPoint compatibility
-     * @param owner Wallet owner address
+     * @param owner Account owner address
      * @param masterSigner Master signer address
      * @return account The created account address
      */
@@ -68,10 +68,10 @@ interface IWalletManager {
     // ============================================
 
     /**
-     * @notice Get deterministic AA wallet address
+     * @notice Get deterministic AA Account address
      * @param owner User's EOA address
      * @param masterSigner Master signer address  
-     * @return account Predicted AA wallet address
+     * @return account Predicted AA Account address
      */
     function getAccountAddress(address owner, address masterSigner) external view returns (address account);
 
@@ -100,7 +100,7 @@ interface IWalletManager {
     // ============================================
 
     /**
-     * @notice Initialize the wallet manager (for upgradeable contracts)
+     * @notice Initialize the Account manager (for upgradeable contracts)
      * @param entryPoint The EntryPoint contract address
      * @param owner The owner of this contract
      */
@@ -108,13 +108,13 @@ interface IWalletManager {
 
     /**
      * @notice Get the account implementation address
-     * @return The address of the AAWallet implementation
+     * @return The address of the AAAccount implementation
      */
     function getImplementation() external view returns (address);
 
     /**
      * @notice Get the account implementation address (alias)
-     * @return The address of the AAWallet implementation
+     * @return The address of the AAAccount implementation
      */
     function accountImplementation() external view returns (address);
 
@@ -138,7 +138,7 @@ interface IWalletManager {
 
     /**
      * @notice Update the account implementation
-     * @param newImplementation New AAWallet implementation address
+     * @param newImplementation New AAAccount implementation address
      */
     function updateAccountImplementation(address newImplementation) external;
 

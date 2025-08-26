@@ -9,15 +9,15 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../interfaces/ISenderCreator.sol";
 import "../interfaces/IEntryPoint.sol";
 import "./interfaces/IMasterAggregator.sol";
-import "./interfaces/IWalletManager.sol";
-import "./AAWallet.sol";
+import "./interfaces/IAccountManager.sol";
+import "./AAccount.sol";
 
 /**
- * @title WalletManager v2 - Simplified EOA + Master Architecture
- * @notice Simplified factory contract for creating AA wallets using EOA + Master signer pattern
- * @dev Creates deterministic wallet addresses using owner EOA + master signer combination
+ * @title AccountManager v2 - Simplified EOA + Master Architecture
+ * @notice Simplified factory contract for creating AA Accounts using EOA + Master signer pattern
+ * @dev Creates deterministic Account addresses using owner EOA + master signer combination
  */
-contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUPSUpgradeable {
+contract AccountManager is Initializable, IAccountManager, OwnableUpgradeable, UUPSUpgradeable {
     address public accountImplementation;
     ISenderCreator public senderCreator;
     address public entryPointAddress;
@@ -29,7 +29,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     modifier onlyAuthorizedCreator() {
         require(
             authorizedCreators[msg.sender] || msg.sender == owner(),
-            "WalletManager: unauthorized creator"
+            "AccountManager: unauthorized creator"
         );
         _;
     }
@@ -39,13 +39,13 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     }
 
     /**
-     * @notice Initialize the wallet manager
+     * @notice Initialize the Account manager
      * @param entryPoint The EntryPoint contract address
      * @param owner The owner of this contract
      */
     function initialize(address entryPoint, address owner) external initializer {
-        require(entryPoint != address(0), "WalletManager: invalid entryPoint");
-        require(owner != address(0), "WalletManager: invalid owner");
+        require(entryPoint != address(0), "AccountManager: invalid entryPoint");
+        require(owner != address(0), "AccountManager: invalid owner");
         
         // Initialize parent contracts
         __Ownable_init(owner);
@@ -53,7 +53,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         
         // Initialize contract state
         entryPointAddress = entryPoint;
-        accountImplementation = address(new AAWallet());
+        accountImplementation = address(new AAccount());
         senderCreator = IEntryPoint(entryPoint).senderCreator();
         
         // Set default master signer to owner initially
@@ -65,17 +65,17 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     }
 
     // ============================================
-    // CORE WALLET CREATION FUNCTIONS
+    // CORE Account CREATION FUNCTIONS
     // ============================================
 
     /**
-     * @notice Core wallet creation function - ALL wallet creation goes through this
-     * @param owner The wallet owner EOA address
+     * @notice Core Account creation function - ALL Account creation goes through this
+     * @param owner The Account owner EOA address
      * @param masterSigner Master signer for aggregation (use address(0) for default)
-     * @return account The created wallet address
+     * @return account The created Account address
      */
-    function createWallet(address owner, address masterSigner) public returns (address account) {
-        require(owner != address(0), "WalletManager: invalid owner");
+    function createAccount(address owner, address masterSigner) public returns (address account) {
+        require(owner != address(0), "AccountManager: invalid owner");
         
         // Use default master signer if none provided
         address actualMasterSigner = masterSigner != address(0) ? masterSigner : defaultMasterSigner;
@@ -83,16 +83,16 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
         // Generate deterministic salt from owner + master combination
         bytes32 salt = _generateSalt(owner, actualMasterSigner);
         
-        // Check if wallet already exists
+        // Check if Account already exists
         address addr = _getAccountAddress(owner, actualMasterSigner);
         uint256 codeSize = addr.code.length;
         
         if (codeSize > 0) {
             account = addr;
         } else {
-            // All wallets use unified initialization with optional aggregator
+            // All Accounts use unified initialization with optional aggregator
             bytes memory initData = abi.encodeCall(
-                AAWallet.initialize,
+                AAccount.initialize,
                 (entryPointAddress, owner, actualMasterSigner, masterAggregatorAddress)
             );
             
@@ -103,19 +103,19 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
                 )
             );
             
-            // Register wallet-master relationship in aggregator if configured
+            // Register Account-master relationship in aggregator if configured
             if (masterAggregatorAddress != address(0) && masterAggregatorAddress.code.length > 0) {
-                try IMasterAggregator(masterAggregatorAddress).autoAuthorizeWallet(
+                try IMasterAggregator(masterAggregatorAddress).autoAuthorizeAccount(
                     actualMasterSigner, 
                     account
                 ) {
-                    // Successfully registered wallet-master relationship
+                    // Successfully registered Account-master relationship
                 } catch {
-                    // Aggregator authorization failed, wallet can still function without aggregation
+                    // Aggregator authorization failed, Account can still function without aggregation
                 }
             }
             
-            // Only emit event when wallet is actually created
+            // Only emit event when Account is actually created
             emit AccountCreated(account, owner, actualMasterSigner);
         }
     }
@@ -124,29 +124,29 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
      * @notice Create account for Web2 users (simplified)
      * @param owner User's EOA address
      * @param masterSigner Master signer for transaction control
-     * @return account The created AA wallet address
+     * @return account The created AA Account address
      */
     function createUserAccount(
         address owner,
         address masterSigner
     ) external onlyAuthorizedCreator returns (address account) {
-        require(owner != address(0), "WalletManager: invalid owner");
-        require(masterSigner != address(0), "WalletManager: invalid master signer");
+        require(owner != address(0), "AccountManager: invalid owner");
+        require(masterSigner != address(0), "AccountManager: invalid master signer");
         
-        return createWallet(owner, masterSigner);
+        return createAccount(owner, masterSigner);
     }
 
     /**
      * @notice Legacy function for EntryPoint compatibility
-     * @dev Routes through core createWallet function with provided parameters
+     * @dev Routes through core createAccount function with provided parameters
      */
     function createAccountWithMasterSigner(
         address owner, 
         address masterSigner
     ) external returns (address account) {
-        require(msg.sender == address(senderCreator), "WalletManager: only SenderCreator");
-        require(masterSigner != address(0), "WalletManager: invalid master signer");
-        return createWallet(owner, masterSigner);
+        require(msg.sender == address(senderCreator), "AccountManager: only SenderCreator");
+        require(masterSigner != address(0), "AccountManager: invalid master signer");
+        return createAccount(owner, masterSigner);
     }
 
     // ============================================
@@ -154,10 +154,10 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     // ============================================
 
     /**
-     * @notice Get deterministic AA wallet address
+     * @notice Get deterministic AA Account address
      * @param owner User's EOA address
      * @param masterSigner Master signer address
-     * @return account Predicted AA wallet address
+     * @return account Predicted AA Account address
      */
     function getAccountAddress(address owner, address masterSigner) 
         external 
@@ -184,7 +184,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
                     type(ERC1967Proxy).creationCode,
                     abi.encode(
                         accountImplementation,
-                        abi.encodeCall(AAWallet.initialize, (entryPointAddress, owner, masterSigner, masterAggregatorAddress))
+                        abi.encodeCall(AAccount.initialize, (entryPointAddress, owner, masterSigner, masterAggregatorAddress))
                     )
                 )
             )
@@ -195,7 +195,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
      * @notice Generate deterministic salt from owner and master signer
      */
     function _generateSalt(address owner, address masterSigner) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked("WALLET_V2:", owner, ":", masterSigner));
+        return keccak256(abi.encodePacked("Account_V2:", owner, ":", masterSigner));
     }
 
     // ============================================
@@ -251,10 +251,10 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
     /**
      * @notice Update the account implementation
      * @dev Only owner can update implementation
-     * @param newImplementation New AAWallet implementation address
+     * @param newImplementation New AAccount implementation address
      */
     function updateAccountImplementation(address newImplementation) external onlyOwner {
-        require(newImplementation != address(0), "WalletManager: invalid implementation");
+        require(newImplementation != address(0), "AccountManager: invalid implementation");
         accountImplementation = newImplementation;
     }
 
@@ -264,7 +264,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
      * @param aggregator MasterAggregator contract address
      */
     function setMasterAggregator(address aggregator) external onlyOwner {
-        require(aggregator != address(0), "WalletManager: invalid aggregator");
+        require(aggregator != address(0), "AccountManager: invalid aggregator");
         masterAggregatorAddress = aggregator;
     }
 
@@ -274,7 +274,7 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
      * @param masterSigner Default master signer address
      */
     function setDefaultMasterSigner(address masterSigner) external onlyOwner {
-        require(masterSigner != address(0), "WalletManager: invalid master signer");
+        require(masterSigner != address(0), "AccountManager: invalid master signer");
         defaultMasterSigner = masterSigner;
     }
 
@@ -290,8 +290,8 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
      * @notice Authorize an address to create accounts
      */
     function authorizeCreator(address creator) external onlyOwner {
-        require(creator != address(0), "WalletManager: invalid creator");
-        require(!authorizedCreators[creator], "WalletManager: already authorized");
+        require(creator != address(0), "AccountManager: invalid creator");
+        require(!authorizedCreators[creator], "AccountManager: already authorized");
         
         authorizedCreators[creator] = true;
         emit CreatorAuthorized(creator);
@@ -301,8 +301,8 @@ contract WalletManager is Initializable, IWalletManager, OwnableUpgradeable, UUP
      * @notice Revoke authorization from an address
      */
     function revokeCreator(address creator) external onlyOwner {
-        require(authorizedCreators[creator], "WalletManager: not authorized");
-        require(creator != owner(), "WalletManager: cannot revoke owner");
+        require(authorizedCreators[creator], "AccountManager: not authorized");
+        require(creator != owner(), "AccountManager: cannot revoke owner");
         
         authorizedCreators[creator] = false;
         emit CreatorRevoked(creator);

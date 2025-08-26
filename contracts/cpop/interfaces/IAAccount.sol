@@ -5,17 +5,17 @@ import "../../interfaces/IAccount.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /**
- * @title IAAWallet  
+ * @title IAAccount  
  * @notice Interface for AA Wallet (Account Abstraction wallet)
  * @dev Extends IAccount with Web2-friendly functionality and master signer system
  */
-interface IAAWallet is IAccount, IERC165 {
+interface IAAccount is IAccount, IERC165 {
     /**
      * @notice Emitted when the account is initialized
      * @param owner The owner of the account
      * @param masterSigner The master signer address for Web2 users
      */
-    event AAWalletInitialized(address indexed owner, address indexed masterSigner);
+    event AAccountInitialized(address indexed owner, address indexed masterSigner);
 
     /**
      * @notice Emitted when master signer is updated

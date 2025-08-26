@@ -9,16 +9,16 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "../core/BaseAccount.sol";
 import "../core/Helpers.sol";
-import "./interfaces/IAAWallet.sol";
+import "./interfaces/IAAccount.sol";
 import "./interfaces/IMasterAggregator.sol";
 
 /**
- * @title AAWallet
- * @notice Account Abstraction wallet optimized for Web2 users
- * @dev Inherits from BaseAccount and implements IAAWallet interface
+ * @title AAccount
+ * @notice Account Abstraction account optimized for Web2 users
+ * @dev Inherits from BaseAccount and implements IAAccount interface
  * Simplified design without token-specific functionality
  */
-contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC165 {
+contract AAccount is Initializable, BaseAccount, IAAccount, UUPSUpgradeable, ERC165 {
     using ECDSA for bytes32;
     using UserOperationLib for PackedUserOperation;
 
@@ -47,12 +47,12 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     address public authorizedSessionKeyManager;
 
     modifier onlyOwner() {
-        require(msg.sender == owner || msg.sender == address(this), "AAWallet: not owner");
+        require(msg.sender == owner || msg.sender == address(this), "AAccount: not owner");
         _;
     }
 
     modifier onlyMasterSigner() {
-        require(msg.sender == masterSigner || msg.sender == address(this), "AAWallet: not master signer");
+        require(msg.sender == masterSigner || msg.sender == address(this), "AAccount: not master signer");
         _;
     }
 
@@ -73,15 +73,15 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
         address _masterSigner, 
         address _aggregator
     ) external initializer {
-        require(_entryPoint != address(0), "AAWallet: invalid entryPoint");
-        require(_owner != address(0), "AAWallet: invalid owner");
+        require(_entryPoint != address(0), "AAccount: invalid entryPoint");
+        require(_owner != address(0), "AAccount: invalid owner");
         
         entryPointAddress = _entryPoint;
         owner = _owner;
         masterSigner = _masterSigner; // Can be zero address if not needed
         aggregatorAddress = _aggregator; // Can be zero address if not needed
         
-        emit AAWalletInitialized(_owner, _masterSigner);
+        emit AAccountInitialized(_owner, _masterSigner);
         if (_aggregator != address(0)) {
             emit AggregatorUpdated(address(0), _aggregator);
         }
@@ -146,14 +146,14 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
         bytes32 userOpHash
     ) internal override returns (uint256 validationData) {
         // Check if this should use aggregator validation
-        // Only use aggregator if: empty signature AND wallet is configured with aggregator AND master signer
+        // Only use aggregator if: empty signature AND account is configured with aggregator AND master signer
         if (userOp.signature.length == 0 && 
             masterSigner != address(0) && 
             aggregatorAddress != address(0)) {
             // Check if aggregator address has code (is a contract)
             if (aggregatorAddress.code.length > 0) {
-                // Additional security: verify aggregator recognizes this wallet-master relationship
-                bool isValid = IMasterAggregator(aggregatorAddress).isWalletControlledByMaster(address(this), masterSigner);
+                // Additional security: verify aggregator recognizes this account-master relationship
+                bool isValid = IMasterAggregator(aggregatorAddress).isAccountControlledByMaster(address(this), masterSigner);
                 if (isValid) {
                     // Return aggregator address packed in validation data
                     return _packValidationData(ValidationData(aggregatorAddress, 0, 0));
@@ -199,7 +199,7 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
      * @return aggregator Address of the aggregator contract
      */
     function getAggregator() public view returns (address aggregator) {
-        // This could be set during initialization or managed by the wallet manager
+        // This could be set during initialization or managed by the account manager
         // For now, return a default aggregator address stored in the implementation
         return aggregatorAddress;
     }
@@ -223,7 +223,7 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
     function _requireForExecute() internal view override {
         require(
             msg.sender == address(entryPoint()),
-            "AAWallet: only EntryPoint can execute"
+            "AAccount: only EntryPoint can execute"
         );
     }
 
@@ -233,7 +233,7 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
      */
     function _authorizeUpgrade(address newImplementation) internal view override {
         (newImplementation); // suppress unused parameter warning
-        require(msg.sender == masterSigner, "AAWallet: only master signer can upgrade");
+        require(msg.sender == masterSigner, "AAccount: only master signer can upgrade");
     }
 
     /**
@@ -276,11 +276,11 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
         uint48 validUntil,
         bytes32 permissions
     ) external override {
-        require(msg.sender == owner || (masterSigner != address(0) && msg.sender == masterSigner) || msg.sender == authorizedSessionKeyManager, "AAWallet: not authorized");
-        require(sessionKey != address(0), "AAWallet: invalid session key");
-        require(validUntil > validAfter, "AAWallet: invalid time range");
-        require(validUntil > block.timestamp, "AAWallet: session key already expired");
-        require(!sessionKeys[sessionKey].isActive, "AAWallet: session key already exists");
+        require(msg.sender == owner || (masterSigner != address(0) && msg.sender == masterSigner) || msg.sender == authorizedSessionKeyManager, "AAccount: not authorized");
+        require(sessionKey != address(0), "AAccount: invalid session key");
+        require(validUntil > validAfter, "AAccount: invalid time range");
+        require(validUntil > block.timestamp, "AAccount: session key already expired");
+        require(!sessionKeys[sessionKey].isActive, "AAccount: session key already exists");
         
         sessionKeys[sessionKey] = SessionKeyData({
             validAfter: validAfter,
@@ -296,8 +296,8 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
      * @notice Revoke a session key
      */
     function revokeSessionKey(address sessionKey) external override {
-        require(msg.sender == owner || (masterSigner != address(0) && msg.sender == masterSigner) || msg.sender == authorizedSessionKeyManager, "AAWallet: not authorized");
-        require(sessionKeys[sessionKey].isActive, "AAWallet: session key not active");
+        require(msg.sender == owner || (masterSigner != address(0) && msg.sender == masterSigner) || msg.sender == authorizedSessionKeyManager, "AAccount: not authorized");
+        require(sessionKeys[sessionKey].isActive, "AAccount: session key not active");
         
         delete sessionKeys[sessionKey];
         emit SessionKeyRevoked(sessionKey);
@@ -426,7 +426,7 @@ contract AAWallet is Initializable, BaseAccount, IAAWallet, UUPSUpgradeable, ERC
      * @notice Check interface support for ERC165
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return interfaceId == type(IAAWallet).interfaceId || 
+        return interfaceId == type(IAAccount).interfaceId || 
                super.supportsInterface(interfaceId);
     }
 

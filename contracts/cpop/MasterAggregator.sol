@@ -8,13 +8,13 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "../interfaces/IAggregator.sol";
 import "../interfaces/IEntryPoint.sol";
-import "./interfaces/IAAWallet.sol";
+import "./interfaces/IAAccount.sol";
 import "./interfaces/IMasterAggregator.sol";
 
 /**
  * @title MasterAggregator
- * @notice Signature aggregator for wallets controlled by master signers
- * @dev Optimized for scenarios where one master signer controls multiple wallets
+ * @notice Signature aggregator for Accounts controlled by master signers
+ * @dev Optimized for scenarios where one master signer controls multiple Accounts
  */
 contract MasterAggregator is 
     Initializable, 
@@ -27,7 +27,7 @@ contract MasterAggregator is
 
     // Master signer management
     mapping(address => bool) public authorizedMasters;
-    mapping(address => mapping(address => bool)) public masterToWallets; // master => wallet => authorized
+    mapping(address => mapping(address => bool)) public masterToAccounts; // master => Account => authorized
     address[] public authorizedMastersList; // Array to track all authorized masters
     
     // Aggregation configuration
@@ -74,7 +74,7 @@ contract MasterAggregator is
 
     /**
      * @inheritdoc IAggregator
-     * @dev Validates that all operations come from wallets controlled by the same master signer
+     * @dev Validates that all operations come from Accounts controlled by the same master signer
      */
     function validateSignatures(
         PackedUserOperation[] calldata userOps,
@@ -106,12 +106,12 @@ contract MasterAggregator is
         address recovered = ethHash.recover(masterSignature);
         require(recovered == masterSigner, "MasterAggregator: invalid master signature");
         
-        // Verify all wallets are controlled by this master
+        // Verify all Accounts are controlled by this master
         for (uint256 i = 0; i < userOps.length; i++) {
-            address wallet = userOps[i].sender;
+            address Account = userOps[i].sender;
             require(
-                masterToWallets[masterSigner][wallet] || _isValidWallet(wallet, masterSigner),
-                "MasterAggregator: wallet not controlled by master"
+                masterToAccounts[masterSigner][Account] || _isValidAccount(Account, masterSigner),
+                "MasterAggregator: Account not controlled by master"
             );
         }
         
@@ -141,21 +141,21 @@ contract MasterAggregator is
         require(userOps.length > 0, "MasterAggregator: empty operations");
         require(userOps.length <= maxAggregatedOps, "MasterAggregator: too many operations");
         
-        // For master aggregation, we need to identify which master controls these wallets
-        // Check if all operations belong to wallets controlled by the same master
+        // For master aggregation, we need to identify which master controls these Accounts
+        // Check if all operations belong to Accounts controlled by the same master
         address masterSigner = address(0);
         
         for (uint256 i = 0; i < userOps.length; i++) {
-            address wallet = userOps[i].sender;
+            address Account = userOps[i].sender;
             
-            // Try to find the master for this wallet
-            address walletMaster = _findMasterForWallet(wallet);
-            require(walletMaster != address(0), "MasterAggregator: wallet has no master");
+            // Try to find the master for this Account
+            address AccountMaster = _findMasterForAccount(Account);
+            require(AccountMaster != address(0), "MasterAggregator: Account has no master");
             
             if (masterSigner == address(0)) {
-                masterSigner = walletMaster;
+                masterSigner = AccountMaster;
             } else {
-                require(masterSigner == walletMaster, "MasterAggregator: operations from different masters");
+                require(masterSigner == AccountMaster, "MasterAggregator: operations from different masters");
             }
         }
         
@@ -171,8 +171,8 @@ contract MasterAggregator is
     }
 
     /**
-     * @notice Create master aggregated signature for multiple wallets
-     * @dev Master signer can control multiple wallets with one signature
+     * @notice Create master aggregated signature for multiple Accounts
+     * @dev Master signer can control multiple Accounts with one signature
      * @param userOps Array of user operations to aggregate  
      * @param masterSigner Master signer address
      * @param masterSignature Pre-computed signature from master signer
@@ -186,11 +186,11 @@ contract MasterAggregator is
         require(authorizedMasters[masterSigner], "MasterAggregator: unauthorized master");
         require(userOps.length > 0 && userOps.length <= maxAggregatedOps, "MasterAggregator: invalid operation count");
         
-        // Validate all operations belong to wallets controlled by master
+        // Validate all operations belong to Accounts controlled by master
         for (uint256 i = 0; i < userOps.length; i++) {
             require(
-                this.isWalletControlledByMaster(userOps[i].sender, masterSigner),
-                "MasterAggregator: wallet not controlled by master"
+                this.isAccountControlledByMaster(userOps[i].sender, masterSigner),
+                "MasterAggregator: Account not controlled by master"
             );
         }
         
@@ -224,15 +224,15 @@ contract MasterAggregator is
     }
 
     /**
-     * @dev Find the master signer that controls a given wallet
-     * @param wallet The wallet address to search for
-     * @return master The master address that controls the wallet, or address(0) if not found
+     * @dev Find the master signer that controls a given Account
+     * @param Account The Account address to search for
+     * @return master The master address that controls the Account, or address(0) if not found
      */
-    function _findMasterForWallet(address wallet) internal view returns (address master) {
-        // Iterate through all authorized masters to find which one controls this wallet
+    function _findMasterForAccount(address Account) internal view returns (address master) {
+        // Iterate through all authorized masters to find which one controls this Account
         for (uint256 i = 0; i < authorizedMastersList.length; i++) {
             address potentialMaster = authorizedMastersList[i];
-            if (authorizedMasters[potentialMaster] && masterToWallets[potentialMaster][wallet]) {
+            if (authorizedMasters[potentialMaster] && masterToAccounts[potentialMaster][Account]) {
                 return potentialMaster;
             }
         }
@@ -276,55 +276,55 @@ contract MasterAggregator is
     }
 
     /**
-     * @notice Authorize/deauthorize wallet for a master signer
+     * @notice Authorize/deauthorize Account for a master signer
      * @param master Master signer address
-     * @param wallet Wallet address
+     * @param Account Account address
      * @param authorized Whether to authorize or deauthorize
      */
-    function setWalletAuthorization(
+    function setAccountAuthorization(
         address master, 
-        address wallet, 
+        address Account, 
         bool authorized
     ) external override onlyOwner {
         require(authorizedMasters[master], "MasterAggregator: master not authorized");
-        require(wallet != address(0), "MasterAggregator: invalid wallet");
+        require(Account != address(0), "MasterAggregator: invalid Account");
         
-        masterToWallets[master][wallet] = authorized;
-        emit WalletAuthorized(master, wallet, authorized);
+        masterToAccounts[master][Account] = authorized;
+        emit AccountAuthorized(master, Account, authorized);
     }
 
     /**
-     * @notice Batch authorize wallets for a master signer
+     * @notice Batch authorize Accounts for a master signer
      * @param master Master signer address
-     * @param wallets Array of wallet addresses
+     * @param Accounts Array of Account addresses
      * @param authorized Whether to authorize or deauthorize
      */
-    function batchSetWalletAuthorization(
+    function batchSetAccountAuthorization(
         address master,
-        address[] calldata wallets,
+        address[] calldata Accounts,
         bool authorized
     ) external override onlyOwner {
         require(authorizedMasters[master], "MasterAggregator: master not authorized");
         
-        for (uint256 i = 0; i < wallets.length; i++) {
-            if (wallets[i] != address(0)) {
-                masterToWallets[master][wallets[i]] = authorized;
-                emit WalletAuthorized(master, wallets[i], authorized);
+        for (uint256 i = 0; i < Accounts.length; i++) {
+            if (Accounts[i] != address(0)) {
+                masterToAccounts[master][Accounts[i]] = authorized;
+                emit AccountAuthorized(master, Accounts[i], authorized);
             }
         }
     }
 
     /**
-     * @notice Auto-authorize wallet by verifying master signer relationship
-     * @param wallet Wallet address
+     * @notice Auto-authorize Account by verifying master signer relationship
+     * @param Account Account address
      * @param master Master signer address
      */
-    function autoAuthorizeWallet(address wallet, address master) external override {
+    function autoAuthorizeAccount(address Account, address master) external override {
         require(authorizedMasters[master], "MasterAggregator: master not authorized");
-        require(_isValidWallet(wallet, master), "MasterAggregator: invalid wallet-master relationship");
+        require(_isValidAccount(Account, master), "MasterAggregator: invalid Account-master relationship");
         
-        masterToWallets[master][wallet] = true;
-        emit WalletAuthorized(master, wallet, true);
+        masterToAccounts[master][Account] = true;
+        emit AccountAuthorized(master, Account, true);
     }
 
     /**
@@ -344,16 +344,16 @@ contract MasterAggregator is
     }
 
     /**
-     * @notice Check if wallet is controlled by master signer
-     * @param wallet Wallet address
+     * @notice Check if Account is controlled by master signer
+     * @param Account Account address
      * @param master Master signer address
-     * @return isValid True if wallet is controlled by master
+     * @return isValid True if Account is controlled by master
      */
-    function isWalletControlledByMaster(
-        address wallet, 
+    function isAccountControlledByMaster(
+        address Account, 
         address master
     ) external view override returns (bool isValid) {
-        return masterToWallets[master][wallet] || _isValidWallet(wallet, master);
+        return masterToAccounts[master][Account] || _isValidAccount(Account, master);
     }
 
     /**
@@ -418,15 +418,15 @@ contract MasterAggregator is
     }
 
     /**
-     * @notice Check if wallet is a valid  wallet controlled by master
-     * @param wallet Wallet address
+     * @notice Check if Account is a valid  Account controlled by master
+     * @param Account Account address
      * @param master Master signer address
      * @return isValid True if valid relationship
      */
-    function _isValidWallet(address wallet, address master) internal view returns (bool isValid) {
-        // Try to call the wallet to check if master signer matches
-        try IAAWallet(wallet).getMasterSigner() returns (address walletMaster) {
-            return walletMaster == master;
+    function _isValidAccount(address Account, address master) internal view returns (bool isValid) {
+        // Try to call the Account to check if master signer matches
+        try IAAccount(Account).getMasterSigner() returns (address AccountMaster) {
+            return AccountMaster == master;
         } catch {
             return false;
         }
