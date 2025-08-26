@@ -6,9 +6,17 @@
 
 ### 安装
 
+**获取最新版本：**
+```bash
+go get -u github.com/HzBay/account-abstraction/cpop-abis
+```
+
+**首次安装：**
 ```bash
 go get github.com/HzBay/account-abstraction/cpop-abis
 ```
+
+**重要提示：** 如果您之前使用过AAWallet和WalletManager，请注意这些合约已重构为AAccount和AccountManager。请更新您的代码以使用新的合约接口。
 
 ### 基本使用
 
@@ -256,6 +264,44 @@ func main() {
 ## 许可证
 
 [MIT License](../LICENSE)
+
+## 迁移指南
+
+如果您从旧版本升级，请注意以下变更：
+
+### 从 AAWallet 迁移到 AAccount
+
+**旧代码：**
+```go
+wallet, err := cpop.NewAAWallet(walletAddress, client)
+owner, err := wallet.Owner(&bind.CallOpts{})
+```
+
+**新代码：**
+```go
+account, err := cpop.NewAAccount(accountAddress, client)
+owner, err := account.GetOwner(&bind.CallOpts{})
+masterSigner, err := account.GetMasterSigner(&bind.CallOpts{})
+```
+
+### 从 WalletManager 迁移到 AccountManager
+
+**旧代码：**
+```go
+manager, err := cpop.NewWalletManager(managerAddress, client)
+```
+
+**新代码：**
+```go
+manager, err := cpop.NewAccountManager(managerAddress, client)
+```
+
+### 更新后的合约功能
+
+- **AAccount** 增加了更完善的主签名者管理
+- **AccountManager** 优化了账户创建和管理逻辑
+- **MasterAggregator** 更新了账户授权相关的方法名称
+- **SessionKeyManager** 增强了会话密钥权限控制
 
 ## 贡献
 
