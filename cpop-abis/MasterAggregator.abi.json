@@ -121,6 +121,31 @@
         "type": "address"
       },
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "Account",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "authorized",
+        "type": "bool"
+      }
+    ],
+    "name": "AccountAuthorized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "master",
+        "type": "address"
+      },
+      {
         "indexed": false,
         "internalType": "uint256",
         "name": "operationCount",
@@ -198,31 +223,6 @@
       }
     ],
     "name": "Upgraded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "master",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "wallet",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
-      }
-    ],
-    "name": "WalletAuthorized",
     "type": "event"
   },
   {
@@ -364,7 +364,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "wallet",
+        "name": "Account",
         "type": "address"
       },
       {
@@ -373,7 +373,7 @@
         "type": "address"
       }
     ],
-    "name": "autoAuthorizeWallet",
+    "name": "autoAuthorizeAccount",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -387,7 +387,7 @@
       },
       {
         "internalType": "address[]",
-        "name": "wallets",
+        "name": "Accounts",
         "type": "address[]"
       },
       {
@@ -396,7 +396,7 @@
         "type": "bool"
       }
     ],
-    "name": "batchSetWalletAuthorization",
+    "name": "batchSetAccountAuthorization",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -613,7 +613,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "wallet",
+        "name": "Account",
         "type": "address"
       },
       {
@@ -622,7 +622,7 @@
         "type": "address"
       }
     ],
-    "name": "isWalletControlledByMaster",
+    "name": "isAccountControlledByMaster",
     "outputs": [
       {
         "internalType": "bool",
@@ -665,7 +665,7 @@
         "type": "address"
       }
     ],
-    "name": "masterToWallets",
+    "name": "masterToAccounts",
     "outputs": [
       {
         "internalType": "bool",
@@ -737,12 +737,17 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "Account",
+        "type": "address"
+      },
+      {
         "internalType": "bool",
         "name": "authorized",
         "type": "bool"
       }
     ],
-    "name": "setMasterAuthorization",
+    "name": "setAccountAuthorization",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -755,17 +760,12 @@
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "wallet",
-        "type": "address"
-      },
-      {
         "internalType": "bool",
         "name": "authorized",
         "type": "bool"
       }
     ],
-    "name": "setWalletAuthorization",
+    "name": "setMasterAuthorization",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

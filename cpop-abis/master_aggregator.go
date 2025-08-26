@@ -44,7 +44,7 @@ type PackedUserOperation struct {
 
 // MasterAggregatorMetaData contains all meta data concerning the MasterAggregator contract.
 var MasterAggregatorMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"AddressEmptyCode\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ECDSAInvalidSignature\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"length\",\"type\":\"uint256\"}],\"name\":\"ECDSAInvalidSignatureLength\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\"}],\"name\":\"ECDSAInvalidSignatureS\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"ERC1967InvalidImplementation\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC1967NonPayable\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FailedCall\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"UUPSUnauthorizedCallContext\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"slot\",\"type\":\"bytes32\"}],\"name\":\"UUPSUnsupportedProxiableUUID\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"operationCount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"aggregatedHash\",\"type\":\"bytes32\"}],\"name\":\"AggregatedValidation\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"MasterAuthorized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"Upgraded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"WalletAuthorized\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"UPGRADE_INTERFACE_VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIEntryPoint\",\"name\":\"entryPoint\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"delay\",\"type\":\"uint32\"}],\"name\":\"addStake\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation[]\",\"name\":\"userOps\",\"type\":\"tuple[]\"}],\"name\":\"aggregateSignatures\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"aggregatedSignature\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"authorizedMasters\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"authorizedMastersList\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"}],\"name\":\"autoAuthorizeWallet\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"wallets\",\"type\":\"address[]\"},{\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"batchSetWalletAuthorization\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"operationCount\",\"type\":\"uint256\"}],\"name\":\"calculateGasSavings\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"savings\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation[]\",\"name\":\"userOps\",\"type\":\"tuple[]\"},{\"internalType\":\"address\",\"name\":\"masterSigner\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"masterSignature\",\"type\":\"bytes\"}],\"name\":\"createMasterAggregatedSignature\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"aggregatedSignature\",\"type\":\"bytes\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"}],\"name\":\"getMasterNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation[]\",\"name\":\"userOps\",\"type\":\"tuple[]\"},{\"internalType\":\"address\",\"name\":\"masterSigner\",\"type\":\"address\"}],\"name\":\"getMasterSigningData\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"hashToSign\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_initialMasters\",\"type\":\"address[]\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"}],\"name\":\"isWalletControlledByMaster\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"isValid\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"masterNonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"masterToWallets\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxAggregatedOps\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proxiableUUID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"setMasterAuthorization\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"setWalletAuthorization\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIEntryPoint\",\"name\":\"entryPoint\",\"type\":\"address\"}],\"name\":\"unlockStake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_maxAggregatedOps\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_validationWindow\",\"type\":\"uint256\"}],\"name\":\"updateConfig\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newImplementation\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"upgradeToAndCall\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation[]\",\"name\":\"userOps\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"validateSignatures\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation\",\"name\":\"\",\"type\":\"tuple\"}],\"name\":\"validateUserOpSignature\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validationWindow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIEntryPoint\",\"name\":\"entryPoint\",\"type\":\"address\"},{\"internalType\":\"addresspayable\",\"name\":\"withdrawAddress\",\"type\":\"address\"}],\"name\":\"withdrawStake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"AddressEmptyCode\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ECDSAInvalidSignature\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"length\",\"type\":\"uint256\"}],\"name\":\"ECDSAInvalidSignatureLength\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\"}],\"name\":\"ECDSAInvalidSignatureS\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"ERC1967InvalidImplementation\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC1967NonPayable\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FailedCall\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"UUPSUnauthorizedCallContext\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"slot\",\"type\":\"bytes32\"}],\"name\":\"UUPSUnsupportedProxiableUUID\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"Account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"AccountAuthorized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"operationCount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"aggregatedHash\",\"type\":\"bytes32\"}],\"name\":\"AggregatedValidation\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"MasterAuthorized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"Upgraded\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"UPGRADE_INTERFACE_VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIEntryPoint\",\"name\":\"entryPoint\",\"type\":\"address\"},{\"internalType\":\"uint32\",\"name\":\"delay\",\"type\":\"uint32\"}],\"name\":\"addStake\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation[]\",\"name\":\"userOps\",\"type\":\"tuple[]\"}],\"name\":\"aggregateSignatures\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"aggregatedSignature\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"authorizedMasters\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"authorizedMastersList\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"Account\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"}],\"name\":\"autoAuthorizeAccount\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"Accounts\",\"type\":\"address[]\"},{\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"batchSetAccountAuthorization\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"operationCount\",\"type\":\"uint256\"}],\"name\":\"calculateGasSavings\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"savings\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation[]\",\"name\":\"userOps\",\"type\":\"tuple[]\"},{\"internalType\":\"address\",\"name\":\"masterSigner\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"masterSignature\",\"type\":\"bytes\"}],\"name\":\"createMasterAggregatedSignature\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"aggregatedSignature\",\"type\":\"bytes\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"}],\"name\":\"getMasterNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation[]\",\"name\":\"userOps\",\"type\":\"tuple[]\"},{\"internalType\":\"address\",\"name\":\"masterSigner\",\"type\":\"address\"}],\"name\":\"getMasterSigningData\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"hashToSign\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_initialMasters\",\"type\":\"address[]\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"Account\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"}],\"name\":\"isAccountControlledByMaster\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"isValid\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"masterNonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"masterToAccounts\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxAggregatedOps\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proxiableUUID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"Account\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"setAccountAuthorization\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"master\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"authorized\",\"type\":\"bool\"}],\"name\":\"setMasterAuthorization\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIEntryPoint\",\"name\":\"entryPoint\",\"type\":\"address\"}],\"name\":\"unlockStake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_maxAggregatedOps\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_validationWindow\",\"type\":\"uint256\"}],\"name\":\"updateConfig\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newImplementation\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"upgradeToAndCall\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation[]\",\"name\":\"userOps\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"validateSignatures\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"structPackedUserOperation\",\"name\":\"\",\"type\":\"tuple\"}],\"name\":\"validateUserOpSignature\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"validationWindow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIEntryPoint\",\"name\":\"entryPoint\",\"type\":\"address\"},{\"internalType\":\"addresspayable\",\"name\":\"withdrawAddress\",\"type\":\"address\"}],\"name\":\"withdrawStake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // MasterAggregatorABI is the input ABI used to generate the binding from.
@@ -424,12 +424,12 @@ func (_MasterAggregator *MasterAggregatorCallerSession) GetMasterSigningData(use
 	return _MasterAggregator.Contract.GetMasterSigningData(&_MasterAggregator.CallOpts, userOps, masterSigner)
 }
 
-// IsWalletControlledByMaster is a free data retrieval call binding the contract method 0x51a90d4a.
+// IsAccountControlledByMaster is a free data retrieval call binding the contract method 0x3e90df87.
 //
-// Solidity: function isWalletControlledByMaster(address wallet, address master) view returns(bool isValid)
-func (_MasterAggregator *MasterAggregatorCaller) IsWalletControlledByMaster(opts *bind.CallOpts, wallet common.Address, master common.Address) (bool, error) {
+// Solidity: function isAccountControlledByMaster(address Account, address master) view returns(bool isValid)
+func (_MasterAggregator *MasterAggregatorCaller) IsAccountControlledByMaster(opts *bind.CallOpts, Account common.Address, master common.Address) (bool, error) {
 	var out []interface{}
-	err := _MasterAggregator.contract.Call(opts, &out, "isWalletControlledByMaster", wallet, master)
+	err := _MasterAggregator.contract.Call(opts, &out, "isAccountControlledByMaster", Account, master)
 
 	if err != nil {
 		return *new(bool), err
@@ -441,18 +441,18 @@ func (_MasterAggregator *MasterAggregatorCaller) IsWalletControlledByMaster(opts
 
 }
 
-// IsWalletControlledByMaster is a free data retrieval call binding the contract method 0x51a90d4a.
+// IsAccountControlledByMaster is a free data retrieval call binding the contract method 0x3e90df87.
 //
-// Solidity: function isWalletControlledByMaster(address wallet, address master) view returns(bool isValid)
-func (_MasterAggregator *MasterAggregatorSession) IsWalletControlledByMaster(wallet common.Address, master common.Address) (bool, error) {
-	return _MasterAggregator.Contract.IsWalletControlledByMaster(&_MasterAggregator.CallOpts, wallet, master)
+// Solidity: function isAccountControlledByMaster(address Account, address master) view returns(bool isValid)
+func (_MasterAggregator *MasterAggregatorSession) IsAccountControlledByMaster(Account common.Address, master common.Address) (bool, error) {
+	return _MasterAggregator.Contract.IsAccountControlledByMaster(&_MasterAggregator.CallOpts, Account, master)
 }
 
-// IsWalletControlledByMaster is a free data retrieval call binding the contract method 0x51a90d4a.
+// IsAccountControlledByMaster is a free data retrieval call binding the contract method 0x3e90df87.
 //
-// Solidity: function isWalletControlledByMaster(address wallet, address master) view returns(bool isValid)
-func (_MasterAggregator *MasterAggregatorCallerSession) IsWalletControlledByMaster(wallet common.Address, master common.Address) (bool, error) {
-	return _MasterAggregator.Contract.IsWalletControlledByMaster(&_MasterAggregator.CallOpts, wallet, master)
+// Solidity: function isAccountControlledByMaster(address Account, address master) view returns(bool isValid)
+func (_MasterAggregator *MasterAggregatorCallerSession) IsAccountControlledByMaster(Account common.Address, master common.Address) (bool, error) {
+	return _MasterAggregator.Contract.IsAccountControlledByMaster(&_MasterAggregator.CallOpts, Account, master)
 }
 
 // MasterNonces is a free data retrieval call binding the contract method 0x45253c53.
@@ -486,12 +486,12 @@ func (_MasterAggregator *MasterAggregatorCallerSession) MasterNonces(arg0 common
 	return _MasterAggregator.Contract.MasterNonces(&_MasterAggregator.CallOpts, arg0)
 }
 
-// MasterToWallets is a free data retrieval call binding the contract method 0x1e7f20e5.
+// MasterToAccounts is a free data retrieval call binding the contract method 0x1914355c.
 //
-// Solidity: function masterToWallets(address , address ) view returns(bool)
-func (_MasterAggregator *MasterAggregatorCaller) MasterToWallets(opts *bind.CallOpts, arg0 common.Address, arg1 common.Address) (bool, error) {
+// Solidity: function masterToAccounts(address , address ) view returns(bool)
+func (_MasterAggregator *MasterAggregatorCaller) MasterToAccounts(opts *bind.CallOpts, arg0 common.Address, arg1 common.Address) (bool, error) {
 	var out []interface{}
-	err := _MasterAggregator.contract.Call(opts, &out, "masterToWallets", arg0, arg1)
+	err := _MasterAggregator.contract.Call(opts, &out, "masterToAccounts", arg0, arg1)
 
 	if err != nil {
 		return *new(bool), err
@@ -503,18 +503,18 @@ func (_MasterAggregator *MasterAggregatorCaller) MasterToWallets(opts *bind.Call
 
 }
 
-// MasterToWallets is a free data retrieval call binding the contract method 0x1e7f20e5.
+// MasterToAccounts is a free data retrieval call binding the contract method 0x1914355c.
 //
-// Solidity: function masterToWallets(address , address ) view returns(bool)
-func (_MasterAggregator *MasterAggregatorSession) MasterToWallets(arg0 common.Address, arg1 common.Address) (bool, error) {
-	return _MasterAggregator.Contract.MasterToWallets(&_MasterAggregator.CallOpts, arg0, arg1)
+// Solidity: function masterToAccounts(address , address ) view returns(bool)
+func (_MasterAggregator *MasterAggregatorSession) MasterToAccounts(arg0 common.Address, arg1 common.Address) (bool, error) {
+	return _MasterAggregator.Contract.MasterToAccounts(&_MasterAggregator.CallOpts, arg0, arg1)
 }
 
-// MasterToWallets is a free data retrieval call binding the contract method 0x1e7f20e5.
+// MasterToAccounts is a free data retrieval call binding the contract method 0x1914355c.
 //
-// Solidity: function masterToWallets(address , address ) view returns(bool)
-func (_MasterAggregator *MasterAggregatorCallerSession) MasterToWallets(arg0 common.Address, arg1 common.Address) (bool, error) {
-	return _MasterAggregator.Contract.MasterToWallets(&_MasterAggregator.CallOpts, arg0, arg1)
+// Solidity: function masterToAccounts(address , address ) view returns(bool)
+func (_MasterAggregator *MasterAggregatorCallerSession) MasterToAccounts(arg0 common.Address, arg1 common.Address) (bool, error) {
+	return _MasterAggregator.Contract.MasterToAccounts(&_MasterAggregator.CallOpts, arg0, arg1)
 }
 
 // MaxAggregatedOps is a free data retrieval call binding the contract method 0x0e166cfe.
@@ -693,46 +693,46 @@ func (_MasterAggregator *MasterAggregatorTransactorSession) AddStake(entryPoint 
 	return _MasterAggregator.Contract.AddStake(&_MasterAggregator.TransactOpts, entryPoint, delay)
 }
 
-// AutoAuthorizeWallet is a paid mutator transaction binding the contract method 0x5d7354ff.
+// AutoAuthorizeAccount is a paid mutator transaction binding the contract method 0x34f10a69.
 //
-// Solidity: function autoAuthorizeWallet(address wallet, address master) returns()
-func (_MasterAggregator *MasterAggregatorTransactor) AutoAuthorizeWallet(opts *bind.TransactOpts, wallet common.Address, master common.Address) (*types.Transaction, error) {
-	return _MasterAggregator.contract.Transact(opts, "autoAuthorizeWallet", wallet, master)
+// Solidity: function autoAuthorizeAccount(address Account, address master) returns()
+func (_MasterAggregator *MasterAggregatorTransactor) AutoAuthorizeAccount(opts *bind.TransactOpts, Account common.Address, master common.Address) (*types.Transaction, error) {
+	return _MasterAggregator.contract.Transact(opts, "autoAuthorizeAccount", Account, master)
 }
 
-// AutoAuthorizeWallet is a paid mutator transaction binding the contract method 0x5d7354ff.
+// AutoAuthorizeAccount is a paid mutator transaction binding the contract method 0x34f10a69.
 //
-// Solidity: function autoAuthorizeWallet(address wallet, address master) returns()
-func (_MasterAggregator *MasterAggregatorSession) AutoAuthorizeWallet(wallet common.Address, master common.Address) (*types.Transaction, error) {
-	return _MasterAggregator.Contract.AutoAuthorizeWallet(&_MasterAggregator.TransactOpts, wallet, master)
+// Solidity: function autoAuthorizeAccount(address Account, address master) returns()
+func (_MasterAggregator *MasterAggregatorSession) AutoAuthorizeAccount(Account common.Address, master common.Address) (*types.Transaction, error) {
+	return _MasterAggregator.Contract.AutoAuthorizeAccount(&_MasterAggregator.TransactOpts, Account, master)
 }
 
-// AutoAuthorizeWallet is a paid mutator transaction binding the contract method 0x5d7354ff.
+// AutoAuthorizeAccount is a paid mutator transaction binding the contract method 0x34f10a69.
 //
-// Solidity: function autoAuthorizeWallet(address wallet, address master) returns()
-func (_MasterAggregator *MasterAggregatorTransactorSession) AutoAuthorizeWallet(wallet common.Address, master common.Address) (*types.Transaction, error) {
-	return _MasterAggregator.Contract.AutoAuthorizeWallet(&_MasterAggregator.TransactOpts, wallet, master)
+// Solidity: function autoAuthorizeAccount(address Account, address master) returns()
+func (_MasterAggregator *MasterAggregatorTransactorSession) AutoAuthorizeAccount(Account common.Address, master common.Address) (*types.Transaction, error) {
+	return _MasterAggregator.Contract.AutoAuthorizeAccount(&_MasterAggregator.TransactOpts, Account, master)
 }
 
-// BatchSetWalletAuthorization is a paid mutator transaction binding the contract method 0x0c2a653b.
+// BatchSetAccountAuthorization is a paid mutator transaction binding the contract method 0x1b6053f9.
 //
-// Solidity: function batchSetWalletAuthorization(address master, address[] wallets, bool authorized) returns()
-func (_MasterAggregator *MasterAggregatorTransactor) BatchSetWalletAuthorization(opts *bind.TransactOpts, master common.Address, wallets []common.Address, authorized bool) (*types.Transaction, error) {
-	return _MasterAggregator.contract.Transact(opts, "batchSetWalletAuthorization", master, wallets, authorized)
+// Solidity: function batchSetAccountAuthorization(address master, address[] Accounts, bool authorized) returns()
+func (_MasterAggregator *MasterAggregatorTransactor) BatchSetAccountAuthorization(opts *bind.TransactOpts, master common.Address, Accounts []common.Address, authorized bool) (*types.Transaction, error) {
+	return _MasterAggregator.contract.Transact(opts, "batchSetAccountAuthorization", master, Accounts, authorized)
 }
 
-// BatchSetWalletAuthorization is a paid mutator transaction binding the contract method 0x0c2a653b.
+// BatchSetAccountAuthorization is a paid mutator transaction binding the contract method 0x1b6053f9.
 //
-// Solidity: function batchSetWalletAuthorization(address master, address[] wallets, bool authorized) returns()
-func (_MasterAggregator *MasterAggregatorSession) BatchSetWalletAuthorization(master common.Address, wallets []common.Address, authorized bool) (*types.Transaction, error) {
-	return _MasterAggregator.Contract.BatchSetWalletAuthorization(&_MasterAggregator.TransactOpts, master, wallets, authorized)
+// Solidity: function batchSetAccountAuthorization(address master, address[] Accounts, bool authorized) returns()
+func (_MasterAggregator *MasterAggregatorSession) BatchSetAccountAuthorization(master common.Address, Accounts []common.Address, authorized bool) (*types.Transaction, error) {
+	return _MasterAggregator.Contract.BatchSetAccountAuthorization(&_MasterAggregator.TransactOpts, master, Accounts, authorized)
 }
 
-// BatchSetWalletAuthorization is a paid mutator transaction binding the contract method 0x0c2a653b.
+// BatchSetAccountAuthorization is a paid mutator transaction binding the contract method 0x1b6053f9.
 //
-// Solidity: function batchSetWalletAuthorization(address master, address[] wallets, bool authorized) returns()
-func (_MasterAggregator *MasterAggregatorTransactorSession) BatchSetWalletAuthorization(master common.Address, wallets []common.Address, authorized bool) (*types.Transaction, error) {
-	return _MasterAggregator.Contract.BatchSetWalletAuthorization(&_MasterAggregator.TransactOpts, master, wallets, authorized)
+// Solidity: function batchSetAccountAuthorization(address master, address[] Accounts, bool authorized) returns()
+func (_MasterAggregator *MasterAggregatorTransactorSession) BatchSetAccountAuthorization(master common.Address, Accounts []common.Address, authorized bool) (*types.Transaction, error) {
+	return _MasterAggregator.Contract.BatchSetAccountAuthorization(&_MasterAggregator.TransactOpts, master, Accounts, authorized)
 }
 
 // CreateMasterAggregatedSignature is a paid mutator transaction binding the contract method 0xcc8a43ea.
@@ -819,6 +819,27 @@ func (_MasterAggregator *MasterAggregatorTransactorSession) RenounceOwnership() 
 	return _MasterAggregator.Contract.RenounceOwnership(&_MasterAggregator.TransactOpts)
 }
 
+// SetAccountAuthorization is a paid mutator transaction binding the contract method 0x14f368ce.
+//
+// Solidity: function setAccountAuthorization(address master, address Account, bool authorized) returns()
+func (_MasterAggregator *MasterAggregatorTransactor) SetAccountAuthorization(opts *bind.TransactOpts, master common.Address, Account common.Address, authorized bool) (*types.Transaction, error) {
+	return _MasterAggregator.contract.Transact(opts, "setAccountAuthorization", master, Account, authorized)
+}
+
+// SetAccountAuthorization is a paid mutator transaction binding the contract method 0x14f368ce.
+//
+// Solidity: function setAccountAuthorization(address master, address Account, bool authorized) returns()
+func (_MasterAggregator *MasterAggregatorSession) SetAccountAuthorization(master common.Address, Account common.Address, authorized bool) (*types.Transaction, error) {
+	return _MasterAggregator.Contract.SetAccountAuthorization(&_MasterAggregator.TransactOpts, master, Account, authorized)
+}
+
+// SetAccountAuthorization is a paid mutator transaction binding the contract method 0x14f368ce.
+//
+// Solidity: function setAccountAuthorization(address master, address Account, bool authorized) returns()
+func (_MasterAggregator *MasterAggregatorTransactorSession) SetAccountAuthorization(master common.Address, Account common.Address, authorized bool) (*types.Transaction, error) {
+	return _MasterAggregator.Contract.SetAccountAuthorization(&_MasterAggregator.TransactOpts, master, Account, authorized)
+}
+
 // SetMasterAuthorization is a paid mutator transaction binding the contract method 0x79d37814.
 //
 // Solidity: function setMasterAuthorization(address master, bool authorized) returns()
@@ -838,27 +859,6 @@ func (_MasterAggregator *MasterAggregatorSession) SetMasterAuthorization(master 
 // Solidity: function setMasterAuthorization(address master, bool authorized) returns()
 func (_MasterAggregator *MasterAggregatorTransactorSession) SetMasterAuthorization(master common.Address, authorized bool) (*types.Transaction, error) {
 	return _MasterAggregator.Contract.SetMasterAuthorization(&_MasterAggregator.TransactOpts, master, authorized)
-}
-
-// SetWalletAuthorization is a paid mutator transaction binding the contract method 0x70b3bb6b.
-//
-// Solidity: function setWalletAuthorization(address master, address wallet, bool authorized) returns()
-func (_MasterAggregator *MasterAggregatorTransactor) SetWalletAuthorization(opts *bind.TransactOpts, master common.Address, wallet common.Address, authorized bool) (*types.Transaction, error) {
-	return _MasterAggregator.contract.Transact(opts, "setWalletAuthorization", master, wallet, authorized)
-}
-
-// SetWalletAuthorization is a paid mutator transaction binding the contract method 0x70b3bb6b.
-//
-// Solidity: function setWalletAuthorization(address master, address wallet, bool authorized) returns()
-func (_MasterAggregator *MasterAggregatorSession) SetWalletAuthorization(master common.Address, wallet common.Address, authorized bool) (*types.Transaction, error) {
-	return _MasterAggregator.Contract.SetWalletAuthorization(&_MasterAggregator.TransactOpts, master, wallet, authorized)
-}
-
-// SetWalletAuthorization is a paid mutator transaction binding the contract method 0x70b3bb6b.
-//
-// Solidity: function setWalletAuthorization(address master, address wallet, bool authorized) returns()
-func (_MasterAggregator *MasterAggregatorTransactorSession) SetWalletAuthorization(master common.Address, wallet common.Address, authorized bool) (*types.Transaction, error) {
-	return _MasterAggregator.Contract.SetWalletAuthorization(&_MasterAggregator.TransactOpts, master, wallet, authorized)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
@@ -985,6 +985,160 @@ func (_MasterAggregator *MasterAggregatorSession) WithdrawStake(entryPoint commo
 // Solidity: function withdrawStake(address entryPoint, address withdrawAddress) returns()
 func (_MasterAggregator *MasterAggregatorTransactorSession) WithdrawStake(entryPoint common.Address, withdrawAddress common.Address) (*types.Transaction, error) {
 	return _MasterAggregator.Contract.WithdrawStake(&_MasterAggregator.TransactOpts, entryPoint, withdrawAddress)
+}
+
+// MasterAggregatorAccountAuthorizedIterator is returned from FilterAccountAuthorized and is used to iterate over the raw logs and unpacked data for AccountAuthorized events raised by the MasterAggregator contract.
+type MasterAggregatorAccountAuthorizedIterator struct {
+	Event *MasterAggregatorAccountAuthorized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MasterAggregatorAccountAuthorizedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MasterAggregatorAccountAuthorized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MasterAggregatorAccountAuthorized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MasterAggregatorAccountAuthorizedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MasterAggregatorAccountAuthorizedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MasterAggregatorAccountAuthorized represents a AccountAuthorized event raised by the MasterAggregator contract.
+type MasterAggregatorAccountAuthorized struct {
+	Master     common.Address
+	Account    common.Address
+	Authorized bool
+	Raw        types.Log // Blockchain specific contextual infos
+}
+
+// FilterAccountAuthorized is a free log retrieval operation binding the contract event 0x31b0379890007b62e73ee4db4531159d8d00428b2426e3942589e1b604d82e8d.
+//
+// Solidity: event AccountAuthorized(address indexed master, address indexed Account, bool authorized)
+func (_MasterAggregator *MasterAggregatorFilterer) FilterAccountAuthorized(opts *bind.FilterOpts, master []common.Address, Account []common.Address) (*MasterAggregatorAccountAuthorizedIterator, error) {
+
+	var masterRule []interface{}
+	for _, masterItem := range master {
+		masterRule = append(masterRule, masterItem)
+	}
+	var AccountRule []interface{}
+	for _, AccountItem := range Account {
+		AccountRule = append(AccountRule, AccountItem)
+	}
+
+	logs, sub, err := _MasterAggregator.contract.FilterLogs(opts, "AccountAuthorized", masterRule, AccountRule)
+	if err != nil {
+		return nil, err
+	}
+	return &MasterAggregatorAccountAuthorizedIterator{contract: _MasterAggregator.contract, event: "AccountAuthorized", logs: logs, sub: sub}, nil
+}
+
+// WatchAccountAuthorized is a free log subscription operation binding the contract event 0x31b0379890007b62e73ee4db4531159d8d00428b2426e3942589e1b604d82e8d.
+//
+// Solidity: event AccountAuthorized(address indexed master, address indexed Account, bool authorized)
+func (_MasterAggregator *MasterAggregatorFilterer) WatchAccountAuthorized(opts *bind.WatchOpts, sink chan<- *MasterAggregatorAccountAuthorized, master []common.Address, Account []common.Address) (event.Subscription, error) {
+
+	var masterRule []interface{}
+	for _, masterItem := range master {
+		masterRule = append(masterRule, masterItem)
+	}
+	var AccountRule []interface{}
+	for _, AccountItem := range Account {
+		AccountRule = append(AccountRule, AccountItem)
+	}
+
+	logs, sub, err := _MasterAggregator.contract.WatchLogs(opts, "AccountAuthorized", masterRule, AccountRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MasterAggregatorAccountAuthorized)
+				if err := _MasterAggregator.contract.UnpackLog(event, "AccountAuthorized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseAccountAuthorized is a log parse operation binding the contract event 0x31b0379890007b62e73ee4db4531159d8d00428b2426e3942589e1b604d82e8d.
+//
+// Solidity: event AccountAuthorized(address indexed master, address indexed Account, bool authorized)
+func (_MasterAggregator *MasterAggregatorFilterer) ParseAccountAuthorized(log types.Log) (*MasterAggregatorAccountAuthorized, error) {
+	event := new(MasterAggregatorAccountAuthorized)
+	if err := _MasterAggregator.contract.UnpackLog(event, "AccountAuthorized", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // MasterAggregatorAggregatedValidationIterator is returned from FilterAggregatedValidation and is used to iterate over the raw logs and unpacked data for AggregatedValidation events raised by the MasterAggregator contract.
@@ -1703,160 +1857,6 @@ func (_MasterAggregator *MasterAggregatorFilterer) WatchUpgraded(opts *bind.Watc
 func (_MasterAggregator *MasterAggregatorFilterer) ParseUpgraded(log types.Log) (*MasterAggregatorUpgraded, error) {
 	event := new(MasterAggregatorUpgraded)
 	if err := _MasterAggregator.contract.UnpackLog(event, "Upgraded", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// MasterAggregatorWalletAuthorizedIterator is returned from FilterWalletAuthorized and is used to iterate over the raw logs and unpacked data for WalletAuthorized events raised by the MasterAggregator contract.
-type MasterAggregatorWalletAuthorizedIterator struct {
-	Event *MasterAggregatorWalletAuthorized // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *MasterAggregatorWalletAuthorizedIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(MasterAggregatorWalletAuthorized)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(MasterAggregatorWalletAuthorized)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *MasterAggregatorWalletAuthorizedIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *MasterAggregatorWalletAuthorizedIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// MasterAggregatorWalletAuthorized represents a WalletAuthorized event raised by the MasterAggregator contract.
-type MasterAggregatorWalletAuthorized struct {
-	Master     common.Address
-	Wallet     common.Address
-	Authorized bool
-	Raw        types.Log // Blockchain specific contextual infos
-}
-
-// FilterWalletAuthorized is a free log retrieval operation binding the contract event 0xabae33cdff19bac38df4a8e9040050ce7b07993c9463276624268f00d590edfa.
-//
-// Solidity: event WalletAuthorized(address indexed master, address indexed wallet, bool authorized)
-func (_MasterAggregator *MasterAggregatorFilterer) FilterWalletAuthorized(opts *bind.FilterOpts, master []common.Address, wallet []common.Address) (*MasterAggregatorWalletAuthorizedIterator, error) {
-
-	var masterRule []interface{}
-	for _, masterItem := range master {
-		masterRule = append(masterRule, masterItem)
-	}
-	var walletRule []interface{}
-	for _, walletItem := range wallet {
-		walletRule = append(walletRule, walletItem)
-	}
-
-	logs, sub, err := _MasterAggregator.contract.FilterLogs(opts, "WalletAuthorized", masterRule, walletRule)
-	if err != nil {
-		return nil, err
-	}
-	return &MasterAggregatorWalletAuthorizedIterator{contract: _MasterAggregator.contract, event: "WalletAuthorized", logs: logs, sub: sub}, nil
-}
-
-// WatchWalletAuthorized is a free log subscription operation binding the contract event 0xabae33cdff19bac38df4a8e9040050ce7b07993c9463276624268f00d590edfa.
-//
-// Solidity: event WalletAuthorized(address indexed master, address indexed wallet, bool authorized)
-func (_MasterAggregator *MasterAggregatorFilterer) WatchWalletAuthorized(opts *bind.WatchOpts, sink chan<- *MasterAggregatorWalletAuthorized, master []common.Address, wallet []common.Address) (event.Subscription, error) {
-
-	var masterRule []interface{}
-	for _, masterItem := range master {
-		masterRule = append(masterRule, masterItem)
-	}
-	var walletRule []interface{}
-	for _, walletItem := range wallet {
-		walletRule = append(walletRule, walletItem)
-	}
-
-	logs, sub, err := _MasterAggregator.contract.WatchLogs(opts, "WalletAuthorized", masterRule, walletRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(MasterAggregatorWalletAuthorized)
-				if err := _MasterAggregator.contract.UnpackLog(event, "WalletAuthorized", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseWalletAuthorized is a log parse operation binding the contract event 0xabae33cdff19bac38df4a8e9040050ce7b07993c9463276624268f00d590edfa.
-//
-// Solidity: event WalletAuthorized(address indexed master, address indexed wallet, bool authorized)
-func (_MasterAggregator *MasterAggregatorFilterer) ParseWalletAuthorized(log types.Log) (*MasterAggregatorWalletAuthorized, error) {
-	event := new(MasterAggregatorWalletAuthorized)
-	if err := _MasterAggregator.contract.UnpackLog(event, "WalletAuthorized", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

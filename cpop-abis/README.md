@@ -67,24 +67,27 @@ amounts := []*big.Int{amount1, amount2, amount3}
 tx, err := token.BatchTransfer(auth, recipients, amounts)
 ```
 
-### 2. AAWallet
+### 2. AAccount
 账户抽象钱包合约。
 
 ```go
-wallet, err := cpop.NewAAWallet(walletAddress, client)
+account, err := cpop.NewAAccount(accountAddress, client)
 
 // 查询钱包拥有者
-owner, err := wallet.Owner(&bind.CallOpts{})
+owner, err := account.GetOwner(&bind.CallOpts{})
+
+// 查询主签名者
+masterSigner, err := account.GetMasterSigner(&bind.CallOpts{})
 
 // 执行交易
-tx, err := wallet.Execute(auth, targetAddress, value, data)
+tx, err := account.Execute(auth, targetAddress, value, data)
 ```
 
-### 3. WalletManager
+### 3. AccountManager
 钱包管理器合约，负责创建和管理AA钱包。
 
 ```go
-manager, err := cpop.NewWalletManager(managerAddress, client)
+manager, err := cpop.NewAccountManager(managerAddress, client)
 
 // 预测钱包地址
 predictedAddr, err := manager.GetAccountAddress(&bind.CallOpts{}, owner, salt)
@@ -148,7 +151,7 @@ CHAIN_ID=1
 
 # 合约地址
 CPOP_TOKEN_ADDRESS=0x...
-WALLET_MANAGER_ADDRESS=0x...
+ACCOUNT_MANAGER_ADDRESS=0x...
 MASTER_AGGREGATOR_ADDRESS=0x...
 GAS_PAYMASTER_ADDRESS=0x...
 GAS_ORACLE_ADDRESS=0x...
@@ -228,8 +231,8 @@ func main() {
     log.Printf("Token balance: %s", balance.String())
     
     // 创建钱包管理器实例
-    managerAddr := common.HexToAddress(os.Getenv("WALLET_MANAGER_ADDRESS"))
-    manager, err := cpop.NewWalletManager(managerAddr, client)
+    managerAddr := common.HexToAddress(os.Getenv("ACCOUNT_MANAGER_ADDRESS"))
+    manager, err := cpop.NewAccountManager(managerAddr, client)
     if err != nil {
         log.Fatal("Failed to instantiate wallet manager:", err)
     }

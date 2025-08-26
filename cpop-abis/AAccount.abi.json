@@ -121,7 +121,7 @@
         "type": "address"
       }
     ],
-    "name": "AAWalletInitialized",
+    "name": "AAccountInitialized",
     "type": "event"
   },
   {
