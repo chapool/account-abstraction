@@ -30,17 +30,6 @@ var (
 )
 
 // PackedUserOperation is an auto generated low-level Go binding around an user-defined struct.
-type PackedUserOperation struct {
-	Sender             common.Address
-	Nonce              *big.Int
-	InitCode           []byte
-	CallData           []byte
-	AccountGasLimits   [32]byte
-	PreVerificationGas *big.Int
-	GasFees            [32]byte
-	PaymasterAndData   []byte
-	Signature          []byte
-}
 
 // MasterAggregatorMetaData contains all meta data concerning the MasterAggregator contract.
 var MasterAggregatorMetaData = &bind.MetaData{

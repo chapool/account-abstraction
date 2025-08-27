@@ -14,5 +14,8 @@ abigen --abi GasPaymaster.abi.json --pkg cpop --type GasPaymaster --out "gas_pay
 abigen --abi GasPriceOracle.abi.json --pkg cpop --type GasPriceOracle --out "gas_price_oracle.go"
 abigen --abi SessionKeyManager.abi.json --pkg cpop --type SessionKeyManager --out "session_key_manager.go"
 
+echo "Fixing duplicate type definitions..."
+./fix-duplicates.sh
+
 echo "Go bindings generated successfully!"
 echo "Import them in your Go code with: import \"github.com/HzBay/account-abstraction/cpop-abis\""
