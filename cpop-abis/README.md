@@ -303,6 +303,37 @@ manager, err := cpop.NewAccountManager(managerAddress, client)
 - **MasterAggregator** 更新了账户授权相关的方法名称
 - **SessionKeyManager** 增强了会话密钥权限控制
 
+## 故障排除
+
+### PackedUserOperation redeclared 错误
+
+如果您遇到类似以下的编译错误：
+
+```
+PackedUserOperation redeclared in this block
+```
+
+这通常是因为Go模块缓存了旧版本的绑定。请尝试以下解决方案：
+
+1. **清理Go模块缓存：**
+```bash
+go clean -modcache
+go mod tidy
+go get -u github.com/HzBay/account-abstraction/cpop-abis
+```
+
+2. **强制更新到最新版本：**
+```bash
+go get github.com/HzBay/account-abstraction/cpop-abis@latest
+```
+
+3. **如果问题持续存在，请等待几分钟让Go代理更新，然后重试上述命令。**
+
+### 版本兼容性
+
+- Go 1.21+ 
+- 推荐使用最新版本的 `github.com/ethereum/go-ethereum`
+
 ## 贡献
 
 欢迎提交问题和改进建议到项目的GitHub仓库。
