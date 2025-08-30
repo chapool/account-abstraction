@@ -1,0 +1,23 @@
+{
+  "network": "sepolia",
+  "timestamp": "2025-08-30T02:24:04.119Z",
+  "deployer": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35",
+  "contracts": {
+    "MockUSDT": {
+      "address": "0xa6Ce43c76dEc68D7DA4DBCeEA6513CcfE3e65AeE",
+      "name": "Mock USDT",
+      "symbol": "mUSDT",
+      "decimals": "6",
+      "totalSupply": "1000000000000"
+    },
+    "Payment": {
+      "address": "0xb047a38e85A6C4915B36eaB2f77ebF08488c7257",
+      "owner": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35"
+    }
+  },
+  "transactions": {
+    "mockUSDTDeploy": "0x1bf0fad7249e4e4f26239d423e7a91d1a6c607000fd86a67bf5370a6fbf71b6f",
+    "paymentDeploy": "0x183a3af724f680f6d4d2f99cf6c41567a00ea5b90f7f6570cf8e678e1b912035",
+    "addToWhitelist": "0x8659bca5265b3756de36a43a5be0dcaae84d022190fe689acb3051dc7bc5a944"
+  }
+}

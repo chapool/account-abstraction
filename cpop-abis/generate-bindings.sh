@@ -13,6 +13,8 @@ abigen --abi MasterAggregator.abi.json --pkg cpop --type MasterAggregator --out 
 abigen --abi GasPaymaster.abi.json --pkg cpop --type GasPaymaster --out "gas_paymaster.go"
 abigen --abi GasPriceOracle.abi.json --pkg cpop --type GasPriceOracle --out "gas_price_oracle.go"
 abigen --abi SessionKeyManager.abi.json --pkg cpop --type SessionKeyManager --out "session_key_manager.go"
+abigen --abi Payment.abi.json --pkg cpop --type Payment --out "payment.go"
+abigen --abi MockUSDT.abi.json --pkg cpop --type MockUSDT --out "mock_usdt.go"
 
 echo "Fixing duplicate type definitions..."
 ./fix-duplicates.sh
