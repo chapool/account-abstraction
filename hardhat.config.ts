@@ -1,11 +1,17 @@
 import '@nomiclabs/hardhat-waffle'
+import '@nomiclabs/hardhat-ethers'
 import '@typechain/hardhat'
+import '@openzeppelin/hardhat-upgrades'
 import { HardhatUserConfig, task } from 'hardhat/config'
 import 'hardhat-deploy'
 
 import 'solidity-coverage'
 
 import * as fs from 'fs'
+import * as dotenv from 'dotenv'
+
+// Load environment variables
+dotenv.config({ path: '.env.sepolia' })
 
 const SALT = '0x0a59dbff790c23c976a548690c27297883cc66b4c67024f9117b0238995e35e9'
 process.env.SALT = process.env.SALT ?? SALT
@@ -70,17 +76,11 @@ const config: HardhatUserConfig = {
     localgeth: { url: 'http://localgeth:8545' },
     sepolia: getNetwork('sepolia'),
     proxy: getNetwork1('http://localhost:8545'),
-    bscTestnet: {
-      url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
-      chainId: 97,
+    sepoliaCustom: {
+      url: process.env.ETH_RPC_URL!,
+      chainId: 11155111,
       gasPrice: 20000000000,
-      accounts: ['0x05255b4e0db26fca40df4999ff8e72ce12130ef6afb39db9ce83436c6076b58f']
-    },
-    hashkeyTestnet: {
-      url: 'https://testnet.hsk.xyz',
-      chainId: 133,
-      gasPrice: 30000000000,
-      accounts: ['0xd8930e1e484f11002d262207542a5f994c96ca4788e2d47aaf9a6ccebffb2edd'],
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       timeout: 60000
     }
   },

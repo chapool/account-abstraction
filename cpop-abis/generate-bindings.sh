@@ -15,6 +15,7 @@ abigen --abi GasPriceOracle.abi.json --pkg cpop --type GasPriceOracle --out "gas
 abigen --abi SessionKeyManager.abi.json --pkg cpop --type SessionKeyManager --out "session_key_manager.go"
 abigen --abi Payment.abi.json --pkg cpop --type Payment --out "payment.go"
 abigen --abi MockUSDT.abi.json --pkg cpop --type MockUSDT --out "mock_usdt.go"
+abigen --abi CPNFT.abi.json --pkg cpop --type CPNFT --out "cp_nft.go"
 
 echo "Fixing duplicate type definitions..."
 ./fix-duplicates.sh
