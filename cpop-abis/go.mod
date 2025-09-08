@@ -1,4 +1,4 @@
-module github.com/HzBay/account-abstraction/cpop-abis
+module github.com/chapool/account-abstraction/cpop-abis
 
 go 1.23.0
 
