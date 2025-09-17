@@ -130,6 +130,16 @@ contract MyAccount is BaseAccount {
 }
 ```
 
+# Documentation
+
+Additional documentation and deployment guides can be found in the `docs/` directory:
+
+- [Payment Contract Deployment Guide](docs/Payment-Contract-Deployment.md) - Complete guide for deploying and using the Payment contract with batch refund functionality
+- [CPOP Gas Oracle Integration](docs/CPOP-Gas-Oracle-Integration.md) - Gas oracle integration documentation
+- [CPOP Token Batch Operations](docs/CPOPToken-BatchOperations-Summary.md) - Batch operations for CPOP tokens
+- [Web2 Hybrid Deployment Guide](docs/Web2-Hybrid-Deployment-Guide.md) - Web2 integration deployment guide
+- [Chain Bridge Documentation](docs/chain-bridge/) - Complete chain bridge system documentation
+
 # Resources
 
 - [Homepage](https://www.erc4337.io/)

@@ -1,23 +1,23 @@
 {
   "network": "sepolia",
-  "timestamp": "2025-08-30T02:24:04.119Z",
+  "timestamp": "2025-09-17T07:16:03.603Z",
   "deployer": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35",
   "contracts": {
     "MockUSDT": {
-      "address": "0xa6Ce43c76dEc68D7DA4DBCeEA6513CcfE3e65AeE",
+      "address": "0x0D3E58b48Ef96A1eAF2CD9A553558FFAf490Eb88",
       "name": "Mock USDT",
       "symbol": "mUSDT",
       "decimals": "6",
       "totalSupply": "1000000000000"
     },
     "Payment": {
-      "address": "0xb047a38e85A6C4915B36eaB2f77ebF08488c7257",
+      "address": "0x7Da90c3364a3D0B99fCD18c1651E669C4D294D65",
       "owner": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35"
     }
   },
   "transactions": {
-    "mockUSDTDeploy": "0x1bf0fad7249e4e4f26239d423e7a91d1a6c607000fd86a67bf5370a6fbf71b6f",
-    "paymentDeploy": "0x183a3af724f680f6d4d2f99cf6c41567a00ea5b90f7f6570cf8e678e1b912035",
-    "addToWhitelist": "0x8659bca5265b3756de36a43a5be0dcaae84d022190fe689acb3051dc7bc5a944"
+    "mockUSDTDeploy": "0x4bb7e1c1104e166113600ffa8e4f4e853ee334b4626c292cb694bd6b96ca6916",
+    "paymentDeploy": "0x11c71687b5813f31d4074e9920df5c378874f31adcdae81f659a479b4986d1a8",
+    "addToWhitelist": "0x06c42208ad5ce7f4295446aa4a46eeed020b37557becda794a5ffb9746f1b9a5"
   }
 }

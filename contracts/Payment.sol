@@ -35,6 +35,12 @@ contract Payment is ReentrancyGuardTransient {
     event ETHWithdrawn(address indexed owner, uint256 amount);
     event TokenWithdrawn(address indexed owner, address indexed token, uint256 amount);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event RefundProcessed(
+        uint256 indexed orderId,
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
     
     error OnlyOwner();
     error TokenNotAllowed();
@@ -44,6 +50,9 @@ contract Payment is ReentrancyGuardTransient {
     error InsufficientBalance();
     error TransferFailed();
     error InvalidOwner();
+    error ArrayLengthMismatch();
+    error InvalidUser();
+    error RefundFailed();
     
     modifier onlyOwner() {
         if (msg.sender != owner) revert OnlyOwner();
@@ -177,6 +186,72 @@ contract Payment is ReentrancyGuardTransient {
         address previousOwner = owner;
         owner = newOwner;
         emit OwnershipTransferred(previousOwner, newOwner);
+    }
+    
+    /**
+     * @notice Batch refund for multiple orders
+     * @param orderIds Array of order IDs
+     * @param users Array of user addresses to refund
+     * @param amounts Array of amounts to refund
+     * @param tokens Array of token addresses (use address(0) for ETH)
+     */
+    function batchRefund(
+        uint256[] calldata orderIds,
+        address[] calldata users,
+        uint256[] calldata amounts,
+        address[] calldata tokens
+    ) external onlyOwner nonReentrant {
+        // Validate array lengths
+        if (orderIds.length != users.length || 
+            users.length != amounts.length || 
+            amounts.length != tokens.length) {
+            revert ArrayLengthMismatch();
+        }
+        
+        if (orderIds.length == 0) revert InvalidAmount();
+        
+        // Process each refund
+        for (uint256 i = 0; i < orderIds.length; i++) {
+            _processRefund(orderIds[i], users[i], amounts[i], tokens[i]);
+        }
+    }
+    
+    /**
+     * @notice Internal function to process individual refund
+     * @param orderId Order ID (for tracking purposes only)
+     * @param user User address to refund
+     * @param amount Amount to refund
+     * @param token Token address (use address(0) for ETH)
+     */
+    function _processRefund(
+        uint256 orderId,
+        address user,
+        uint256 amount,
+        address token
+    ) internal {
+        // Validate inputs
+        if (user == address(0)) revert InvalidUser();
+        if (amount == 0) revert InvalidAmount();
+        if (!allowedTokens[token]) revert TokenNotAllowed();
+        
+        // Process refund based on token type
+        if (token == address(0)) {
+            // ETH refund
+            if (amount > address(this).balance) revert InsufficientBalance();
+            
+            (bool success, ) = payable(user).call{value: amount}("");
+            if (!success) revert RefundFailed();
+        } else {
+            // ERC20 refund
+            IERC20 tokenContract = IERC20(token);
+            if (amount > tokenContract.balanceOf(address(this))) revert InsufficientBalance();
+            
+            bool success = tokenContract.transfer(user, amount);
+            if (!success) revert RefundFailed();
+        }
+        
+        // Emit refund event
+        emit RefundProcessed(orderId, user, token, amount);
     }
     
     /**
