@@ -42,20 +42,9 @@ contract Payment is ReentrancyGuardTransient {
         uint256 amount
     );
     
-    error OnlyOwner();
-    error TokenNotAllowed();
-    error OrderAlreadyPaid();
-    error InvalidAmount();
-    error InvalidToken();
-    error InsufficientBalance();
-    error TransferFailed();
-    error InvalidOwner();
-    error ArrayLengthMismatch();
-    error InvalidUser();
-    error RefundFailed();
     
     modifier onlyOwner() {
-        if (msg.sender != owner) revert OnlyOwner();
+        require(msg.sender == owner, "Only owner");
         _;
     }
     
@@ -77,16 +66,16 @@ contract Payment is ReentrancyGuardTransient {
         payable 
         nonReentrant 
     {
-        if (!allowedTokens[token]) revert TokenNotAllowed();
-        if (payments[orderId].payer != address(0)) revert OrderAlreadyPaid();
-        if (amount == 0) revert InvalidAmount();
+        require(allowedTokens[token], "Token not allowed");
+        require(payments[orderId].payer == address(0), "Order already paid");
+        require(amount > 0, "Invalid amount");
         
         if (token == address(0)) {
             // ETH payment
-            if (msg.value != amount) revert InvalidAmount();
+            require(msg.value == amount, "ETH amount mismatch");
         } else {
             // ERC20 payment
-            if (msg.value != 0) revert InvalidAmount();
+            require(msg.value == 0, "No ETH with ERC20");
             IERC20(token).transferFrom(msg.sender, address(this), amount);
         }
         
@@ -115,7 +104,7 @@ contract Payment is ReentrancyGuardTransient {
      * @param token Token address to remove
      */
     function removeAllowedToken(address token) external onlyOwner {
-        if (token == address(0)) revert InvalidToken(); // Cannot remove ETH
+        require(token != address(0), "Cannot remove ETH");
         allowedTokens[token] = false;
         emit TokenRemoved(token);
     }
@@ -125,10 +114,10 @@ contract Payment is ReentrancyGuardTransient {
      * @param amount Amount to withdraw
      */
     function withdrawETH(uint256 amount) external onlyOwner nonReentrant {
-        if (amount > address(this).balance) revert InsufficientBalance();
+        require(amount <= address(this).balance, "Insufficient balance");
         
         (bool success, ) = payable(owner).call{value: amount}("");
-        if (!success) revert TransferFailed();
+        require(success, "Transfer failed");
         
         emit ETHWithdrawn(owner, amount);
     }
@@ -138,10 +127,10 @@ contract Payment is ReentrancyGuardTransient {
      */
     function withdrawAllETH() external onlyOwner nonReentrant {
         uint256 balance = address(this).balance;
-        if (balance == 0) revert InsufficientBalance();
+        require(balance > 0, "No ETH to withdraw");
         
         (bool success, ) = payable(owner).call{value: balance}("");
-        if (!success) revert TransferFailed();
+        require(success, "Transfer failed");
         
         emit ETHWithdrawn(owner, balance);
     }
@@ -152,10 +141,10 @@ contract Payment is ReentrancyGuardTransient {
      * @param amount Amount to withdraw
      */
     function withdrawToken(address token, uint256 amount) external onlyOwner nonReentrant {
-        if (token == address(0)) revert InvalidToken();
+        require(token != address(0), "Invalid token address");
         
         IERC20 tokenContract = IERC20(token);
-        if (amount > tokenContract.balanceOf(address(this))) revert InsufficientBalance();
+        require(amount <= tokenContract.balanceOf(address(this)), "Insufficient token balance");
         
         tokenContract.transfer(owner, amount);
         emit TokenWithdrawn(owner, token, amount);
@@ -166,11 +155,11 @@ contract Payment is ReentrancyGuardTransient {
      * @param token Token address
      */
     function withdrawAllTokens(address token) external onlyOwner nonReentrant {
-        if (token == address(0)) revert InvalidToken();
+        require(token != address(0), "Invalid token address");
         
         IERC20 tokenContract = IERC20(token);
         uint256 balance = tokenContract.balanceOf(address(this));
-        if (balance == 0) revert InsufficientBalance();
+        require(balance > 0, "No tokens to withdraw");
         
         tokenContract.transfer(owner, balance);
         emit TokenWithdrawn(owner, token, balance);
@@ -181,7 +170,7 @@ contract Payment is ReentrancyGuardTransient {
      * @param newOwner New owner address
      */
     function transferOwnership(address newOwner) external onlyOwner {
-        if (newOwner == address(0)) revert InvalidOwner();
+        require(newOwner != address(0), "Invalid owner address");
         
         address previousOwner = owner;
         owner = newOwner;
@@ -202,13 +191,11 @@ contract Payment is ReentrancyGuardTransient {
         address[] calldata tokens
     ) external onlyOwner nonReentrant {
         // Validate array lengths
-        if (orderIds.length != users.length || 
-            users.length != amounts.length || 
-            amounts.length != tokens.length) {
-            revert ArrayLengthMismatch();
-        }
+        require(orderIds.length == users.length && 
+                users.length == amounts.length && 
+                amounts.length == tokens.length, "Array length mismatch");
         
-        if (orderIds.length == 0) revert InvalidAmount();
+        require(orderIds.length > 0, "Empty refund array");
         
         // Process each refund
         for (uint256 i = 0; i < orderIds.length; i++) {
@@ -230,24 +217,24 @@ contract Payment is ReentrancyGuardTransient {
         address token
     ) internal {
         // Validate inputs
-        if (user == address(0)) revert InvalidUser();
-        if (amount == 0) revert InvalidAmount();
-        if (!allowedTokens[token]) revert TokenNotAllowed();
+        require(user != address(0), "Invalid user address");
+        require(amount > 0, "Invalid refund amount");
+        require(allowedTokens[token], "Token not allowed");
         
         // Process refund based on token type
         if (token == address(0)) {
             // ETH refund
-            if (amount > address(this).balance) revert InsufficientBalance();
+            require(amount <= address(this).balance, "Insufficient ETH balance");
             
             (bool success, ) = payable(user).call{value: amount}("");
-            if (!success) revert RefundFailed();
+            require(success, "ETH refund failed");
         } else {
             // ERC20 refund
             IERC20 tokenContract = IERC20(token);
-            if (amount > tokenContract.balanceOf(address(this))) revert InsufficientBalance();
+            require(amount <= tokenContract.balanceOf(address(this)), "Insufficient token balance");
             
             bool success = tokenContract.transfer(user, amount);
-            if (!success) revert RefundFailed();
+            require(success, "Token refund failed");
         }
         
         // Emit refund event

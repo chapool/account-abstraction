@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-09-05T09:04:51.172Z",
+  "network": "sepolia",
+  "chainId": 11155111,
+  "contract": {
+    "name": "CPNFT",
+    "address": "0x0C69Fc117ebe241d7Aefa748b30F43c774eD70a5",
+    "owner": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35",
+    "deploymentName": "CPNFT_1757063081",
+    "config": {
+      "name": "CPOP NFT Collection",
+      "symbol": "CPNFT",
+      "baseURI": "https://api.cpop.io/nft/"
+    }
+  },
+  "deployer": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35",
+  "transactionHash": "0xd1a69456fe0a75880a2964c4cff943d0cc6ba8de2d2c8c396bab69961034800b"
+}

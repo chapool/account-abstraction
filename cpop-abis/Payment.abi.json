@@ -6,62 +6,7 @@
   },
   {
     "inputs": [],
-    "name": "ArrayLengthMismatch",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InsufficientBalance",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidAmount",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidToken",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidUser",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OnlyOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OrderAlreadyPaid",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "RefundFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TokenNotAllowed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TransferFailed",
     "type": "error"
   },
   {

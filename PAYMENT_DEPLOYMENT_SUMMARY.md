@@ -2,13 +2,13 @@
 
 ## 🚀 Latest Deployment - Sepolia Testnet
 
-**Deployment Date**: September 17, 2025  
+**Deployment Date**: September 17, 2025 (Updated)  
 **Status**: ✅ Successfully Deployed
 
 ### Contract Addresses
 ```
-Payment Contract:  0x7Da90c3364a3D0B99fCD18c1651E669C4D294D65
-MockUSDT Contract: 0x0D3E58b48Ef96A1eAF2CD9A553558FFAf490Eb88
+Payment Contract:  0xC81bac959087100BE02B5C599118Fdc04c56556d
+MockUSDT Contract: 0x8c3346F5A95cB5927fE09C6265b09eEA607887d6
 ```
 
 ### New Features Added
@@ -37,7 +37,7 @@ await payment.pay(1, ethers.constants.AddressZero, ethers.utils.parseEther("1"),
 })
 
 // Pay with USDT
-await payment.pay(2, "0x0D3E58b48Ef96A1eAF2CD9A553558FFAf490Eb88", ethers.utils.parseUnits("100", 6))
+await payment.pay(2, "0x8c3346F5A95cB5927fE09C6265b09eEA607887d6", ethers.utils.parseUnits("100", 6))
 ```
 
 #### Batch Refund
@@ -51,8 +51,8 @@ const amounts = [
 ]
 const tokens = [
     ethers.constants.AddressZero,           // ETH
-    "0x0D3E58b48Ef96A1eAF2CD9A553558FFAf490Eb88", // USDT
-    "0x0D3E58b48Ef96A1eAF2CD9A553558FFAf490Eb88"  // USDT
+    "0x8c3346F5A95cB5927fE09C6265b09eEA607887d6", // USDT
+    "0x8c3346F5A95cB5927fE09C6265b09eEA607887d6"  // USDT
 ]
 
 await payment.batchRefund(orderIds, users, amounts, tokens)
@@ -74,5 +74,5 @@ npx hardhat run scripts/deploy-payment-sepolia.ts --network sepoliaCustom
 
 ---
 
-**Last Updated**: 2025-09-17  
+**Last Updated**: 2025-09-17 (Updated)  
 **Deployer**: 0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35

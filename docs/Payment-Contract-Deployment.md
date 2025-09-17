@@ -8,15 +8,15 @@ The Payment contract is a simple payment system for offline orders that supports
 
 ### Deployment Details
 - **Network**: Sepolia Testnet
-- **Payment Contract Address**: `0x7Da90c3364a3D0B99fCD18c1651E669C4D294D65`
-- **MockUSDT Contract Address**: `0x0D3E58b48Ef96A1eAF2CD9A553558FFAf490Eb88`
+- **Payment Contract Address**: `0xC81bac959087100BE02B5C599118Fdc04c56556d`
+- **MockUSDT Contract Address**: `0x8c3346F5A95cB5927fE09C6265b09eEA607887d6`
 - **Deployer**: `0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35`
-- **Deployment Date**: 2025-09-17T07:16:03.603Z
+- **Deployment Date**: 2025-09-17T09:34:26.186Z
 
 ### Transaction Hashes
-- MockUSDT Deploy: `0x4bb7e1c1104e166113600ffa8e4f4e853ee334b4626c292cb694bd6b96ca6916`
-- Payment Deploy: `0x11c71687b5813f31d4074e9920df5c378874f31adcdae81f659a479b4986d1a8`
-- Add Token to Whitelist: `0x06c42208ad5ce7f4295446aa4a46eeed020b37557becda794a5ffb9746f1b9a5`
+- MockUSDT Deploy: `0x123f5a9ec3d9b483166417da69151c3fdef70924bd446924847374747bd334d6`
+- Payment Deploy: `0x7644e7eca4e9f42cfe805f93733b72fc3721410c2c87f1b356dd354caafd4542`
+- Add Token to Whitelist: `0xcc0bfa66a00bedbbc9dbcbccd89949cd43320dbab23fb842522150a33010025a`
 
 ## MockUSDT Token Information
 - **Name**: Mock USDT
@@ -85,7 +85,7 @@ await payment.pay(orderId, ethers.constants.AddressZero, ethers.utils.parseEther
 });
 
 // Pay with USDT
-await payment.pay(orderId, mockUSDTAddress, ethers.utils.parseUnits("100", 6));
+await payment.pay(orderId, "0x8c3346F5A95cB5927fE09C6265b09eEA607887d6", ethers.utils.parseUnits("100", 6));
 ```
 
 ### 3. Check Payment Status
@@ -106,8 +106,8 @@ const amounts = [
 ];
 const tokens = [
     ethers.constants.AddressZero,           // ETH
-    mockUSDTAddress,                        // USDT
-    mockUSDTAddress                         // USDT
+    "0x8c3346F5A95cB5927fE09C6265b09eEA607887d6", // USDT
+    "0x8c3346F5A95cB5927fE09C6265b09eEA607887d6"  // USDT
 ];
 
 // Execute batch refund
@@ -170,5 +170,5 @@ For questions or issues related to the Payment contract deployment, please refer
 
 ---
 
-**Last Updated**: 2025-09-17T07:16:03.603Z
-**Contract Version**: Latest with batch refund functionality
+**Last Updated**: 2025-09-17T09:34:26.186Z
+**Contract Version**: Latest with batch refund functionality and require statements
