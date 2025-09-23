@@ -31,7 +31,7 @@ var (
 
 // CPNFTMetaData contains all meta data concerning the CPNFT contract.
 var CPNFTMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name_\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol_\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"baseTokenURI_\",\"type\":\"string\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"approved\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\"}],\"name\":\"ApprovalForAll\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner_\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"}],\"name\":\"batchBurn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"to\",\"type\":\"address[]\"}],\"name\":\"batchMint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"from\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"to\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"}],\"name\":\"batchTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"getApproved\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentTokenId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getNextTokenId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isApprovedForAll\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"}],\"name\":\"mint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"ownerOf\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"safeTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"safeTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\"}],\"name\":\"setApprovalForAll\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"baseURI\",\"type\":\"string\"}],\"name\":\"setBaseURI\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenURI\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name_\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol_\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"baseTokenURI_\",\"type\":\"string\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"approved\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\"}],\"name\":\"ApprovalForAll\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"enumCPNFT.NFTLevel\",\"name\":\"level\",\"type\":\"uint8\"}],\"name\":\"TokenLevelSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"isStaked\",\"type\":\"bool\"}],\"name\":\"TokenStakeStatusChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner_\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"}],\"name\":\"batchBurn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"to\",\"type\":\"address[]\"},{\"internalType\":\"enumCPNFT.NFTLevel[]\",\"name\":\"levels\",\"type\":\"uint8[]\"}],\"name\":\"batchMint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"from\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"to\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"}],\"name\":\"batchTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"getApproved\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentTokenId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getNextTokenId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"getTokenLevel\",\"outputs\":[{\"internalType\":\"enumCPNFT.NFTLevel\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isApprovedForAll\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"isStaked\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"enumCPNFT.NFTLevel\",\"name\":\"level\",\"type\":\"uint8\"}],\"name\":\"mint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"ownerOf\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"safeTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"safeTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\"}],\"name\":\"setApprovalForAll\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"baseURI\",\"type\":\"string\"}],\"name\":\"setBaseURI\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"staked\",\"type\":\"bool\"}],\"name\":\"setStakeStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"enumCPNFT.NFTLevel\",\"name\":\"level\",\"type\":\"uint8\"}],\"name\":\"setTokenLevel\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenURI\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // CPNFTABI is the input ABI used to generate the binding from.
@@ -304,6 +304,37 @@ func (_CPNFT *CPNFTCallerSession) GetNextTokenId() (*big.Int, error) {
 	return _CPNFT.Contract.GetNextTokenId(&_CPNFT.CallOpts)
 }
 
+// GetTokenLevel is a free data retrieval call binding the contract method 0xd011645c.
+//
+// Solidity: function getTokenLevel(uint256 tokenId) view returns(uint8)
+func (_CPNFT *CPNFTCaller) GetTokenLevel(opts *bind.CallOpts, tokenId *big.Int) (uint8, error) {
+	var out []interface{}
+	err := _CPNFT.contract.Call(opts, &out, "getTokenLevel", tokenId)
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
+}
+
+// GetTokenLevel is a free data retrieval call binding the contract method 0xd011645c.
+//
+// Solidity: function getTokenLevel(uint256 tokenId) view returns(uint8)
+func (_CPNFT *CPNFTSession) GetTokenLevel(tokenId *big.Int) (uint8, error) {
+	return _CPNFT.Contract.GetTokenLevel(&_CPNFT.CallOpts, tokenId)
+}
+
+// GetTokenLevel is a free data retrieval call binding the contract method 0xd011645c.
+//
+// Solidity: function getTokenLevel(uint256 tokenId) view returns(uint8)
+func (_CPNFT *CPNFTCallerSession) GetTokenLevel(tokenId *big.Int) (uint8, error) {
+	return _CPNFT.Contract.GetTokenLevel(&_CPNFT.CallOpts, tokenId)
+}
+
 // IsApprovedForAll is a free data retrieval call binding the contract method 0xe985e9c5.
 //
 // Solidity: function isApprovedForAll(address owner_, address operator) view returns(bool)
@@ -333,6 +364,37 @@ func (_CPNFT *CPNFTSession) IsApprovedForAll(owner_ common.Address, operator com
 // Solidity: function isApprovedForAll(address owner_, address operator) view returns(bool)
 func (_CPNFT *CPNFTCallerSession) IsApprovedForAll(owner_ common.Address, operator common.Address) (bool, error) {
 	return _CPNFT.Contract.IsApprovedForAll(&_CPNFT.CallOpts, owner_, operator)
+}
+
+// IsStaked is a free data retrieval call binding the contract method 0xbaa51f86.
+//
+// Solidity: function isStaked(uint256 tokenId) view returns(bool)
+func (_CPNFT *CPNFTCaller) IsStaked(opts *bind.CallOpts, tokenId *big.Int) (bool, error) {
+	var out []interface{}
+	err := _CPNFT.contract.Call(opts, &out, "isStaked", tokenId)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// IsStaked is a free data retrieval call binding the contract method 0xbaa51f86.
+//
+// Solidity: function isStaked(uint256 tokenId) view returns(bool)
+func (_CPNFT *CPNFTSession) IsStaked(tokenId *big.Int) (bool, error) {
+	return _CPNFT.Contract.IsStaked(&_CPNFT.CallOpts, tokenId)
+}
+
+// IsStaked is a free data retrieval call binding the contract method 0xbaa51f86.
+//
+// Solidity: function isStaked(uint256 tokenId) view returns(bool)
+func (_CPNFT *CPNFTCallerSession) IsStaked(tokenId *big.Int) (bool, error) {
+	return _CPNFT.Contract.IsStaked(&_CPNFT.CallOpts, tokenId)
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -563,25 +625,25 @@ func (_CPNFT *CPNFTTransactorSession) BatchBurn(tokenIds []*big.Int) (*types.Tra
 	return _CPNFT.Contract.BatchBurn(&_CPNFT.TransactOpts, tokenIds)
 }
 
-// BatchMint is a paid mutator transaction binding the contract method 0xd67b06c1.
+// BatchMint is a paid mutator transaction binding the contract method 0x79c352a7.
 //
-// Solidity: function batchMint(address[] to) returns()
-func (_CPNFT *CPNFTTransactor) BatchMint(opts *bind.TransactOpts, to []common.Address) (*types.Transaction, error) {
-	return _CPNFT.contract.Transact(opts, "batchMint", to)
+// Solidity: function batchMint(address[] to, uint8[] levels) returns()
+func (_CPNFT *CPNFTTransactor) BatchMint(opts *bind.TransactOpts, to []common.Address, levels []uint8) (*types.Transaction, error) {
+	return _CPNFT.contract.Transact(opts, "batchMint", to, levels)
 }
 
-// BatchMint is a paid mutator transaction binding the contract method 0xd67b06c1.
+// BatchMint is a paid mutator transaction binding the contract method 0x79c352a7.
 //
-// Solidity: function batchMint(address[] to) returns()
-func (_CPNFT *CPNFTSession) BatchMint(to []common.Address) (*types.Transaction, error) {
-	return _CPNFT.Contract.BatchMint(&_CPNFT.TransactOpts, to)
+// Solidity: function batchMint(address[] to, uint8[] levels) returns()
+func (_CPNFT *CPNFTSession) BatchMint(to []common.Address, levels []uint8) (*types.Transaction, error) {
+	return _CPNFT.Contract.BatchMint(&_CPNFT.TransactOpts, to, levels)
 }
 
-// BatchMint is a paid mutator transaction binding the contract method 0xd67b06c1.
+// BatchMint is a paid mutator transaction binding the contract method 0x79c352a7.
 //
-// Solidity: function batchMint(address[] to) returns()
-func (_CPNFT *CPNFTTransactorSession) BatchMint(to []common.Address) (*types.Transaction, error) {
-	return _CPNFT.Contract.BatchMint(&_CPNFT.TransactOpts, to)
+// Solidity: function batchMint(address[] to, uint8[] levels) returns()
+func (_CPNFT *CPNFTTransactorSession) BatchMint(to []common.Address, levels []uint8) (*types.Transaction, error) {
+	return _CPNFT.Contract.BatchMint(&_CPNFT.TransactOpts, to, levels)
 }
 
 // BatchTransferFrom is a paid mutator transaction binding the contract method 0xb818f9e4.
@@ -626,25 +688,25 @@ func (_CPNFT *CPNFTTransactorSession) Burn(tokenId *big.Int) (*types.Transaction
 	return _CPNFT.Contract.Burn(&_CPNFT.TransactOpts, tokenId)
 }
 
-// Mint is a paid mutator transaction binding the contract method 0x6a627842.
+// Mint is a paid mutator transaction binding the contract method 0x691562a0.
 //
-// Solidity: function mint(address to) returns(uint256)
-func (_CPNFT *CPNFTTransactor) Mint(opts *bind.TransactOpts, to common.Address) (*types.Transaction, error) {
-	return _CPNFT.contract.Transact(opts, "mint", to)
+// Solidity: function mint(address to, uint8 level) returns(uint256)
+func (_CPNFT *CPNFTTransactor) Mint(opts *bind.TransactOpts, to common.Address, level uint8) (*types.Transaction, error) {
+	return _CPNFT.contract.Transact(opts, "mint", to, level)
 }
 
-// Mint is a paid mutator transaction binding the contract method 0x6a627842.
+// Mint is a paid mutator transaction binding the contract method 0x691562a0.
 //
-// Solidity: function mint(address to) returns(uint256)
-func (_CPNFT *CPNFTSession) Mint(to common.Address) (*types.Transaction, error) {
-	return _CPNFT.Contract.Mint(&_CPNFT.TransactOpts, to)
+// Solidity: function mint(address to, uint8 level) returns(uint256)
+func (_CPNFT *CPNFTSession) Mint(to common.Address, level uint8) (*types.Transaction, error) {
+	return _CPNFT.Contract.Mint(&_CPNFT.TransactOpts, to, level)
 }
 
-// Mint is a paid mutator transaction binding the contract method 0x6a627842.
+// Mint is a paid mutator transaction binding the contract method 0x691562a0.
 //
-// Solidity: function mint(address to) returns(uint256)
-func (_CPNFT *CPNFTTransactorSession) Mint(to common.Address) (*types.Transaction, error) {
-	return _CPNFT.Contract.Mint(&_CPNFT.TransactOpts, to)
+// Solidity: function mint(address to, uint8 level) returns(uint256)
+func (_CPNFT *CPNFTTransactorSession) Mint(to common.Address, level uint8) (*types.Transaction, error) {
+	return _CPNFT.Contract.Mint(&_CPNFT.TransactOpts, to, level)
 }
 
 // SafeTransferFrom is a paid mutator transaction binding the contract method 0x42842e0e.
@@ -729,6 +791,48 @@ func (_CPNFT *CPNFTSession) SetBaseURI(baseURI string) (*types.Transaction, erro
 // Solidity: function setBaseURI(string baseURI) returns()
 func (_CPNFT *CPNFTTransactorSession) SetBaseURI(baseURI string) (*types.Transaction, error) {
 	return _CPNFT.Contract.SetBaseURI(&_CPNFT.TransactOpts, baseURI)
+}
+
+// SetStakeStatus is a paid mutator transaction binding the contract method 0xe7b82624.
+//
+// Solidity: function setStakeStatus(uint256 tokenId, bool staked) returns()
+func (_CPNFT *CPNFTTransactor) SetStakeStatus(opts *bind.TransactOpts, tokenId *big.Int, staked bool) (*types.Transaction, error) {
+	return _CPNFT.contract.Transact(opts, "setStakeStatus", tokenId, staked)
+}
+
+// SetStakeStatus is a paid mutator transaction binding the contract method 0xe7b82624.
+//
+// Solidity: function setStakeStatus(uint256 tokenId, bool staked) returns()
+func (_CPNFT *CPNFTSession) SetStakeStatus(tokenId *big.Int, staked bool) (*types.Transaction, error) {
+	return _CPNFT.Contract.SetStakeStatus(&_CPNFT.TransactOpts, tokenId, staked)
+}
+
+// SetStakeStatus is a paid mutator transaction binding the contract method 0xe7b82624.
+//
+// Solidity: function setStakeStatus(uint256 tokenId, bool staked) returns()
+func (_CPNFT *CPNFTTransactorSession) SetStakeStatus(tokenId *big.Int, staked bool) (*types.Transaction, error) {
+	return _CPNFT.Contract.SetStakeStatus(&_CPNFT.TransactOpts, tokenId, staked)
+}
+
+// SetTokenLevel is a paid mutator transaction binding the contract method 0x08ad480b.
+//
+// Solidity: function setTokenLevel(uint256 tokenId, uint8 level) returns()
+func (_CPNFT *CPNFTTransactor) SetTokenLevel(opts *bind.TransactOpts, tokenId *big.Int, level uint8) (*types.Transaction, error) {
+	return _CPNFT.contract.Transact(opts, "setTokenLevel", tokenId, level)
+}
+
+// SetTokenLevel is a paid mutator transaction binding the contract method 0x08ad480b.
+//
+// Solidity: function setTokenLevel(uint256 tokenId, uint8 level) returns()
+func (_CPNFT *CPNFTSession) SetTokenLevel(tokenId *big.Int, level uint8) (*types.Transaction, error) {
+	return _CPNFT.Contract.SetTokenLevel(&_CPNFT.TransactOpts, tokenId, level)
+}
+
+// SetTokenLevel is a paid mutator transaction binding the contract method 0x08ad480b.
+//
+// Solidity: function setTokenLevel(uint256 tokenId, uint8 level) returns()
+func (_CPNFT *CPNFTTransactorSession) SetTokenLevel(tokenId *big.Int, level uint8) (*types.Transaction, error) {
+	return _CPNFT.Contract.SetTokenLevel(&_CPNFT.TransactOpts, tokenId, level)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
@@ -1236,6 +1340,296 @@ func (_CPNFT *CPNFTFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sin
 func (_CPNFT *CPNFTFilterer) ParseOwnershipTransferred(log types.Log) (*CPNFTOwnershipTransferred, error) {
 	event := new(CPNFTOwnershipTransferred)
 	if err := _CPNFT.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// CPNFTTokenLevelSetIterator is returned from FilterTokenLevelSet and is used to iterate over the raw logs and unpacked data for TokenLevelSet events raised by the CPNFT contract.
+type CPNFTTokenLevelSetIterator struct {
+	Event *CPNFTTokenLevelSet // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *CPNFTTokenLevelSetIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(CPNFTTokenLevelSet)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(CPNFTTokenLevelSet)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *CPNFTTokenLevelSetIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *CPNFTTokenLevelSetIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// CPNFTTokenLevelSet represents a TokenLevelSet event raised by the CPNFT contract.
+type CPNFTTokenLevelSet struct {
+	TokenId *big.Int
+	Level   uint8
+	Raw     types.Log // Blockchain specific contextual infos
+}
+
+// FilterTokenLevelSet is a free log retrieval operation binding the contract event 0xf3a12011211dc86e9c6704718a339c980ffca05c6096d33c6579a86082b63272.
+//
+// Solidity: event TokenLevelSet(uint256 indexed tokenId, uint8 level)
+func (_CPNFT *CPNFTFilterer) FilterTokenLevelSet(opts *bind.FilterOpts, tokenId []*big.Int) (*CPNFTTokenLevelSetIterator, error) {
+
+	var tokenIdRule []interface{}
+	for _, tokenIdItem := range tokenId {
+		tokenIdRule = append(tokenIdRule, tokenIdItem)
+	}
+
+	logs, sub, err := _CPNFT.contract.FilterLogs(opts, "TokenLevelSet", tokenIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return &CPNFTTokenLevelSetIterator{contract: _CPNFT.contract, event: "TokenLevelSet", logs: logs, sub: sub}, nil
+}
+
+// WatchTokenLevelSet is a free log subscription operation binding the contract event 0xf3a12011211dc86e9c6704718a339c980ffca05c6096d33c6579a86082b63272.
+//
+// Solidity: event TokenLevelSet(uint256 indexed tokenId, uint8 level)
+func (_CPNFT *CPNFTFilterer) WatchTokenLevelSet(opts *bind.WatchOpts, sink chan<- *CPNFTTokenLevelSet, tokenId []*big.Int) (event.Subscription, error) {
+
+	var tokenIdRule []interface{}
+	for _, tokenIdItem := range tokenId {
+		tokenIdRule = append(tokenIdRule, tokenIdItem)
+	}
+
+	logs, sub, err := _CPNFT.contract.WatchLogs(opts, "TokenLevelSet", tokenIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(CPNFTTokenLevelSet)
+				if err := _CPNFT.contract.UnpackLog(event, "TokenLevelSet", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseTokenLevelSet is a log parse operation binding the contract event 0xf3a12011211dc86e9c6704718a339c980ffca05c6096d33c6579a86082b63272.
+//
+// Solidity: event TokenLevelSet(uint256 indexed tokenId, uint8 level)
+func (_CPNFT *CPNFTFilterer) ParseTokenLevelSet(log types.Log) (*CPNFTTokenLevelSet, error) {
+	event := new(CPNFTTokenLevelSet)
+	if err := _CPNFT.contract.UnpackLog(event, "TokenLevelSet", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// CPNFTTokenStakeStatusChangedIterator is returned from FilterTokenStakeStatusChanged and is used to iterate over the raw logs and unpacked data for TokenStakeStatusChanged events raised by the CPNFT contract.
+type CPNFTTokenStakeStatusChangedIterator struct {
+	Event *CPNFTTokenStakeStatusChanged // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *CPNFTTokenStakeStatusChangedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(CPNFTTokenStakeStatusChanged)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(CPNFTTokenStakeStatusChanged)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *CPNFTTokenStakeStatusChangedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *CPNFTTokenStakeStatusChangedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// CPNFTTokenStakeStatusChanged represents a TokenStakeStatusChanged event raised by the CPNFT contract.
+type CPNFTTokenStakeStatusChanged struct {
+	TokenId  *big.Int
+	IsStaked bool
+	Raw      types.Log // Blockchain specific contextual infos
+}
+
+// FilterTokenStakeStatusChanged is a free log retrieval operation binding the contract event 0x9b5f059a05a4b3deddf04e14f11520a9e0337d12b80a3f3b611a23b62b03e278.
+//
+// Solidity: event TokenStakeStatusChanged(uint256 indexed tokenId, bool isStaked)
+func (_CPNFT *CPNFTFilterer) FilterTokenStakeStatusChanged(opts *bind.FilterOpts, tokenId []*big.Int) (*CPNFTTokenStakeStatusChangedIterator, error) {
+
+	var tokenIdRule []interface{}
+	for _, tokenIdItem := range tokenId {
+		tokenIdRule = append(tokenIdRule, tokenIdItem)
+	}
+
+	logs, sub, err := _CPNFT.contract.FilterLogs(opts, "TokenStakeStatusChanged", tokenIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return &CPNFTTokenStakeStatusChangedIterator{contract: _CPNFT.contract, event: "TokenStakeStatusChanged", logs: logs, sub: sub}, nil
+}
+
+// WatchTokenStakeStatusChanged is a free log subscription operation binding the contract event 0x9b5f059a05a4b3deddf04e14f11520a9e0337d12b80a3f3b611a23b62b03e278.
+//
+// Solidity: event TokenStakeStatusChanged(uint256 indexed tokenId, bool isStaked)
+func (_CPNFT *CPNFTFilterer) WatchTokenStakeStatusChanged(opts *bind.WatchOpts, sink chan<- *CPNFTTokenStakeStatusChanged, tokenId []*big.Int) (event.Subscription, error) {
+
+	var tokenIdRule []interface{}
+	for _, tokenIdItem := range tokenId {
+		tokenIdRule = append(tokenIdRule, tokenIdItem)
+	}
+
+	logs, sub, err := _CPNFT.contract.WatchLogs(opts, "TokenStakeStatusChanged", tokenIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(CPNFTTokenStakeStatusChanged)
+				if err := _CPNFT.contract.UnpackLog(event, "TokenStakeStatusChanged", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseTokenStakeStatusChanged is a log parse operation binding the contract event 0x9b5f059a05a4b3deddf04e14f11520a9e0337d12b80a3f3b611a23b62b03e278.
+//
+// Solidity: event TokenStakeStatusChanged(uint256 indexed tokenId, bool isStaked)
+func (_CPNFT *CPNFTFilterer) ParseTokenStakeStatusChanged(log types.Log) (*CPNFTTokenStakeStatusChanged, error) {
+	event := new(CPNFTTokenStakeStatusChanged)
+	if err := _CPNFT.contract.UnpackLog(event, "TokenStakeStatusChanged", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

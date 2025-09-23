@@ -2,47 +2,75 @@
 pragma solidity ^0.8.19;
 
 /**
+ * @title ERC721 token receiver interface
+ * @dev Interface for any contract that wants to support safeTransfers
+ * from ERC721 asset contracts.
+ */
+interface IERC721Receiver {
+    /**
+     * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
+     * by `operator` from `from`, this function is called.
+     *
+     * It must return its Solidity selector to confirm the token transfer.
+     * If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
+     *
+     * The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`.
+     */
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external returns (bytes4);
+}
+
+/**
  * @title Gas-Optimized CPNFT Contract
  * @dev Custom implementation of NFT with batch operations and owner privileges
  * @dev Completely independent of OpenZeppelin libraries to minimize gas costs
  */
 contract CPNFT {
-    // Token name
+    // ============================================
+    // STORAGE VARIABLES
+    // ============================================
+    
+    // Token metadata
     string private _name;
-    
-    // Token symbol
     string private _symbol;
-    
-    // Base URI for token metadata
     string private _baseTokenURI;
     
-    // Token ID counter
+    // Token management
     uint256 private _tokenIdCounter;
-    
-    // Mapping from token ID to owner address
-    mapping(uint256 => address) private _owners;
-    
-    // Mapping owner address to token count
-    mapping(address => uint256) private _balances;
-    
-    // Mapping from token ID to approved address
-    mapping(uint256 => address) private _tokenApprovals;
-    
-    // Mapping from owner to operator approvals
-    mapping(address => mapping(address => bool)) private _operatorApprovals;
-    
-    // Contract owner
     address private _owner;
     
-    // Mapping to track minted tokens
+    // ERC721 mappings
+    mapping(uint256 => address) private _owners;
+    mapping(address => uint256) private _balances;
+    mapping(uint256 => address) private _tokenApprovals;
+    mapping(address => mapping(address => bool)) private _operatorApprovals;
     mapping(uint256 => bool) private _mintedTokens;
+    
+    // NFT level and staking
+    mapping(uint256 => NFTLevel) private _tokenLevels;
+    mapping(uint256 => bool) private _isStaked;
 
-    // Events
+    // ============================================
+    // ENUMS AND EVENTS
+    // ============================================
+    
+    enum NFTLevel { C, B, A, S, SS, SSS }
+    
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
     event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
     event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event TokenLevelSet(uint256 indexed tokenId, NFTLevel level);
+    event TokenStakeStatusChanged(uint256 indexed tokenId, bool isStaked);
 
+    // ============================================
+    // CONSTRUCTOR
+    // ============================================
+    
     /**
      * @dev Constructor function
      * @param name_ Name of the NFT collection
@@ -61,6 +89,10 @@ contract CPNFT {
         _tokenIdCounter = 1; // Start token IDs from 1
     }
 
+    // ============================================
+    // MODIFIERS
+    // ============================================
+    
     /**
      * @dev Throws if called by any account other than the owner
      */
@@ -69,6 +101,10 @@ contract CPNFT {
         _;
     }
 
+    // ============================================
+    // OWNERSHIP FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Returns the address of the current owner
      */
@@ -86,6 +122,10 @@ contract CPNFT {
         _owner = newOwner;
     }
 
+    // ============================================
+    // METADATA FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Returns the name of the token
      */
@@ -117,6 +157,10 @@ contract CPNFT {
         _baseTokenURI = baseURI;
     }
 
+    // ============================================
+    // ERC721 VIEW FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Returns the number of tokens in an owner's account
      * @param owner_ The address to query the balance of
@@ -145,6 +189,10 @@ contract CPNFT {
         return _mintedTokens[tokenId];
     }
 
+    // ============================================
+    // ERC721 APPROVAL FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Approves another address to transfer the given token ID
      * @param to The address to approve for token transfer
@@ -190,6 +238,10 @@ contract CPNFT {
         return _operatorApprovals[owner_][operator];
     }
 
+    // ============================================
+    // ERC721 TRANSFER FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Transfers a token from one address to another
      * @param from The current owner of the token
@@ -197,6 +249,7 @@ contract CPNFT {
      * @param tokenId The token ID to transfer
      */
     function transferFrom(address from, address to, uint256 tokenId) public {
+        require(!_isStaked[tokenId], "Cannot transfer staked token");
         require(_isApprovedOrOwner(msg.sender, tokenId), "Transfer caller is not owner nor approved");
         _transfer(from, to, tokenId);
     }
@@ -219,26 +272,36 @@ contract CPNFT {
      * @param _data Additional data to send with the transfer
      */
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public {
+        require(!_isStaked[tokenId], "Cannot transfer staked token");
         require(_isApprovedOrOwner(msg.sender, tokenId), "Transfer caller is not owner nor approved");
         _safeTransfer(from, to, tokenId, _data);
     }
 
+    // ============================================
+    // MINTING FUNCTIONS
+    // ============================================
+    
     /**
-     * @dev Mint NFTs in batch to multiple addresses
+     * @dev Mint NFTs in batch to multiple addresses with specified levels
      * @param to Array of addresses to receive the minted NFTs
+     * @param levels Array of NFT levels corresponding to each address
      */
-    function batchMint(address[] calldata to) external onlyOwner() {
+    function batchMint(address[] calldata to, NFTLevel[] calldata levels) external onlyOwner() {
+        require(to.length == levels.length, "Arrays length mismatch");
+        
         for (uint256 i = 0; i < to.length; i++) {
-            mint(to[i]);
+            mint(to[i], levels[i]);
         }
     }
+    
 
     /**
-     * @dev Mint a single NFT to an address
+     * @dev Mint a single NFT to an address with specified level
      * @param to Address to receive the minted NFT
+     * @param level NFT level
      * @return tokenId The ID of the minted token
      */
-    function mint(address to) public onlyOwner returns (uint256) {
+    function mint(address to, NFTLevel level) public onlyOwner returns (uint256) {
         require(to != address(0), "Mint to the zero address");
         
         uint256 tokenId = _tokenIdCounter;
@@ -247,11 +310,18 @@ contract CPNFT {
         _balances[to] += 1;
         _owners[tokenId] = to;
         _mintedTokens[tokenId] = true;
+        _tokenLevels[tokenId] = level;
         
         emit Transfer(address(0), to, tokenId);
+        emit TokenLevelSet(tokenId, level);
         return tokenId;
     }
+    
 
+    // ============================================
+    // BURNING FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Burn NFTs in batch
      * @param tokenIds Array of token IDs to be burned
@@ -281,6 +351,10 @@ contract CPNFT {
         emit Transfer(owner_, address(0), tokenId);
     }
 
+    // ============================================
+    // BATCH TRANSFER FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Transfer NFTs in batch from multiple owners to multiple recipients
      * @param from Array of current token owners
@@ -302,6 +376,10 @@ contract CPNFT {
         }
     }
 
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Get the current token ID counter value
      * @return Current token ID count
@@ -318,6 +396,73 @@ contract CPNFT {
         return _tokenIdCounter;
     }
 
+    // ============================================
+    // NFT LEVEL FUNCTIONS
+    // ============================================
+    
+    /**
+     * @dev 设置NFT等级（仅合约拥有者）
+     * @param tokenId Token ID
+     * @param level NFT等级
+     */
+    function setTokenLevel(uint256 tokenId, NFTLevel level) external onlyOwner {
+        require(_mintedTokens[tokenId], "Token does not exist");
+        require(!_isStaked[tokenId], "Cannot change level of staked token");
+        
+        _tokenLevels[tokenId] = level;
+        emit TokenLevelSet(tokenId, level);
+    }
+
+    /**
+     * @dev 获取NFT等级
+     * @param tokenId Token ID
+     * @return NFT等级
+     */
+    function getTokenLevel(uint256 tokenId) public view returns (NFTLevel) {
+        require(_mintedTokens[tokenId], "Token does not exist");
+        return _tokenLevels[tokenId];
+    }
+
+    // ============================================
+    // STAKING FUNCTIONS
+    // ============================================
+    
+    /**
+     * @dev 检查NFT是否被质押
+     * @param tokenId Token ID
+     * @return 是否被质押
+     */
+    function isStaked(uint256 tokenId) public view returns (bool) {
+        require(_mintedTokens[tokenId], "Token does not exist");
+        return _isStaked[tokenId];
+    }
+
+    /**
+     * @dev 设置质押状态（仅限质押合约调用）
+     * @param tokenId Token ID
+     * @param staked 质押状态
+     */
+    function setStakeStatus(uint256 tokenId, bool staked) external {
+        // 只允许质押合约调用
+        require(msg.sender == 0x0000000000000000000000000000000000000000, "Only staking contract can call"); // 临时地址，需要替换为实际质押合约地址
+        _isStaked[tokenId] = staked;
+        emit TokenStakeStatusChanged(tokenId, staked);
+    }
+    
+    /**
+     * @dev 内部函数：设置质押状态
+     * @param tokenId Token ID
+     * @param staked 质押状态
+     */
+    function _setStakeStatus(uint256 tokenId, bool staked) internal {
+        _isStaked[tokenId] = staked;
+        emit TokenStakeStatusChanged(tokenId, staked);
+    }
+
+    // ============================================
+    // INTERNAL FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Internal function to transfer a token
      * @param from The current owner of the token
@@ -347,8 +492,40 @@ contract CPNFT {
      */
     function _safeTransfer(address from, address to, uint256 tokenId, bytes memory _data) internal {
         _transfer(from, to, tokenId);
-        // Simplified version - in a production environment, you might want to check if the recipient is a contract
-        // and can handle ERC721 tokens, but we're omitting that to save gas
+        require(_checkOnERC721Received(from, to, tokenId, _data), "Transfer to non ERC721Receiver implementer");
+    }
+
+    /**
+     * @dev Internal function to invoke {IERC721Receiver-onERC721Received} on a target address.
+     * The call is not executed if the target address is not a contract.
+     *
+     * @param from address representing the previous owner of the given token ID
+     * @param to target address that will receive the tokens
+     * @param tokenId uint256 ID of the token to be transferred
+     * @param _data bytes optional data to send along with the call
+     * @return bool whether the call correctly returned the expected magic value
+     */
+    function _checkOnERC721Received(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) private returns (bool) {
+        if (to.code.length > 0) {
+            try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, _data) returns (bytes4 retval) {
+                return retval == IERC721Receiver.onERC721Received.selector;
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    revert("Transfer to non ERC721Receiver implementer");
+                } else {
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -378,6 +555,10 @@ contract CPNFT {
         return (spender == owner_ || getApproved(tokenId) == spender || isApprovedForAll(owner_, spender));
     }
 
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    
     /**
      * @dev Converts a uint256 to its ASCII string representation
      * @param value The uint256 value to convert
