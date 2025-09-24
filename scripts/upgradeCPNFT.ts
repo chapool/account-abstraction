@@ -12,35 +12,30 @@ async function main() {
   const fs = require('fs')
   const path = require('path')
   
-  // 查找最新的部署文件
+  // 查找现有的 CPNFT 部署文件
   const deploymentsDir = './deployments/sepoliaCustom'
   if (!fs.existsSync(deploymentsDir)) {
     throw new Error('Deployments directory not found')
   }
 
-  const files = fs.readdirSync(deploymentsDir)
-    .filter((file: string) => file.includes('CPNFTUpgradeable_'))
-    .sort()
-    .reverse()
-
-  if (files.length === 0) {
-    throw new Error('No CPNFT upgradeable deployment found')
+  const cpnftDeploymentPath = path.join(deploymentsDir, 'CPNFT.json')
+  if (!fs.existsSync(cpnftDeploymentPath)) {
+    throw new Error('CPNFT deployment not found')
   }
 
-  const latestDeployment = files[0]
-  const deploymentPath = path.join(deploymentsDir, latestDeployment)
-  const deploymentInfo = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'))
+  const deploymentInfo = JSON.parse(fs.readFileSync(cpnftDeploymentPath, 'utf8'))
+  const metadata = JSON.parse(deploymentInfo.metadata)
 
-  console.log(`Found deployment: ${latestDeployment}`)
-  console.log(`Proxy address: ${deploymentInfo.contract.proxyAddress}`)
-  console.log(`Current implementation: ${deploymentInfo.contract.implementationAddress}`)
+  console.log(`Found CPNFT deployment`)
+  console.log(`Proxy address: ${deploymentInfo.address}`)
+  console.log(`Current implementation: ${metadata.implementation}`)
 
   // 部署新的实现合约
   console.log('Deploying new implementation...')
   const CPNFT = await ethers.getContractFactory('CPNFT')
   
   // 使用 OpenZeppelin upgrades 插件进行升级
-  const upgraded = await upgrades.upgradeProxy(deploymentInfo.contract.address, CPNFT)
+  const upgraded = await upgrades.upgradeProxy(deploymentInfo.address, CPNFT)
   
   console.log(`Contract upgraded successfully!`)
   
@@ -51,10 +46,15 @@ async function main() {
   
   console.log('✅ Upgrade completed successfully!')
 
+  // 获取新的实现地址
+  const newImplementationAddress = await upgrades.erc1967.getImplementationAddress(upgraded.address)
+  
   // 保存升级信息
   const upgradeInfo = {
     timestamp: new Date().toISOString(),
-    proxyAddress: deploymentInfo.contract.address,
+    proxyAddress: deploymentInfo.address,
+    oldImplementation: metadata.implementation,
+    newImplementation: newImplementationAddress,
     version: version,
     deployer: deployer.address
   }
