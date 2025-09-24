@@ -50,6 +50,11 @@
       "address": "0x2E4f862Ba3ee6D84dd19ae9f002F5D8c0C5675ef",
       "txHash": "0x1c841b2180f01ff7c3e0833069b3289c3c8ff2c8c579fea384e2d8ef2d012730",
       "kind": "uups"
+    },
+    {
+      "address": "0xC2C99C9dD2c4716eC2575780373A343c5B24a08f",
+      "txHash": "0xce575e2708cd56255f34db894b3fe9d084abf9fbacd039eee02ae9ce6b2952af",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -705,6 +710,170 @@
               "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
               "offset": 8,
               "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "f115374d45b3fab1596fb9ad6c0b76c66692e83ac27a02dedeb5ce01683ce080": {
+      "address": "0x116A4db9054870a333FF590F62420c01C33d586f",
+      "txHash": "0x865d5bb8364406476e998885b5b6969acad7af929b7c1e35718f92b37fdda024",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "_baseTokenURI",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:26"
+          },
+          {
+            "label": "_tokenIdCounter",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:29"
+          },
+          {
+            "label": "_tokenLevels",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_enum(NFTLevel)7962)",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:32"
+          },
+          {
+            "label": "_isStaked",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_mapping(t_uint256,t_bool)",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:33"
+          },
+          {
+            "label": "stakingContract",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:36"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(NFTLevel)7962": {
+            "label": "enum CPNFT.NFTLevel",
+            "members": [
+              "C",
+              "B",
+              "A",
+              "S",
+              "SS",
+              "SSS"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_enum(NFTLevel)7962)": {
+            "label": "mapping(uint256 => enum CPNFT.NFTLevel)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ERC721": [
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_name",
+              "type": "t_string_storage",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:27"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_symbol",
+              "type": "t_string_storage",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:30"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_owners",
+              "type": "t_mapping(t_uint256,t_address)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:32"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_balances",
+              "type": "t_mapping(t_address,t_uint256)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:34"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_tokenApprovals",
+              "type": "t_mapping(t_uint256,t_address)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:36"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_operatorApprovals",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:38"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
             }
           ]
         }

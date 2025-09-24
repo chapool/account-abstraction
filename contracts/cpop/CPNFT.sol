@@ -223,9 +223,9 @@ contract CPNFT is
     // ============================================
     
     /**
-     * @dev 设置NFT等级（仅合约拥有者）
+     * @dev Set NFT level (only contract owner)
      * @param tokenId Token ID
-     * @param level NFT等级
+     * @param level NFT level
      */
     function setTokenLevel(uint256 tokenId, NFTLevel level) external onlyOwner {
         _requireOwned(tokenId);
@@ -236,9 +236,9 @@ contract CPNFT is
     }
 
     /**
-     * @dev 获取NFT等级
+     * @dev Get NFT level
      * @param tokenId Token ID
-     * @return NFT等级
+     * @return NFT level
      */
     function getTokenLevel(uint256 tokenId) public view returns (NFTLevel) {
         _requireOwned(tokenId);
@@ -250,9 +250,9 @@ contract CPNFT is
     // ============================================
     
     /**
-     * @dev 检查NFT是否被质押
+     * @dev Check if NFT is staked
      * @param tokenId Token ID
-     * @return 是否被质押
+     * @return Whether the NFT is staked
      */
     function isStaked(uint256 tokenId) public view returns (bool) {
         _requireOwned(tokenId);
@@ -260,8 +260,8 @@ contract CPNFT is
     }
 
     /**
-     * @dev 设置质押合约地址（仅合约拥有者）
-     * @param _stakingContract 质押合约地址
+     * @dev Set staking contract address (only contract owner)
+     * @param _stakingContract Staking contract address
      */
     function setStakingContract(address _stakingContract) external onlyOwner {
         stakingContract = _stakingContract;
@@ -269,9 +269,9 @@ contract CPNFT is
     }
 
     /**
-     * @dev 设置质押状态（仅限质押合约调用）
+     * @dev Set staking status (only callable by staking contract)
      * @param tokenId Token ID
-     * @param staked 质押状态
+     * @param staked Staking status
      */
     function setStakeStatus(uint256 tokenId, bool staked) external {
         require(msg.sender == stakingContract, "Only staking contract can call");

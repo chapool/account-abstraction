@@ -1,110 +1,88 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
-import { ethers } from 'hardhat'
+import { ethers, upgrades } from 'hardhat'
 
 const deployCPNFT: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  // Use Alchemy RPC URL for Sepolia
+  if (hre.network.name === 'sepoliaCustom') {
+    hre.network.config.url = 'https://eth-sepolia.g.alchemy.com/v2/_x4NAgu50ejHAhTH2-gJoRNS4PQv7Tjp'
+  }
+  
   const provider = ethers.provider
   const from = await provider.getSigner().getAddress()
-  const network = await provider.getNetwork()
   
-  // Configuration for different networks
-  const networkConfig: { [key: number]: { name: string, symbol: string, baseURI: string } } = {
-    31337: {  // Hardhat network
-      name: "Test CPNFT Collection",
-      symbol: "TCPNFT",
-      baseURI: "https://test-api.example.com/nft/"
-    },
-    1337: {   // Ganache
-      name: "Test CPNFT Collection",
-      symbol: "TCPNFT",
-      baseURI: "https://test-api.example.com/nft/"
-    },
-    11155111: {  // Sepolia
-      name: "CPOP NFT Collection",
-      symbol: "CPNFT",
-      baseURI: "https://api.cpop.io/nft/"
+  console.log('Deploying CPNFT contract...')
+  console.log('Network:', hre.network.name)
+  console.log('Deployer address:', from)
+  
+  // Get the CPNFT contract factory
+  const CPNFT = await ethers.getContractFactory('CPNFT')
+  
+  // Deploy as upgradeable proxy
+  const cpnft = await upgrades.deployProxy(
+    CPNFT,
+    [
+      'Chapool NFT', // name
+      'CPNFT',       // symbol
+      'http://chapool.net:8080/api/v1/meta/' // baseURI
+    ],
+    {
+      initializer: 'initialize',
+      kind: 'uups'
     }
-  }
-
-  // Skip deployment if not on a supported network
-  if (!networkConfig[network.chainId]) {
-    console.log(`Skipping CPNFT deployment on network ${network.chainId}`)
-    return
-  }
-
-  const config = networkConfig[network.chainId]
+  )
   
-  console.log(`Deploying CPNFT to network ${network.chainId} (${network.name})`)
-  console.log(`Deployer: ${from}`)
-
-  // Force new deployment by adding a unique salt
-  const timestamp = Math.floor(Date.now() / 1000)
-  const deploymentName = `CPNFT_${timestamp}`
-
-  const cpnft = await hre.deployments.deploy(deploymentName, {
-    contract: 'CPNFT',  // 指定合约名称
-    from,
-    args: [config.name, config.symbol, config.baseURI],
-    gasLimit: 5e6,
-    log: true,
-    // 移除 deterministicDeployment 以获得新的部署地址
+  await cpnft.deployed()
+  
+  console.log('CPNFT deployed to:', cpnft.address)
+  console.log('Implementation address:', await upgrades.erc1967.getImplementationAddress(cpnft.address))
+  console.log('Admin address:', await upgrades.erc1967.getAdminAddress(cpnft.address))
+  
+  // Save deployment info
+  const implementationAddress = await upgrades.erc1967.getImplementationAddress(cpnft.address)
+  const adminAddress = await upgrades.erc1967.getAdminAddress(cpnft.address)
+  
+  const deployment = await hre.deployments.save('CPNFT', {
+    address: cpnft.address,
+    abi: JSON.parse(CPNFT.interface.format('json')),
+    transactionHash: cpnft.deployTransaction.hash,
+    receipt: await cpnft.deployTransaction.wait(),
+    args: [
+      'Chapool NFT',
+      'CPNFT',
+      'http://chapool.net:8080/api/v1/meta/'
+    ],
+    libraries: {},
+    metadata: JSON.stringify({
+      implementation: implementationAddress,
+      proxyAdmin: adminAddress
+    })
   })
-
-  console.log(`✅ CPNFT deployed to: ${cpnft.address}`)
   
-  // Verify the deployment
-  if (cpnft.newlyDeployed) {
-    const contract = await ethers.getContractAt('CPNFT', cpnft.address)
-    
-    // Verify contract properties
-    const name = await contract.name()
-    const symbol = await contract.symbol()
-    const owner = await contract.owner()
-    
-    console.log(`Contract Details:`)
-    console.log(`  Name: ${name}`)
-    console.log(`  Symbol: ${symbol}`)
-    console.log(`  Owner: ${owner}`)
-    console.log(`  Base URI: ${config.baseURI}`)
-
-    // 保存部署信息到文件
-    const fs = require('fs')
-    const deploymentInfo = {
-      timestamp: new Date().toISOString(),
-      network: network.name,
-      chainId: network.chainId,
-      contract: {
-        name: "CPNFT",
+  console.log('Deployment saved:', deployment?.address || 'Failed to save deployment info')
+  
+  // Verify contract on etherscan if not on local network
+  if (hre.network.name !== 'dev' && hre.network.name !== 'localhost') {
+    try {
+      console.log('Waiting for block confirmations...')
+      await cpnft.deployTransaction.wait(5)
+      
+      console.log('Verifying contract on Etherscan...')
+      await hre.run('verify:verify', {
         address: cpnft.address,
-        owner: owner,
-        deploymentName: deploymentName,
-        config: {
-          name: config.name,
-          symbol: config.symbol,
-          baseURI: config.baseURI
-        }
-      },
-      deployer: from,
-      transactionHash: cpnft.transactionHash
+        constructorArguments: [],
+        contract: 'contracts/cpop/CPNFT.sol:CPNFT'
+      })
+      console.log('Contract verified successfully!')
+    } catch (error) {
+      console.log('Verification failed:', error instanceof Error ? error.message : String(error))
     }
-
-    // 确保目录存在
-    if (!fs.existsSync('./deployments')) {
-      fs.mkdirSync('./deployments')
-    }
-    if (!fs.existsSync('./deployments/sepoliaCustom')) {
-      fs.mkdirSync('./deployments/sepoliaCustom')
-    }
-
-    fs.writeFileSync(
-      `./deployments/sepoliaCustom/${deploymentName}.json`,
-      JSON.stringify(deploymentInfo, null, 2)
-    )
-    console.log(`\n部署信息已保存到: ./deployments/sepoliaCustom/${deploymentName}.json`)
   }
+  
+  return true
 }
 
-// Add tags for selective deployment
-deployCPNFT.tags = ['CPNFT', 'NFT']
+deployCPNFT.tags = ['CPNFT', 'upgradeable']
+deployCPNFT.dependencies = []
 
 export default deployCPNFT
