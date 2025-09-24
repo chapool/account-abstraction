@@ -39,7 +39,7 @@ contract CPNFT is
     // ENUMS AND EVENTS
     // ============================================
     
-    enum NFTLevel { C, B, A, S, SS, SSS }
+    enum NFTLevel { NORMAL, C, B, A, S, SS, SSS }
     
     event TokenLevelSet(uint256 indexed tokenId, NFTLevel level);
     event TokenStakeStatusChanged(uint256 indexed tokenId, bool isStaked);
