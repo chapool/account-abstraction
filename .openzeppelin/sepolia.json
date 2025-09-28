@@ -55,6 +55,11 @@
       "address": "0xC2C99C9dD2c4716eC2575780373A343c5B24a08f",
       "txHash": "0xce575e2708cd56255f34db894b3fe9d084abf9fbacd039eee02ae9ce6b2952af",
       "kind": "uups"
+    },
+    {
+      "address": "0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed",
+      "txHash": "0xb7f399ddb348cbd3de9f29f70a45a3ae7ece1a3d97e1a179e3668f128b5c1a58",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -788,6 +793,171 @@
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_enum(NFTLevel)7962)": {
+            "label": "mapping(uint256 => enum CPNFT.NFTLevel)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ERC721": [
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_name",
+              "type": "t_string_storage",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:27"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_symbol",
+              "type": "t_string_storage",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:30"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_owners",
+              "type": "t_mapping(t_uint256,t_address)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:32"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_balances",
+              "type": "t_mapping(t_address,t_uint256)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:34"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_tokenApprovals",
+              "type": "t_mapping(t_uint256,t_address)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:36"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_operatorApprovals",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:38"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
+    "a2973337a52f17b87390094f521294d6d8c16d5dc5cdc8e5be3ec2fb4b3f030d": {
+      "address": "0x824c14D8ec78D7D359A9A7C0b03b7925CF82d3ab",
+      "txHash": "0x066b792e578b4c7abc7b865240e8f2c3a564fa457d0ffdc8ff37d6f1ec842e4f",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "_baseTokenURI",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:26"
+          },
+          {
+            "label": "_tokenIdCounter",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:29"
+          },
+          {
+            "label": "_tokenLevels",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_enum(NFTLevel)7963)",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:32"
+          },
+          {
+            "label": "_isStaked",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_mapping(t_uint256,t_bool)",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:33"
+          },
+          {
+            "label": "stakingContract",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "CPNFT",
+            "src": "contracts/cpop/CPNFT.sol:36"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(NFTLevel)7963": {
+            "label": "enum CPNFT.NFTLevel",
+            "members": [
+              "NORMAL",
+              "C",
+              "B",
+              "A",
+              "S",
+              "SS",
+              "SSS"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_enum(NFTLevel)7963)": {
             "label": "mapping(uint256 => enum CPNFT.NFTLevel)",
             "numberOfBytes": "32"
           },
