@@ -26,7 +26,7 @@ contract StakingConfig is Ownable {
     
     // Level-specific configuration (packed)
     struct LevelConfig {
-        uint32 dailyReward;    // Max 4.2B tokens
+        uint256 dailyReward;   // Daily reward in wei (1 CPP = 1 ether)
         uint32 decayInterval;  // Max 4.2B days
         uint16 decayRate;      // Max 65535 (basis points)
         uint16 maxDecayRate;   // Max 65535 (basis points)
@@ -116,12 +116,13 @@ contract StakingConfig is Ownable {
         nextQuarterlyUpdate = block.timestamp + 90 days;
         
         // Level configurations (C=1, B=2, A=3, S=4, SS=5, SSS=6)
-        levelConfigs[1] = LevelConfig(3, 20, 3500, 8000);   // C level
-        levelConfigs[2] = LevelConfig(8, 30, 3000, 7000);   // B level
-        levelConfigs[3] = LevelConfig(15, 45, 2500, 6000);  // A level
-        levelConfigs[4] = LevelConfig(30, 60, 2000, 5000);  // S level
-        levelConfigs[5] = LevelConfig(50, 90, 1500, 4000);  // SS level
-        levelConfigs[6] = LevelConfig(100, 180, 1000, 2000); // SSS level
+        // Daily rewards in wei (1 CPP = 1 ether)
+        levelConfigs[1] = LevelConfig(3 ether, 20, 3500, 8000);   // C level: 3 CPP
+        levelConfigs[2] = LevelConfig(8 ether, 30, 3000, 7000);   // B level: 8 CPP
+        levelConfigs[3] = LevelConfig(15 ether, 45, 2500, 6000);  // A level: 15 CPP
+        levelConfigs[4] = LevelConfig(30 ether, 60, 2000, 5000);  // S level: 30 CPP
+        levelConfigs[5] = LevelConfig(50 ether, 90, 1500, 4000);  // SS level: 50 CPP
+        levelConfigs[6] = LevelConfig(100 ether, 180, 1000, 2000); // SSS level: 100 CPP
         
         // Combo configurations
         comboConfigs[0] = ComboConfig(3, 500, 7, 0);    // 3 NFTs: 5% bonus, 7 days
