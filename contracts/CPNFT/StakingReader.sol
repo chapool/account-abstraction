@@ -379,4 +379,88 @@ contract StakingReader {
         stakingVersion = stakingContract.version();
         configVersion = configContract.version();
     }
+    
+    // ============================================
+    // HISTORICAL ADJUSTMENT QUERIES
+    // ============================================
+    
+    /**
+     * @dev Get historical adjustment record
+     * @param index Index of the adjustment record
+     * @return timestamp When the adjustment was recorded
+     * @return quarterlyMultiplier The quarterly multiplier at that time
+     */
+    function getHistoricalAdjustment(uint256 index) external view returns (
+        uint256 timestamp,
+        uint256 quarterlyMultiplier
+    ) {
+        return stakingContract.getHistoricalAdjustment(index);
+    }
+    
+    /**
+     * @dev Get historical dynamic multiplier for a specific level and time
+     * @param index Index of the adjustment record
+     * @param level NFT level (1-6)
+     * @return The dynamic multiplier for that level at that time
+     */
+    function getHistoricalDynamicMultiplier(uint256 index, uint8 level) external view returns (uint256) {
+        return stakingContract.getHistoricalDynamicMultiplier(index, level);
+    }
+    
+    /**
+     * @dev Get number of historical adjustments
+     * @return Number of adjustment records
+     */
+    function getHistoricalAdjustmentCount() external view returns (uint256) {
+        return stakingContract.getHistoricalAdjustmentCount();
+    }
+    
+    /**
+     * @dev Get all historical adjustments for frontend display
+     * @return timestamps Array of timestamps
+     * @return quarterlyMultipliers Array of quarterly multipliers
+     */
+    function getAllHistoricalAdjustments() external view returns (
+        uint256[] memory timestamps,
+        uint256[] memory quarterlyMultipliers
+    ) {
+        uint256 count = stakingContract.getHistoricalAdjustmentCount();
+        
+        timestamps = new uint256[](count);
+        quarterlyMultipliers = new uint256[](count);
+        
+        for (uint256 i = 0; i < count; i++) {
+            (timestamps[i], quarterlyMultipliers[i]) = stakingContract.getHistoricalAdjustment(i);
+        }
+    }
+    
+    /**
+     * @dev Get historical dynamic multipliers for all levels at a specific time
+     * @param index Index of the adjustment record
+     * @return multipliers Array of dynamic multipliers for levels 1-6
+     */
+    function getHistoricalDynamicMultipliersForAllLevels(uint256 index) external view returns (uint256[6] memory multipliers) {
+        for (uint8 level = 1; level <= 6; level++) {
+            multipliers[level - 1] = stakingContract.getHistoricalDynamicMultiplier(index, level);
+        }
+    }
+    
+    /**
+     * @dev Get complete historical adjustment data for frontend
+     * @param index Index of the adjustment record
+     * @return timestamp When the adjustment was recorded
+     * @return quarterlyMultiplier The quarterly multiplier at that time
+     * @return dynamicMultipliers Array of dynamic multipliers for levels 1-6
+     */
+    function getCompleteHistoricalAdjustment(uint256 index) external view returns (
+        uint256 timestamp,
+        uint256 quarterlyMultiplier,
+        uint256[6] memory dynamicMultipliers
+    ) {
+        (timestamp, quarterlyMultiplier) = stakingContract.getHistoricalAdjustment(index);
+        
+        for (uint8 level = 1; level <= 6; level++) {
+            dynamicMultipliers[level - 1] = stakingContract.getHistoricalDynamicMultiplier(index, level);
+        }
+    }
 }

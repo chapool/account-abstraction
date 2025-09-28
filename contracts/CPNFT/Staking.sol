@@ -70,6 +70,7 @@ contract Staking is
     event NFTStaked(address indexed user, uint256 indexed tokenId, uint8 level, uint256 timestamp);
     event NFTUnstaked(address indexed user, uint256 indexed tokenId, uint256 rewards, uint256 timestamp);
     event RewardsClaimed(address indexed user, uint256 indexed tokenId, uint256 amount, uint256 timestamp);
+    event BatchRewardsClaimed(address indexed user, uint256 tokenCount, uint256 totalAmount, uint256 timestamp);
     event BatchStaked(address indexed user, uint256[] tokenIds, uint256 timestamp);
     event BatchUnstaked(address indexed user, uint256[] tokenIds, uint256 totalRewards, uint256 timestamp);
     event PlatformStatsUpdated(uint8 level, uint256 staked, uint256 supply);
@@ -399,6 +400,47 @@ contract Staking is
         
         emit RewardsClaimed(msg.sender, tokenId, rewards, block.timestamp);
     }
+
+    /**
+     * @dev Batch claim rewards for multiple NFTs
+     * @param tokenIds Array of token IDs to claim rewards for
+     */
+    function batchClaimRewards(uint256[] calldata tokenIds) external nonReentrant whenNotPaused {
+        require(tokenIds.length > 0, "Empty token IDs array");
+        require(tokenIds.length <= 50, "Too many tokens in batch");
+        
+        address aaAccount = _getAAAccount(msg.sender);
+        uint256 totalRewards = 0;
+        
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            uint256 tokenId = tokenIds[i];
+            
+            require(stakes[tokenId].owner == msg.sender, "Not the owner of this stake");
+            require(stakes[tokenId].isActive, "NFT is not staked");
+            
+            StakeInfo storage stakeInfo = stakes[tokenId];
+            
+            // Calculate rewards since last claim
+            uint256 rewards = _calculatePendingRewards(tokenId);
+            
+            if (rewards > 0) {
+                // Update last claim time
+                stakeInfo.lastClaimTime = block.timestamp;
+                stakeInfo.pendingRewards = 0;
+                stakeInfo.totalRewards += rewards;
+                totalRewards += rewards;
+                
+                emit RewardsClaimed(msg.sender, tokenId, rewards, block.timestamp);
+            }
+        }
+        
+        require(totalRewards > 0, "No pending rewards");
+        
+        // Send total rewards to AA account
+        cpopTokenContract.mint(aaAccount, totalRewards);
+        
+        emit BatchRewardsClaimed(msg.sender, tokenIds.length, totalRewards, block.timestamp);
+    }
     
     // ============================================
     // REWARD CALCULATION FUNCTIONS
@@ -671,7 +713,8 @@ contract Staking is
      * @dev Record current state as historical adjustment
      * Called when quarterly adjustments are executed
      */
-    function recordHistoricalAdjustment() external onlyOwner {
+    function recordHistoricalAdjustment() external {
+        require(msg.sender == owner() || msg.sender == address(configContract), "Not authorized");
         historicalAdjustments.push();
         HistoricalAdjustment storage newRecord = historicalAdjustments[historicalAdjustments.length - 1];
         

@@ -23,6 +23,8 @@ contracts/CPNFT/
 - **可升级性**: 主合约支持UUPS升级模式
 - **安全性**: 多重安全机制，包括重入保护、暂停功能
 - **Gas优化**: 高效的批量操作和计算逻辑
+- **自动化管理**: 季度调整自动记录历史状态，无需手动干预
+- **完整追踪**: 提供历史调整记录查询，支持收益重新计算
 
 ## 🎯 NFT等级系统
 
@@ -70,6 +72,13 @@ function getDynamicConfig() external view returns (
     uint16 quarterlyAdjustmentMax
 )
 
+// 季度调整管理 (自动化功能)
+function announceQuarterlyAdjustment(uint256 multiplier) external onlyOwner
+function executeQuarterlyAdjustment() external onlyOwner
+function getQuarterlyAdjustment(uint256 index) external view returns (...)
+function getLatestQuarterlyAdjustment() external view returns (...)
+function setStakingContract(address _stakingContract) external onlyOwner
+
 // 总供应量配置
 function setTotalSupplyPerLevel(uint8 level, uint256 supply) external onlyOwner
 function getTotalSupplyPerLevel(uint8 level) external view returns (uint256)
@@ -93,8 +102,14 @@ function batchStake(uint256[] calldata tokenIds) external
 // 解质押
 function unstake(uint256 tokenId) external
 
+// 批量解质押
+function batchUnstake(uint256[] calldata tokenIds) external
+
 // 领取奖励
 function claimRewards(uint256 tokenId) external
+
+// 批量领取奖励
+function batchClaimRewards(uint256[] calldata tokenIds) external
 ```
 
 #### 管理功能
@@ -103,6 +118,12 @@ function claimRewards(uint256 tokenId) external
 // 暂停/恢复合约
 function pause() external onlyOwner
 function unpause() external onlyOwner
+
+// 历史调整记录 (自动化调用)
+function recordHistoricalAdjustment() external
+function getHistoricalAdjustment(uint256 index) external view returns (...)
+function getHistoricalDynamicMultiplier(uint256 index, uint8 level) external view returns (uint256)
+function getHistoricalAdjustmentCount() external view returns (uint256)
 ```
 
 ### 3. StakingReader.sol - 前端查询合约
@@ -190,6 +211,38 @@ function getVersions() external view returns (
 )
 ```
 
+#### 历史调整查询
+
+```solidity
+// 获取历史调整记录数量
+function getHistoricalAdjustmentCount() external view returns (uint256)
+
+// 获取单条历史调整记录
+function getHistoricalAdjustment(uint256 index) external view returns (
+    uint256 timestamp,
+    uint256 quarterlyMultiplier
+)
+
+// 获取特定等级的历史动态乘数
+function getHistoricalDynamicMultiplier(uint256 index, uint8 level) external view returns (uint256)
+
+// 获取所有历史调整记录
+function getAllHistoricalAdjustments() external view returns (
+    uint256[] memory timestamps,
+    uint256[] memory quarterlyMultipliers
+)
+
+// 获取所有等级的历史动态乘数
+function getHistoricalDynamicMultipliersForAllLevels(uint256 index) external view returns (uint256[6] memory multipliers)
+
+// 获取完整的历史调整记录
+function getCompleteHistoricalAdjustment(uint256 index) external view returns (
+    uint256 timestamp,
+    uint256 quarterlyMultiplier,
+    uint256[6] memory dynamicMultipliers
+)
+```
+
 ## 💰 奖励机制
 
 ### 基础奖励计算
@@ -265,12 +318,24 @@ function _calculateDynamicMultiplier(uint8 level) internal view returns (uint256
 - **调整频率**: 每90天一次
 - **历史记录**: 保留所有调整历史供查询
 
+**自动化历史记录**:
+- **自动触发**: 季度调整执行时自动记录历史状态
+- **无需手动**: 系统自动调用历史记录功能，无需管理员干预
+- **完整快照**: 记录调整时刻的季度乘数和所有等级的动态乘数
+- **容错设计**: 历史记录失败不会影响季度调整的正常执行
+
 #### 对用户收益的影响
 
 **实时影响**:
 - **质押时**: 根据当前质押比例立即应用动态倍率
 - **每日计算**: 每次计算收益时都会重新评估质押比例
 - **即时调整**: 当质押比例跨越阈值时，收益立即调整
+
+**历史影响与重新计算**:
+- **历史记录**: 系统自动保存每次调整的完整状态快照
+- **收益追溯**: 可根据历史参数重新计算用户在不同时期的收益
+- **透明度**: 用户可查询历史调整记录，了解系统参数变化
+- **合规性**: 提供完整的调整历史，满足审计和合规要求
 
 **实际案例**:
 
@@ -414,6 +479,11 @@ async function stakeNFT(tokenId, signer) {
 // 批量质押
 async function batchStakeNFTs(tokenIds, signer) {
     try {
+        // 检查批量大小限制 (最多50个)
+        if (tokenIds.length > 50) {
+            throw new Error("批量质押最多支持50个NFT");
+        }
+        
         // 1. 批量授权
         const approveTx = await cpnftContract.connect(signer).setApprovalForAll(STAKING_ADDRESS, true);
         await approveTx.wait();
@@ -487,6 +557,23 @@ async function unstakeNFT(tokenId, signer) {
     }
 }
 
+// 批量解质押NFT
+async function batchUnstakeNFTs(tokenIds, signer) {
+    try {
+        // 检查批量大小限制 (最多50个)
+        if (tokenIds.length > 50) {
+            throw new Error("批量解质押最多支持50个NFT");
+        }
+        
+        const unstakeTx = await stakingContract.connect(signer).batchUnstake(tokenIds);
+        await unstakeTx.wait();
+        
+        console.log(`批量解质押 ${tokenIds.length} 个NFT成功`);
+    } catch (error) {
+        console.error("批量解质押失败:", error);
+    }
+}
+
 // 领取奖励
 async function claimRewards(tokenId, signer) {
     try {
@@ -496,6 +583,23 @@ async function claimRewards(tokenId, signer) {
         console.log(`NFT ${tokenId} 奖励领取成功`);
     } catch (error) {
         console.error("奖励领取失败:", error);
+    }
+}
+
+// 批量领取奖励
+async function batchClaimRewards(tokenIds, signer) {
+    try {
+        // 检查批量大小限制 (最多50个)
+        if (tokenIds.length > 50) {
+            throw new Error("批量领取奖励最多支持50个NFT");
+        }
+        
+        const claimTx = await stakingContract.connect(signer).batchClaimRewards(tokenIds);
+        await claimTx.wait();
+        
+        console.log(`批量领取 ${tokenIds.length} 个NFT的奖励成功`);
+    } catch (error) {
+        console.error("批量领取奖励失败:", error);
     }
 }
 ```
@@ -583,7 +687,75 @@ stakingContract.on("Unstaked", (owner, tokenId, totalRewards, event) => {
 stakingContract.on("RewardsClaimed", (owner, tokenId, amount, event) => {
     console.log(`用户 ${owner} 领取了 NFT ${tokenId} 的奖励 ${ethers.utils.formatEther(amount)}`);
 });
+
+// 查询历史调整记录
+const historicalCount = await stakingReader.getHistoricalAdjustmentCount();
+console.log(`历史调整记录数: ${historicalCount}`);
+
+if (historicalCount > 0) {
+    // 获取所有历史调整
+    const allAdjustments = await stakingReader.getAllHistoricalAdjustments();
+    console.log("历史调整记录:");
+    
+    for (let i = 0; i < allAdjustments.timestamps.length; i++) {
+        const timestamp = allAdjustments.timestamps[i];
+        const multiplier = allAdjustments.quarterlyMultipliers[i];
+        const date = new Date(timestamp * 1000);
+        
+        console.log(`记录${i}: ${date.toISOString()} - 季度乘数 ${multiplier/10000}x`);
+        
+        // 获取该时刻的动态乘数
+        const dynamicMultipliers = await stakingReader.getHistoricalDynamicMultipliersForAllLevels(i);
+        console.log(`  动态乘数: [${dynamicMultipliers.map(m => m/10000 + 'x').join(', ')}]`);
+    }
+    
+    // 获取完整的历史调整记录
+    const completeRecord = await stakingReader.getCompleteHistoricalAdjustment(0);
+    console.log("最新完整记录:", {
+        timestamp: completeRecord.timestamp,
+        quarterlyMultiplier: completeRecord.quarterlyMultiplier/10000 + 'x',
+        dynamicMultipliers: completeRecord.dynamicMultipliers.map(m => m/10000 + 'x')
+    });
+}
 ```
+
+### 📊 历史调整记录查询
+
+StakingReader提供了完整的历史调整记录查询功能，用于追踪系统参数的历史变化：
+
+#### 基础查询函数
+
+```javascript
+// 获取历史调整记录数量
+const count = await stakingReader.getHistoricalAdjustmentCount();
+
+// 获取单条历史调整记录
+const [timestamp, quarterlyMultiplier] = await stakingReader.getHistoricalAdjustment(index);
+
+// 获取特定等级的历史动态乘数
+const dynamicMultiplier = await stakingReader.getHistoricalDynamicMultiplier(index, level);
+```
+
+#### 批量查询函数
+
+```javascript
+// 获取所有历史调整记录
+const { timestamps, quarterlyMultipliers } = await stakingReader.getAllHistoricalAdjustments();
+
+// 获取所有等级的历史动态乘数
+const allLevelMultipliers = await stakingReader.getHistoricalDynamicMultipliersForAllLevels(index);
+
+// 获取完整的历史调整记录（包含季度乘数和所有动态乘数）
+const { timestamp, quarterlyMultiplier, dynamicMultipliers } = 
+    await stakingReader.getCompleteHistoricalAdjustment(index);
+```
+
+#### 历史调整记录用途
+
+1. **收益重新计算**: 根据历史参数准确计算用户在特定时期的收益
+2. **透明度展示**: 向用户展示系统参数的历史变化
+3. **数据分析**: 分析系统参数调整对用户收益的影响
+4. **合规审计**: 提供完整的参数调整历史记录
 
 ## 🔗 相关链接
 
@@ -598,6 +770,23 @@ stakingContract.on("RewardsClaimed", (owner, tokenId, amount, event) => {
 
 ---
 
-**版本**: v1.0.0  
+**版本**: v1.1.0  
 **最后更新**: 2025年1月  
 **兼容性**: Solidity ^0.8.19
+
+## 🔄 版本更新记录
+
+### v1.1.0 (2025年1月)
+- ✅ **自动化历史记录**: 季度调整执行时自动记录历史状态，无需手动干预
+- ✅ **完整历史查询**: StakingReader新增6个历史调整查询函数
+- ✅ **容错设计**: 历史记录失败不影响季度调整正常执行
+- ✅ **批处理功能**: 支持批量质押、批量解质押、批量领取奖励，提升用户体验
+- ✅ **前端优化**: 提供批量查询和历史数据展示功能
+- ✅ **文档完善**: 更新API文档和使用示例，包含完整的批处理函数示例
+
+### v1.0.0 (2025年1月)
+- ✅ **核心功能**: 多等级NFT质押系统
+- ✅ **动态平衡**: 平台质押比例调控机制
+- ✅ **季度调整**: 参数调整和历史记录功能
+- ✅ **模块化架构**: 配置、逻辑、查询分离设计
+- ✅ **批量操作**: 支持批量质押和奖励领取

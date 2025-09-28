@@ -9,6 +9,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract StakingConfig is Ownable {
     
+    // Reference to Staking contract for automatic historical recording
+    address public stakingContract;
+    
     // ============================================
     // STORAGE STRUCTS (Packed for Gas Efficiency)
     // ============================================
@@ -145,6 +148,16 @@ contract StakingConfig is Ownable {
     // ============================================
     // ADMIN FUNCTIONS
     // ============================================
+    
+    /**
+     * @dev Set the Staking contract address
+     * @param _stakingContract Address of the Staking contract
+     */
+    function setStakingContract(address _stakingContract) external onlyOwner {
+        require(_stakingContract != address(0), "Invalid address");
+        stakingContract = _stakingContract;
+        emit ConfigUpdated("staking_contract_set", msg.sender);
+    }
     
     function updateBasicConfig(
         uint64 _minStakeDays,
@@ -440,6 +453,15 @@ contract StakingConfig is Ownable {
         
         // Schedule next quarterly update
         nextQuarterlyUpdate = block.timestamp + 90 days;
+        
+        // Automatically record historical adjustment in Staking contract
+        if (stakingContract != address(0)) {
+            stakingContract.call(
+                abi.encodeWithSignature("recordHistoricalAdjustment()")
+            );
+            // Continue with quarterly adjustment regardless of historical recording success
+            // This ensures quarterly adjustment is not blocked by historical recording issues
+        }
         
         emit QuarterlyAdjustmentExecuted(quarterlyAdjustments.length - 1, latest.multiplier, block.timestamp);
         emit ConfigUpdated("quarterly_execution", msg.sender);
