@@ -53,7 +53,6 @@ contract Staking is
     
     // Platform statistics for dynamic balancing
     mapping(uint8 => uint256) public totalStakedPerLevel;
-    mapping(uint8 => uint256) public totalSupplyPerLevel;
     
     // ============================================
     // EVENTS
@@ -160,7 +159,7 @@ contract Staking is
         cpnftContract.setStakeStatus(tokenId, true);
         
         emit NFTStaked(msg.sender, tokenId, level, block.timestamp);
-        emit PlatformStatsUpdated(level, totalStakedPerLevel[level], totalSupplyPerLevel[level]);
+        emit PlatformStatsUpdated(level, totalStakedPerLevel[level], configContract.getTotalSupplyPerLevel(level));
     }
     
     /**
@@ -211,7 +210,7 @@ contract Staking is
         cpnftContract.setStakeStatus(tokenId, false);
         
         emit NFTUnstaked(msg.sender, tokenId, rewards, block.timestamp);
-        emit PlatformStatsUpdated(stakeInfo.level, totalStakedPerLevel[stakeInfo.level], totalSupplyPerLevel[stakeInfo.level]);
+        emit PlatformStatsUpdated(stakeInfo.level, totalStakedPerLevel[stakeInfo.level], configContract.getTotalSupplyPerLevel(stakeInfo.level));
     }
     
     /**
@@ -435,7 +434,7 @@ contract Staking is
      */
     function _calculateDynamicMultiplier(uint8 level) internal view returns (uint256) {
         uint256 staked = totalStakedPerLevel[level];
-        uint256 supply = totalSupplyPerLevel[level];
+        uint256 supply = configContract.getTotalSupplyPerLevel(level);
         
         if (supply == 0) return 10000; // 1.0x
         
@@ -543,10 +542,6 @@ contract Staking is
         }
     }
     
-    function setTotalSupplyPerLevel(uint8 level, uint256 supply) external onlyOwner {
-        totalSupplyPerLevel[level] = supply;
-        emit PlatformStatsUpdated(level, totalStakedPerLevel[level], supply);
-    }
     
     // ============================================
     // MINIMAL VIEW FUNCTIONS

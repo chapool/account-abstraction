@@ -67,6 +67,9 @@ contract StakingConfig is Ownable {
     ContinuousConfig[2] public continuousConfigs; // 30, 90 day rewards
     DynamicConfig public dynamicConfig;
     
+    // Total supply configuration for each NFT level
+    mapping(uint8 => uint256) public totalSupplyPerLevel;
+    
     // ============================================
     // EVENTS
     // ============================================
@@ -371,6 +374,30 @@ contract StakingConfig is Ownable {
             basicConfig.quarterlyMultiplier,
             basicConfig.lastQuarterlyUpdate
         );
+    }
+    
+    // ============================================
+    // SUPPLY CONFIGURATION FUNCTIONS
+    // ============================================
+    
+    /**
+     * @dev Set total supply for a specific NFT level
+     * @param level NFT level (1-6, 0 is NORMAL and unused)
+     * @param supply Total supply for this level
+     */
+    function setTotalSupplyPerLevel(uint8 level, uint256 supply) external onlyOwner {
+        require(level >= 1 && level <= 6, "Invalid level");
+        totalSupplyPerLevel[level] = supply;
+        emit ConfigUpdated("supply", msg.sender);
+    }
+    
+    /**
+     * @dev Get total supply for a specific NFT level
+     * @param level NFT level
+     * @return supply Total supply for this level
+     */
+    function getTotalSupplyPerLevel(uint8 level) external view returns (uint256) {
+        return totalSupplyPerLevel[level];
     }
     
     function version() public pure returns (string memory) {

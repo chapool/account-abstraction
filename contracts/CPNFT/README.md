@@ -69,6 +69,10 @@ function getDynamicConfig() external view returns (
     uint16 lowStakeMultiplier,
     uint16 quarterlyAdjustmentMax
 )
+
+// 总供应量配置
+function setTotalSupplyPerLevel(uint8 level, uint256 supply) external onlyOwner
+function getTotalSupplyPerLevel(uint8 level) external view returns (uint256)
 ```
 
 ### 2. Staking.sol - 主质押合约
@@ -96,9 +100,6 @@ function claimRewards(uint256 tokenId) external
 #### 管理功能
 
 ```solidity
-// 设置等级总供应量
-function setTotalSupplyPerLevel(uint8 level, uint256 supply) external onlyOwner
-
 // 暂停/恢复合约
 function pause() external onlyOwner
 function unpause() external onlyOwner

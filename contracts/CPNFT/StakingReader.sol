@@ -152,7 +152,7 @@ contract StakingReader {
     ) {
         for (uint8 i = 0; i < 7; i++) {
             stakedCounts[i] = stakingContract.totalStakedPerLevel(i);
-            supplies[i] = stakingContract.totalSupplyPerLevel(i);
+            supplies[i] = configContract.getTotalSupplyPerLevel(i);
             
             if (supplies[i] > 0) {
                 stakingRatios[i] = (stakedCounts[i] * 10000) / supplies[i];
@@ -168,7 +168,7 @@ contract StakingReader {
     function getPlatformStats() external view returns (uint256[7] memory staked, uint256[7] memory supply) {
         for (uint256 i = 0; i < 7; i++) {
             staked[i] = stakingContract.totalStakedPerLevel(uint8(i));
-            supply[i] = stakingContract.totalSupplyPerLevel(uint8(i));
+            supply[i] = configContract.getTotalSupplyPerLevel(uint8(i));
         }
     }
     
@@ -230,7 +230,7 @@ contract StakingReader {
      */
     function _calculateDynamicMultiplier(uint8 level) internal view returns (uint256) {
         uint256 staked = stakingContract.totalStakedPerLevel(level);
-        uint256 supply = stakingContract.totalSupplyPerLevel(level);
+        uint256 supply = configContract.getTotalSupplyPerLevel(level);
         
         if (supply == 0) return 10000; // 1.0x
         

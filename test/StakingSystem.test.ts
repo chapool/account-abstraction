@@ -57,12 +57,12 @@ describe("Staking System Integration Test", function () {
     stakingReader = await StakingReader.deploy(staking.address, stakingConfig.address);
 
     // Set up total supply for each level
-    await staking.setTotalSupplyPerLevel(1, 1000); // C level
-    await staking.setTotalSupplyPerLevel(2, 500);  // B level
-    await staking.setTotalSupplyPerLevel(3, 200);  // A level
-    await staking.setTotalSupplyPerLevel(4, 100);  // S level
-    await staking.setTotalSupplyPerLevel(5, 50);   // SS level
-    await staking.setTotalSupplyPerLevel(6, 10);   // SSS level
+    await stakingConfig.setTotalSupplyPerLevel(1, 1000); // C level
+    await stakingConfig.setTotalSupplyPerLevel(2, 500);  // B level
+    await stakingConfig.setTotalSupplyPerLevel(3, 200);  // A level
+    await stakingConfig.setTotalSupplyPerLevel(4, 100);  // S level
+    await stakingConfig.setTotalSupplyPerLevel(5, 50);   // SS level
+    await stakingConfig.setTotalSupplyPerLevel(6, 10);   // SSS level
   });
 
   describe("Deployment", function () {
