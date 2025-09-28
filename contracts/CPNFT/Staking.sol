@@ -678,20 +678,13 @@ contract Staking is
      * @dev Get AA account address for user
      */
     function _getAAAccount(address user) internal view returns (address) {
-        try accountManagerContract.getDefaultMasterSigner() returns (address masterSigner) {
-            if (masterSigner != address(0)) {
-                try accountManagerContract.getAccountAddress(user, masterSigner) returns (address aaAccount) {
-                    if (aaAccount != address(0)) {
-                        return aaAccount;
-                    }
-                } catch {
-                    // Fallback to user address if AA account not found
-                }
-            }
-        } catch {
-            // Fallback to user address if master signer not found
-        }
-        return user;
+        address masterSigner = accountManagerContract.getDefaultMasterSigner();
+        require(masterSigner != address(0), "Master signer not found");
+        
+        address aaAccount = accountManagerContract.getAccountAddress(user, masterSigner);
+        require(aaAccount != address(0), "AA account not found");
+        
+        return aaAccount;
     }
     
     // ============================================
