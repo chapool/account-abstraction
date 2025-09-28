@@ -169,15 +169,9 @@ contract Staking is
         cpnftContract.setStakeStatus(tokenId, true);
         
         emit NFTStaked(msg.sender, tokenId, level, block.timestamp);
-        // Get supply from CPNFT contract
-        uint256 supply;
-        if (level == 1) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
-        else if (level == 2) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
-        else if (level == 3) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
-        else if (level == 4) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
-        else if (level == 5) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
-        else if (level == 6) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
         
+        // Get supply from CPNFT contract
+        uint256 supply = _getLevelSupply(level);
         emit PlatformStatsUpdated(level, totalStakedPerLevel[level], supply);
     }
     
@@ -229,15 +223,9 @@ contract Staking is
         cpnftContract.setStakeStatus(tokenId, false);
         
         emit NFTUnstaked(msg.sender, tokenId, rewards, block.timestamp);
-        // Get supply from CPNFT contract
-        uint256 supply;
-        if (stakeInfo.level == 1) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
-        else if (stakeInfo.level == 2) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
-        else if (stakeInfo.level == 3) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
-        else if (stakeInfo.level == 4) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
-        else if (stakeInfo.level == 5) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
-        else if (stakeInfo.level == 6) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
         
+        // Get supply from CPNFT contract
+        uint256 supply = _getLevelSupply(stakeInfo.level);
         emit PlatformStatsUpdated(stakeInfo.level, totalStakedPerLevel[stakeInfo.level], supply);
     }
     
@@ -592,19 +580,26 @@ contract Staking is
     }
     
     /**
+     * @dev Get level supply from CPNFT contract
+     * @param level NFT level (1-6: C, B, A, S, SS, SSS)
+     * @return The total supply for the specified level
+     */
+    function _getLevelSupply(uint8 level) internal view returns (uint256) {
+        if (level == 1) return cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
+        if (level == 2) return cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
+        if (level == 3) return cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
+        if (level == 4) return cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
+        if (level == 5) return cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
+        if (level == 6) return cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
+        return 0; // Invalid level
+    }
+    
+    /**
      * @dev Calculate dynamic balance multiplier
      */
     function _calculateDynamicMultiplier(uint8 level) internal view returns (uint256) {
         uint256 staked = totalStakedPerLevel[level];
-        
-        // Get supply from CPNFT contract (convert level 1-6 to enum 1-6)
-        uint256 supply;
-        if (level == 1) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
-        else if (level == 2) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
-        else if (level == 3) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
-        else if (level == 4) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
-        else if (level == 5) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
-        else if (level == 6) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
+        uint256 supply = _getLevelSupply(level);
         
         if (supply == 0) return 10000; // 1.0x
         
