@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "./Staking.sol";
 import "./StakingConfig.sol";
+import "./CPNFT.sol";
 
 /**
  * @title StakingReader - Frontend Query Contract
@@ -12,10 +13,12 @@ contract StakingReader {
     
     Staking public immutable stakingContract;
     StakingConfig public immutable configContract;
+    CPNFT public immutable cpnftContract;
     
-    constructor(address _stakingContract, address _configContract) {
+    constructor(address _stakingContract, address _configContract, address _cpnftContract) {
         stakingContract = Staking(_stakingContract);
         configContract = StakingConfig(_configContract);
+        cpnftContract = CPNFT(_cpnftContract);
     }
     
     // ============================================
@@ -37,6 +40,12 @@ contract StakingReader {
             uint256 pendingRewards
         ) = stakingContract.stakes(tokenId);
         
+        // Calculate real-time pending rewards if stake is active
+        uint256 realTimePendingRewards = pendingRewards;
+        if (isActive && block.timestamp > lastClaimTime) {
+            realTimePendingRewards = stakingContract.calculatePendingRewards(tokenId);
+        }
+        
         return Staking.StakeInfo({
             owner: owner,
             tokenId: tokenId_,
@@ -45,7 +54,7 @@ contract StakingReader {
             lastClaimTime: lastClaimTime,
             isActive: isActive,
             totalRewards: totalRewards,
-            pendingRewards: pendingRewards
+            pendingRewards: realTimePendingRewards
         });
     }
     
@@ -152,7 +161,15 @@ contract StakingReader {
     ) {
         for (uint8 i = 0; i < 7; i++) {
             stakedCounts[i] = stakingContract.totalStakedPerLevel(i);
-            supplies[i] = configContract.getTotalSupplyPerLevel(i);
+            
+            // Get supply from CPNFT contract (convert index to enum)
+            if (i == 0) supplies[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.NORMAL);
+            else if (i == 1) supplies[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
+            else if (i == 2) supplies[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
+            else if (i == 3) supplies[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
+            else if (i == 4) supplies[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
+            else if (i == 5) supplies[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
+            else if (i == 6) supplies[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
             
             if (supplies[i] > 0) {
                 stakingRatios[i] = (stakedCounts[i] * 10000) / supplies[i];
@@ -168,13 +185,22 @@ contract StakingReader {
     function getPlatformStats() external view returns (uint256[7] memory staked, uint256[7] memory supply) {
         for (uint256 i = 0; i < 7; i++) {
             staked[i] = stakingContract.totalStakedPerLevel(uint8(i));
-            supply[i] = configContract.getTotalSupplyPerLevel(uint8(i));
+            
+            // Get supply from CPNFT contract (convert index to enum)
+            if (i == 0) supply[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.NORMAL);
+            else if (i == 1) supply[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
+            else if (i == 2) supply[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
+            else if (i == 3) supply[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
+            else if (i == 4) supply[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
+            else if (i == 5) supply[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
+            else if (i == 6) supply[i] = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
         }
     }
     
     // ============================================
     // INTERNAL CALCULATION FUNCTIONS
     // ============================================
+    
     
     /**
      * @dev Calculate decayed reward based on staking duration
@@ -230,7 +256,15 @@ contract StakingReader {
      */
     function _calculateDynamicMultiplier(uint8 level) internal view returns (uint256) {
         uint256 staked = stakingContract.totalStakedPerLevel(level);
-        uint256 supply = configContract.getTotalSupplyPerLevel(level);
+        
+        // Get supply from CPNFT contract (convert level 1-6 to enum 1-6)
+        uint256 supply;
+        if (level == 1) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
+        else if (level == 2) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
+        else if (level == 3) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
+        else if (level == 4) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
+        else if (level == 5) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
+        else if (level == 6) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
         
         if (supply == 0) return 10000; // 1.0x
         
@@ -251,6 +285,23 @@ contract StakingReader {
         }
         
         return 10000; // 1.0x
+    }
+    
+    /**
+     * @dev Calculate continuous staking bonus based on staking duration
+     */
+    function _calculateContinuousBonus(uint256 stakingDays) internal view returns (uint256) {
+        uint256[2] memory thresholds = configContract.getContinuousThresholds();
+        uint256[2] memory bonuses = configContract.getContinuousBonuses();
+        
+        // Check thresholds in reverse order (highest first)
+        for (uint256 i = thresholds.length; i > 0; i--) {
+            if (stakingDays >= thresholds[i - 1]) {
+                return bonuses[i - 1];
+            }
+        }
+        
+        return 0; // No bonus
     }
     
     // ============================================

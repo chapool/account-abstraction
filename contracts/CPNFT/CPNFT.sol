@@ -34,6 +34,9 @@ contract CPNFT is
     
     // Staking contract address
     address public stakingContract;
+    
+    // Level supply tracking
+    mapping(NFTLevel => uint256) public levelSupply;
 
     // ============================================
     // ENUMS AND EVENTS
@@ -44,6 +47,7 @@ contract CPNFT is
     event TokenLevelSet(uint256 indexed tokenId, NFTLevel level);
     event TokenStakeStatusChanged(uint256 indexed tokenId, bool isStaked);
     event StakingContractSet(address indexed stakingContract);
+    event LevelSupplyUpdated(NFTLevel indexed level, uint256 newSupply);
 
     // ============================================
     // INITIALIZER
@@ -162,7 +166,11 @@ contract CPNFT is
         _safeMint(to, tokenId);
         _tokenLevels[tokenId] = level;
         
+        // Update level supply
+        levelSupply[level]++;
+        
         emit TokenLevelSet(tokenId, level);
+        emit LevelSupplyUpdated(level, levelSupply[level]);
         return tokenId;
     }
     
@@ -187,6 +195,14 @@ contract CPNFT is
      */
     function burn(uint256 tokenId) public onlyOwner {
         _requireOwned(tokenId);
+        
+        // Update level supply before burning
+        NFTLevel level = _tokenLevels[tokenId];
+        if (levelSupply[level] > 0) {
+            levelSupply[level]--;
+            emit LevelSupplyUpdated(level, levelSupply[level]);
+        }
+        
         _burn(tokenId);
     }
 
@@ -277,6 +293,45 @@ contract CPNFT is
         require(msg.sender == stakingContract, "Only staking contract can call");
         _isStaked[tokenId] = staked;
         emit TokenStakeStatusChanged(tokenId, staked);
+    }
+    
+    // ============================================
+    // LEVEL SUPPLY MANAGEMENT
+    // ============================================
+    
+    /**
+     * @dev Get supply for a specific NFT level
+     * @param level NFT level
+     * @return Supply count for the level
+     */
+    function getLevelSupply(NFTLevel level) external view returns (uint256) {
+        return levelSupply[level];
+    }
+    
+    /**
+     * @dev Get supplies for all levels
+     * @return Array of supplies [NORMAL, C, B, A, S, SS, SSS]
+     */
+    function getAllLevelSupplies() external view returns (uint256[7] memory) {
+        return [
+            levelSupply[NFTLevel.NORMAL],
+            levelSupply[NFTLevel.C],
+            levelSupply[NFTLevel.B],
+            levelSupply[NFTLevel.A],
+            levelSupply[NFTLevel.S],
+            levelSupply[NFTLevel.SS],
+            levelSupply[NFTLevel.SSS]
+        ];
+    }
+    
+    /**
+     * @dev Set level supply (admin function for corrections)
+     * @param level NFT level
+     * @param supply New supply value
+     */
+    function setLevelSupply(NFTLevel level, uint256 supply) external onlyOwner {
+        levelSupply[level] = supply;
+        emit LevelSupplyUpdated(level, supply);
     }
     
 

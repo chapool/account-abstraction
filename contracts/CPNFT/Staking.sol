@@ -54,6 +54,15 @@ contract Staking is
     // Platform statistics for dynamic balancing
     mapping(uint8 => uint256) public totalStakedPerLevel;
     
+    // Historical adjustment records for reward recalculation
+    struct HistoricalAdjustment {
+        uint256 timestamp;
+        uint256 quarterlyMultiplier;
+        mapping(uint8 => uint256) dynamicMultipliers; // Level-specific multipliers at this time
+    }
+    
+    HistoricalAdjustment[] public historicalAdjustments;
+    
     // ============================================
     // EVENTS
     // ============================================
@@ -159,7 +168,16 @@ contract Staking is
         cpnftContract.setStakeStatus(tokenId, true);
         
         emit NFTStaked(msg.sender, tokenId, level, block.timestamp);
-        emit PlatformStatsUpdated(level, totalStakedPerLevel[level], configContract.getTotalSupplyPerLevel(level));
+        // Get supply from CPNFT contract
+        uint256 supply;
+        if (level == 1) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
+        else if (level == 2) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
+        else if (level == 3) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
+        else if (level == 4) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
+        else if (level == 5) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
+        else if (level == 6) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
+        
+        emit PlatformStatsUpdated(level, totalStakedPerLevel[level], supply);
     }
     
     /**
@@ -210,7 +228,16 @@ contract Staking is
         cpnftContract.setStakeStatus(tokenId, false);
         
         emit NFTUnstaked(msg.sender, tokenId, rewards, block.timestamp);
-        emit PlatformStatsUpdated(stakeInfo.level, totalStakedPerLevel[stakeInfo.level], configContract.getTotalSupplyPerLevel(stakeInfo.level));
+        // Get supply from CPNFT contract
+        uint256 supply;
+        if (stakeInfo.level == 1) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
+        else if (stakeInfo.level == 2) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
+        else if (stakeInfo.level == 3) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
+        else if (stakeInfo.level == 4) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
+        else if (stakeInfo.level == 5) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
+        else if (stakeInfo.level == 6) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
+        
+        emit PlatformStatsUpdated(stakeInfo.level, totalStakedPerLevel[stakeInfo.level], supply);
     }
     
     /**
@@ -273,6 +300,81 @@ contract Staking is
         emit BatchUnstaked(msg.sender, tokenIds, totalRewards, block.timestamp);
     }
     
+    // ============================================
+    // REWARD CALCULATION FUNCTIONS
+    // ============================================
+    
+    /**
+     * @dev Calculate pending rewards since last claim (internal)
+     */
+    function _calculatePendingRewards(uint256 tokenId) internal view returns (uint256) {
+        StakeInfo memory stakeInfo = stakes[tokenId];
+        
+        // Calculate base rewards with phase-based decay and dynamic adjustment
+        uint256 totalDays = (block.timestamp - stakeInfo.lastClaimTime) / 1 days;
+        if (totalDays == 0) return 0;
+        
+        uint256 baseReward = configContract.getDailyReward(stakeInfo.level);
+        uint256 decayInterval = configContract.getDecayInterval(stakeInfo.level);
+        uint256 decayRate = configContract.getDecayRate(stakeInfo.level);
+        uint256 quarterlyMultiplier = configContract.getQuarterlyMultiplier();
+        
+        uint256 totalRewards = 0;
+        
+        // Calculate rewards day by day with phase-based decay and dynamic adjustment
+        for (uint256 day = 0; day < totalDays; day++) {
+            uint256 currentDayFromStake = (block.timestamp - stakeInfo.stakeTime) / 1 days - (totalDays - 1 - day);
+            
+            uint256 dailyReward = baseReward;
+            
+            // Apply decay based on current day from stake
+            if (decayInterval > 0 && currentDayFromStake > decayInterval) {
+                uint256 completedCycles = (currentDayFromStake - 1) / decayInterval;
+                
+                // Apply compound decay for each completed cycle
+                for (uint256 i = 0; i < completedCycles; i++) {
+                    uint256 totalDecaySoFar = (i + 1) * decayRate;
+                    if (totalDecaySoFar > configContract.getMaxDecayRate(stakeInfo.level)) {
+                        uint256 remainingDecay = configContract.getMaxDecayRate(stakeInfo.level) - (i * decayRate);
+                        dailyReward = dailyReward * (10000 - remainingDecay) / 10000;
+                        break;
+                    }
+                    
+                    dailyReward = dailyReward * (10000 - decayRate) / 10000;
+                }
+            }
+            
+            // Apply quarterly adjustment
+            dailyReward = dailyReward * quarterlyMultiplier / 10000;
+            
+            // Apply dynamic multiplier (based on current staking ratio)
+            // Note: In a real implementation, this should use historical staking ratios
+            // For now, we use current ratio as an approximation
+            uint256 dynamicMultiplier = _calculateDynamicMultiplier(stakeInfo.level);
+            dailyReward = dailyReward * dynamicMultiplier / 10000;
+            
+            totalRewards += dailyReward;
+        }
+        
+        // Calculate combo bonus
+        uint256 comboBonus = _calculateComboBonus(msg.sender, stakeInfo.level);
+        totalRewards = totalRewards * (10000 + comboBonus) / 10000;
+        
+        // Add continuous staking bonus
+        uint256 stakingDays = (block.timestamp - stakeInfo.stakeTime) / 1 days;
+        uint256 continuousBonus = _calculateContinuousBonus(totalRewards, stakingDays);
+        totalRewards += continuousBonus;
+        
+        return totalRewards;
+    }
+
+    /**
+     * @dev Calculate pending rewards since last claim (external for Reader)
+     */
+    function calculatePendingRewards(uint256 tokenId) external view returns (uint256) {
+        return _calculatePendingRewards(tokenId);
+    }
+
     /**
      * @dev Claim pending rewards without unstaking
      */
@@ -310,7 +412,6 @@ contract Staking is
         
         // Calculate base rewards
         uint256 baseRewards = _calculateRewards(
-            tokenId,
             stakeInfo.level,
             stakeInfo.stakeTime,
             stakeInfo.lastClaimTime
@@ -330,37 +431,9 @@ contract Staking is
     }
     
     /**
-     * @dev Calculate pending rewards since last claim
-     */
-    function _calculatePendingRewards(uint256 tokenId) internal view returns (uint256) {
-        StakeInfo memory stakeInfo = stakes[tokenId];
-        
-        // Calculate base rewards
-        uint256 baseRewards = _calculateRewards(
-            tokenId,
-            stakeInfo.level,
-            stakeInfo.stakeTime,
-            stakeInfo.lastClaimTime
-        );
-        
-        // Calculate combo bonus
-        uint256 comboBonus = _calculateComboBonus(msg.sender, stakeInfo.level);
-        
-        // Calculate dynamic multiplier
-        uint256 dynamicMultiplier = _calculateDynamicMultiplier(stakeInfo.level);
-        
-        // Apply bonuses
-        uint256 finalRewards = baseRewards * (10000 + comboBonus) / 10000;
-        finalRewards = finalRewards * dynamicMultiplier / 10000;
-        
-        return finalRewards;
-    }
-    
-    /**
-     * @dev Calculate rewards for a specific NFT
+     * @dev Calculate rewards for a specific NFT (simplified version)
      */
     function _calculateRewards(
-        uint256 tokenId,
         uint8 level,
         uint256 stakeTime,
         uint256 lastClaimTime
@@ -369,19 +442,48 @@ contract Staking is
         if (totalDays == 0) return 0;
         
         uint256 baseReward = configContract.getDailyReward(level);
-        
-        // Apply decay
-        uint256 decayedReward = _calculateDecayedReward(baseReward, level, stakeTime);
-        
-        // Apply quarterly adjustment
+        uint256 decayInterval = configContract.getDecayInterval(level);
+        uint256 decayRate = configContract.getDecayRate(level);
         uint256 quarterlyMultiplier = configContract.getQuarterlyMultiplier();
-        uint256 adjustedReward = decayedReward * quarterlyMultiplier / 10000;
         
-        return adjustedReward * totalDays;
+        uint256 totalRewards = 0;
+        
+        // Calculate rewards day by day with proper phase-based decay
+        for (uint256 day = 0; day < totalDays; day++) {
+            uint256 currentDayFromStake = (block.timestamp - stakeTime) / 1 days - (totalDays - 1 - day);
+            
+            uint256 dailyReward = baseReward;
+            
+            // Apply decay based on current day from stake
+            if (decayInterval > 0 && currentDayFromStake > decayInterval) {
+                uint256 completedCycles = (currentDayFromStake - 1) / decayInterval;
+                
+                // Apply compound decay for each completed cycle
+                for (uint256 i = 0; i < completedCycles; i++) {
+                    uint256 totalDecaySoFar = (i + 1) * decayRate;
+                    if (totalDecaySoFar > configContract.getMaxDecayRate(level)) {
+                        uint256 remainingDecay = configContract.getMaxDecayRate(level) - (i * decayRate);
+                        dailyReward = dailyReward * (10000 - remainingDecay) / 10000;
+                        break;
+                    }
+                    
+                    dailyReward = dailyReward * (10000 - decayRate) / 10000;
+                }
+            }
+            
+            // Apply quarterly adjustment
+            dailyReward = dailyReward * quarterlyMultiplier / 10000;
+            
+            totalRewards += dailyReward;
+        }
+        
+        return totalRewards;
     }
     
     /**
      * @dev Calculate decayed reward based on staking duration
+     * Uses phase-based decay as described in the document
+     * Each phase has a fixed daily reward rate
      */
     function _calculateDecayedReward(
         uint256 baseReward,
@@ -397,14 +499,24 @@ contract Staking is
             return baseReward;
         }
         
-        uint256 decayCycles = stakingDays / decayInterval;
-        uint256 totalDecay = decayCycles * decayRate;
+        // Calculate which phase we're in
+        uint256 completedCycles = stakingDays / decayInterval;
         
-        if (totalDecay > maxDecay) {
-            totalDecay = maxDecay;
+        // Apply compound decay for each completed cycle
+        uint256 decayedReward = baseReward;
+        for (uint256 i = 0; i < completedCycles; i++) {
+            // Check if we've reached max decay
+            uint256 currentDecay = (i + 1) * decayRate;
+            if (currentDecay > maxDecay) {
+                currentDecay = maxDecay;
+                break;
+            }
+            
+            // Apply compound decay: each cycle reduces by decayRate
+            decayedReward = decayedReward * (10000 - decayRate) / 10000;
         }
         
-        return baseReward * (10000 - totalDecay) / 10000;
+        return decayedReward;
     }
     
     /**
@@ -434,7 +546,15 @@ contract Staking is
      */
     function _calculateDynamicMultiplier(uint8 level) internal view returns (uint256) {
         uint256 staked = totalStakedPerLevel[level];
-        uint256 supply = configContract.getTotalSupplyPerLevel(level);
+        
+        // Get supply from CPNFT contract (convert level 1-6 to enum 1-6)
+        uint256 supply;
+        if (level == 1) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.C);
+        else if (level == 2) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.B);
+        else if (level == 3) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.A);
+        else if (level == 4) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.S);
+        else if (level == 5) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SS);
+        else if (level == 6) supply = cpnftContract.getLevelSupply(CPNFT.NFTLevel.SSS);
         
         if (supply == 0) return 10000; // 1.0x
         
@@ -544,10 +664,69 @@ contract Staking is
     
     
     // ============================================
+    // HISTORICAL ADJUSTMENT FUNCTIONS
+    // ============================================
+    
+    /**
+     * @dev Record current state as historical adjustment
+     * Called when quarterly adjustments are executed
+     */
+    function recordHistoricalAdjustment() external onlyOwner {
+        historicalAdjustments.push();
+        HistoricalAdjustment storage newRecord = historicalAdjustments[historicalAdjustments.length - 1];
+        
+        newRecord.timestamp = block.timestamp;
+        
+        // Get current quarterly multiplier
+        (uint256 minStakeDays, uint256 earlyWithdrawPenalty, uint256 quarterlyMultiplier, uint256 lastQuarterlyUpdate) = configContract.getBasicConfig();
+        newRecord.quarterlyMultiplier = quarterlyMultiplier;
+        
+        // Record current dynamic multipliers for all levels
+        for (uint8 level = 1; level <= 6; level++) {
+            newRecord.dynamicMultipliers[level] = _calculateDynamicMultiplier(level);
+        }
+    }
+    
+    /**
+     * @dev Get historical adjustment record
+     * @param index Index of the adjustment record
+     * @return timestamp When the adjustment was recorded
+     * @return quarterlyMultiplier The quarterly multiplier at that time
+     */
+    function getHistoricalAdjustment(uint256 index) external view returns (
+        uint256 timestamp,
+        uint256 quarterlyMultiplier
+    ) {
+        require(index < historicalAdjustments.length, "Index out of range");
+        HistoricalAdjustment storage record = historicalAdjustments[index];
+        return (record.timestamp, record.quarterlyMultiplier);
+    }
+    
+    /**
+     * @dev Get historical dynamic multiplier for a specific level and time
+     * @param index Index of the adjustment record
+     * @param level NFT level (1-6)
+     * @return Dynamic multiplier at that time
+     */
+    function getHistoricalDynamicMultiplier(uint256 index, uint8 level) external view returns (uint256) {
+        require(index < historicalAdjustments.length, "Index out of range");
+        require(level >= 1 && level <= 6, "Invalid level");
+        return historicalAdjustments[index].dynamicMultipliers[level];
+    }
+    
+    /**
+     * @dev Get number of historical adjustments
+     * @return Number of adjustment records
+     */
+    function getHistoricalAdjustmentCount() external view returns (uint256) {
+        return historicalAdjustments.length;
+    }
+    
+    // ============================================
     // MINIMAL VIEW FUNCTIONS
     // ============================================
     
     function version() public pure returns (string memory) {
-        return "3.0.0";
+        return "3.1.0";
     }
 }

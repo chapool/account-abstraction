@@ -54,15 +54,15 @@ describe("Staking System Integration Test", function () {
 
     // Deploy StakingReader (non-upgradeable)
     const StakingReader = await ethers.getContractFactory("StakingReader");
-    stakingReader = await StakingReader.deploy(staking.address, stakingConfig.address);
+    stakingReader = await StakingReader.deploy(staking.address, stakingConfig.address, cpnft.address);
 
-    // Set up total supply for each level
-    await stakingConfig.setTotalSupplyPerLevel(1, 1000); // C level
-    await stakingConfig.setTotalSupplyPerLevel(2, 500);  // B level
-    await stakingConfig.setTotalSupplyPerLevel(3, 200);  // A level
-    await stakingConfig.setTotalSupplyPerLevel(4, 100);  // S level
-    await stakingConfig.setTotalSupplyPerLevel(5, 50);   // SS level
-    await stakingConfig.setTotalSupplyPerLevel(6, 10);   // SSS level
+    // Set up total supply for each level in CPNFT contract
+    await cpnft.connect(owner).setLevelSupply(1, 1000); // C level
+    await cpnft.connect(owner).setLevelSupply(2, 500);  // B level
+    await cpnft.connect(owner).setLevelSupply(3, 200);  // A level
+    await cpnft.connect(owner).setLevelSupply(4, 100);  // S level
+    await cpnft.connect(owner).setLevelSupply(5, 50);   // SS level
+    await cpnft.connect(owner).setLevelSupply(6, 10);   // SSS level
   });
 
   describe("Deployment", function () {

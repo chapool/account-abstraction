@@ -67,8 +67,17 @@ contract StakingConfig is Ownable {
     ContinuousConfig[2] public continuousConfigs; // 30, 90 day rewards
     DynamicConfig public dynamicConfig;
     
-    // Total supply configuration for each NFT level
-    mapping(uint8 => uint256) public totalSupplyPerLevel;
+    
+    // Quarterly adjustment history
+    struct QuarterlyAdjustmentRecord {
+        uint256 multiplier;
+        uint256 timestamp;
+        uint256 announcementTime;
+        bool isActive;
+    }
+    
+    QuarterlyAdjustmentRecord[] public quarterlyAdjustments;
+    uint256 public nextQuarterlyUpdate;
     
     // ============================================
     // EVENTS
@@ -76,6 +85,8 @@ contract StakingConfig is Ownable {
     
     event ConfigUpdated(string configType, address indexed updater);
     event QuarterlyAdjustment(uint256 newMultiplier, uint256 timestamp);
+    event QuarterlyAdjustmentAnnounced(uint256 newMultiplier, uint256 effectiveTime);
+    event QuarterlyAdjustmentExecuted(uint256 index, uint256 multiplier, uint256 timestamp);
     
     // ============================================
     // CONSTRUCTOR
@@ -98,6 +109,9 @@ contract StakingConfig is Ownable {
             lastQuarterlyUpdate: uint64(block.timestamp)
         });
         
+        // Initialize quarterly update schedule
+        nextQuarterlyUpdate = block.timestamp + 90 days;
+        
         // Level configurations (C=1, B=2, A=3, S=4, SS=5, SSS=6)
         levelConfigs[1] = LevelConfig(3, 20, 3500, 8000);   // C level
         levelConfigs[2] = LevelConfig(8, 30, 3000, 7000);   // B level
@@ -113,7 +127,7 @@ contract StakingConfig is Ownable {
         
         // Continuous staking configurations
         continuousConfigs[0] = ContinuousConfig(30, 1000, 0, 0);  // 30 days: 10% bonus
-        continuousConfigs[1] = ContinuousConfig(90, 2000, 0, 0);  // 90 days: 20% bonus
+        continuousConfigs[1] = ContinuousConfig(90, 3000, 0, 0);  // 90 days: 30% bonus
         
         // Dynamic balance configuration
         dynamicConfig = DynamicConfig({
@@ -380,27 +394,111 @@ contract StakingConfig is Ownable {
     // SUPPLY CONFIGURATION FUNCTIONS
     // ============================================
     
+    
+    // ============================================
+    // QUARTERLY ADJUSTMENT FUNCTIONS
+    // ============================================
+    
     /**
-     * @dev Set total supply for a specific NFT level
-     * @param level NFT level (1-6, 0 is NORMAL and unused)
-     * @param supply Total supply for this level
+     * @dev Announce a quarterly adjustment (7 days before execution)
+     * @param newMultiplier New quarterly multiplier (8000-12000, representing 0.8x-1.2x)
      */
-    function setTotalSupplyPerLevel(uint8 level, uint256 supply) external onlyOwner {
-        require(level >= 1 && level <= 6, "Invalid level");
-        totalSupplyPerLevel[level] = supply;
-        emit ConfigUpdated("supply", msg.sender);
+    function announceQuarterlyAdjustment(uint256 newMultiplier) external onlyOwner {
+        require(newMultiplier >= 8000 && newMultiplier <= 12000, "Multiplier out of range");
+        require(block.timestamp >= nextQuarterlyUpdate - 90 days, "Too early for next announcement");
+        
+        uint256 effectiveTime = block.timestamp + 7 days;
+        
+        quarterlyAdjustments.push(QuarterlyAdjustmentRecord({
+            multiplier: newMultiplier,
+            timestamp: 0, // Will be set when executed
+            announcementTime: block.timestamp,
+            isActive: false
+        }));
+        
+        emit QuarterlyAdjustmentAnnounced(newMultiplier, effectiveTime);
+        emit ConfigUpdated("quarterly_announcement", msg.sender);
     }
     
     /**
-     * @dev Get total supply for a specific NFT level
-     * @param level NFT level
-     * @return supply Total supply for this level
+     * @dev Execute the latest announced quarterly adjustment
      */
-    function getTotalSupplyPerLevel(uint8 level) external view returns (uint256) {
-        return totalSupplyPerLevel[level];
+    function executeQuarterlyAdjustment() external onlyOwner {
+        require(quarterlyAdjustments.length > 0, "No pending adjustments");
+        
+        QuarterlyAdjustmentRecord storage latest = quarterlyAdjustments[quarterlyAdjustments.length - 1];
+        require(!latest.isActive, "Already executed");
+        require(block.timestamp >= latest.announcementTime + 7 days, "Announcement period not complete");
+        
+        // Update basic config
+        basicConfig.quarterlyMultiplier = uint64(latest.multiplier);
+        basicConfig.lastQuarterlyUpdate = uint64(block.timestamp);
+        
+        // Mark as active and set execution time
+        latest.isActive = true;
+        latest.timestamp = block.timestamp;
+        
+        // Schedule next quarterly update
+        nextQuarterlyUpdate = block.timestamp + 90 days;
+        
+        emit QuarterlyAdjustmentExecuted(quarterlyAdjustments.length - 1, latest.multiplier, block.timestamp);
+        emit ConfigUpdated("quarterly_execution", msg.sender);
+    }
+    
+    /**
+     * @dev Get quarterly adjustment history
+     * @param index Index of the adjustment record
+     * @return multiplier The quarterly multiplier
+     * @return timestamp When the adjustment was executed
+     * @return announcementTime When the adjustment was announced
+     * @return isActive Whether the adjustment is currently active
+     */
+    function getQuarterlyAdjustment(uint256 index) external view returns (
+        uint256 multiplier,
+        uint256 timestamp,
+        uint256 announcementTime,
+        bool isActive
+    ) {
+        require(index < quarterlyAdjustments.length, "Index out of range");
+        QuarterlyAdjustmentRecord memory record = quarterlyAdjustments[index];
+        return (record.multiplier, record.timestamp, record.announcementTime, record.isActive);
+    }
+    
+    /**
+     * @dev Get the latest quarterly adjustment
+     * @return multiplier The quarterly multiplier
+     * @return timestamp When the adjustment was executed
+     * @return announcementTime When the adjustment was announced
+     * @return isActive Whether the adjustment is currently active
+     */
+    function getLatestQuarterlyAdjustment() external view returns (
+        uint256 multiplier,
+        uint256 timestamp,
+        uint256 announcementTime,
+        bool isActive
+    ) {
+        require(quarterlyAdjustments.length > 0, "No adjustments yet");
+        QuarterlyAdjustmentRecord memory record = quarterlyAdjustments[quarterlyAdjustments.length - 1];
+        return (record.multiplier, record.timestamp, record.announcementTime, record.isActive);
+    }
+    
+    /**
+     * @dev Get the number of quarterly adjustments
+     * @return Number of adjustment records
+     */
+    function getQuarterlyAdjustmentCount() external view returns (uint256) {
+        return quarterlyAdjustments.length;
+    }
+    
+    /**
+     * @dev Get next quarterly update timestamp
+     * @return Timestamp when next quarterly update can be announced
+     */
+    function getNextQuarterlyUpdate() external view returns (uint256) {
+        return nextQuarterlyUpdate;
     }
     
     function version() public pure returns (string memory) {
-        return "3.1.0";
+        return "3.2.0";
     }
 }
