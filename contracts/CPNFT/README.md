@@ -75,6 +75,8 @@ function getDynamicConfig() external view returns (
 
 **功能**: 处理质押、解质押、奖励发放等核心逻辑
 
+> **注意**: Staking合约专注于核心业务逻辑，所有查询功能都委托给StakingReader合约，以实现更好的模块化和Gas优化。
+
 #### 质押功能
 
 ```solidity
@@ -89,22 +91,6 @@ function unstake(uint256 tokenId) external
 
 // 领取奖励
 function claimRewards(uint256 tokenId) external
-```
-
-#### 查询功能
-
-```solidity
-// 获取质押信息
-function getStakeDetails(uint256 tokenId) external view returns (StakeInfo memory)
-
-// 获取用户质押列表
-function getUserStakes(address user) external view returns (uint256[] memory)
-
-// 获取待领取奖励
-function getPendingRewards(uint256 tokenId) external view returns (uint256)
-
-// 获取AA账户地址
-function getAAAccountAddress(address user) external view returns (address)
 ```
 
 #### 管理功能
@@ -344,13 +330,12 @@ async function getRewardCalculation(tokenId) {
 
 // 获取用户所有质押
 async function getUserStakes(userAddress) {
-    const tokenIds = await stakingContract.getUserStakes(userAddress);
+    // 注意: 需要通过其他方式获取用户的质押NFT列表
+    // 例如通过事件监听或NFT合约查询
     const stakes = [];
     
-    for (const tokenId of tokenIds) {
-        const stakeInfo = await getStakeInfo(tokenId);
-        stakes.push(stakeInfo);
-    }
+    // 这里需要根据实际需求实现获取用户质押NFT列表的逻辑
+    // 可以通过监听Staked事件来维护用户质押列表
     
     return stakes;
 }
