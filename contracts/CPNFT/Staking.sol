@@ -348,10 +348,11 @@ contract Staking is
             // Apply quarterly adjustment
             dailyReward = dailyReward * quarterlyMultiplier / 10000;
             
-            // Apply dynamic multiplier (based on current staking ratio)
-            // Note: In a real implementation, this should use historical staking ratios
-            // For now, we use current ratio as an approximation
-            uint256 dynamicMultiplier = _calculateDynamicMultiplier(stakeInfo.level);
+            // Apply historical dynamic multiplier
+            uint256 dynamicMultiplier = _getHistoricalDynamicMultiplier(
+                stakeInfo.level, 
+                stakeInfo.stakeTime + (currentDayFromStake * 1 days)
+            );
             dailyReward = dailyReward * dynamicMultiplier / 10000;
             
             totalRewards += dailyReward;
@@ -516,6 +517,13 @@ contract Staking is
             // Apply quarterly adjustment
             dailyReward = dailyReward * quarterlyMultiplier / 10000;
             
+            // Apply historical dynamic multiplier
+            uint256 dynamicMultiplier = _getHistoricalDynamicMultiplier(
+                level, 
+                stakeTime + (currentDayFromStake * 1 days)
+            );
+            dailyReward = dailyReward * dynamicMultiplier / 10000;
+            
             totalRewards += dailyReward;
         }
         
@@ -617,6 +625,25 @@ contract Staking is
         }
         
         return 10000; // 1.0x
+    }
+    
+    /**
+     * @dev Get historical dynamic multiplier for a specific level and timestamp
+     * @param level NFT level (1-6)
+     * @param timestamp The timestamp to get the dynamic multiplier for
+     * @return The dynamic multiplier that was active at that timestamp
+     */
+    function _getHistoricalDynamicMultiplier(uint8 level, uint256 timestamp) internal view returns (uint256) {
+        // Find the most recent historical adjustment before or at the given timestamp
+        for (uint256 i = historicalAdjustments.length; i > 0; i--) {
+            HistoricalAdjustment storage adjustment = historicalAdjustments[i - 1];
+            if (adjustment.timestamp <= timestamp) {
+                return adjustment.dynamicMultipliers[level];
+            }
+        }
+        
+        // If no historical adjustment found, use current dynamic multiplier as fallback
+        return _calculateDynamicMultiplier(level);
     }
     
     /**
