@@ -1,0 +1,68 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "timestamp": "2025-09-29T08:33:30.943Z",
+  "deployer": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35",
+  "contracts": {
+    "Staking": {
+      "address": "0x23983f63C7Eb0e920Fa73146293A51B215310Ac2",
+      "implementation": "0x63f8638bb5dEa4a9a560066C757b1bF368D2d247",
+      "admin": "0x0000000000000000000000000000000000000000",
+      "version": "3.1.0"
+    },
+    "StakingConfig": {
+      "address": "0x50fd41550bB5f6116a8b1330Cb50FAc41E658A69",
+      "version": "3.2.0"
+    },
+    "dependencies": {
+      "CPNFT": "0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed",
+      "CPOPToken": "0xA2d58d11c2752b010C2444fa2f795c6cf4cb76Bc",
+      "AccountManager": "0x2E4f862Ba3ee6D84dd19ae9f002F5D8c0C5675ef"
+    }
+  },
+  "configuration": {
+    "basic": {
+      "minStakeDays": "7",
+      "earlyWithdrawPenalty": "5000",
+      "quarterlyMultiplier": "10000"
+    },
+    "levels": {
+      "1": {
+        "dailyReward": "3000000000000000000",
+        "decayInterval": "20",
+        "decayRate": "3500",
+        "maxDecayRate": "8000"
+      },
+      "2": {
+        "dailyReward": "8000000000000000000",
+        "decayInterval": "30",
+        "decayRate": "3000",
+        "maxDecayRate": "7000"
+      },
+      "3": {
+        "dailyReward": "15000000000000000000",
+        "decayInterval": "45",
+        "decayRate": "2500",
+        "maxDecayRate": "6000"
+      },
+      "4": {
+        "dailyReward": "30000000000000000000",
+        "decayInterval": "60",
+        "decayRate": "2000",
+        "maxDecayRate": "5000"
+      },
+      "5": {
+        "dailyReward": "50000000000000000000",
+        "decayInterval": "90",
+        "decayRate": "1500",
+        "maxDecayRate": "4000"
+      },
+      "6": {
+        "dailyReward": "100000000000000000000",
+        "decayInterval": "180",
+        "decayRate": "1000",
+        "maxDecayRate": "2000"
+      }
+    }
+  }
+}

@@ -26,6 +26,76 @@ contracts/CPNFT/
 - **自动化管理**: 季度调整自动记录历史状态，无需手动干预
 - **完整追踪**: 提供历史调整记录查询，支持收益重新计算
 
+## 🚀 合约部署信息
+
+### 已部署合约地址 (Sepolia测试网)
+
+**质押系统合约:**
+- **Staking Contract (Proxy)**: `0x23983f63C7Eb0e920Fa73146293A51B215310Ac2`
+- **StakingConfig Contract**: `0x50fd41550bB5f6116a8b1330Cb50FAc41E658A69`
+- **StakingReader Contract**: `0x3243Fac23cfa3196525de9d1C28d3AD34E9783E8`
+
+**依赖合约:**
+- **CPNFT Contract**: `0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed`
+- **CPOP Token Contract**: `0xA2d58d11c2752b010C2444fa2f795c6cf4cb76Bc`
+- **Account Manager Contract**: `0x2E4f862Ba3ee6D84dd19ae9f002F5D8c0C5675ef`
+
+### 部署配置
+
+**基础配置:**
+- 最小质押天数: 7天
+- 提前解质押惩罚: 50% (5000 basis points)
+- 季度乘数: 100% (10000 basis points)
+
+**等级奖励配置 (每日):**
+- Level 1 (C): 3 CPP
+- Level 2 (B): 8 CPP  
+- Level 3 (A): 15 CPP
+- Level 4 (S): 30 CPP
+- Level 5 (SS): 50 CPP
+- Level 6 (SSS): 100 CPP
+
+**衰减配置:**
+- Level 1: 20天周期, 35%衰减率, 最大80%衰减
+- Level 2: 30天周期, 30%衰减率, 最大70%衰减
+- Level 3: 45天周期, 25%衰减率, 最大60%衰减
+- Level 4: 60天周期, 20%衰减率, 最大50%衰减
+- Level 5: 90天周期, 15%衰减率, 最大40%衰减
+- Level 6: 180天周期, 10%衰减率, 最大20%衰减
+
+### 权限设置
+
+✅ **已完成的权限配置:**
+- Staking合约已获得CPOP Token的MINTER_ROLE权限
+- CPNFT合约已识别Staking合约地址
+- StakingConfig已正确链接到Staking合约
+
+### 部署时间
+
+**部署时间**: 2025-09-29T08:33:30.943Z  
+**网络**: Sepolia测试网 (Chain ID: 11155111)  
+**部署者**: `0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35`
+
+### 合约版本
+
+- **Staking Contract**: v3.1.0
+- **StakingConfig Contract**: v3.2.0
+- **StakingReader Contract**: v1.0.0
+
+### 前端集成地址
+
+```javascript
+// 合约地址配置
+const CONTRACT_ADDRESSES = {
+  STAKING: "0x23983f63C7Eb0e920Fa73146293A51B215310Ac2",
+  STAKING_CONFIG: "0x50fd41550bB5f6116a8b1330Cb50FAc41E658A69",
+  STAKING_READER: "0x3243Fac23cfa3196525de9d1C28d3AD34E9783E8",
+  CPNFT: "0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed",
+  CPOP_TOKEN: "0xA2d58d11c2752b010C2444fa2f795c6cf4cb76Bc",
+  ACCOUNT_MANAGER: "0x2E4f862Ba3ee6D84dd19ae9f002F5D8c0C5675ef"
+};
+```
+
 ## 🎯 NFT等级系统
 
 ### 支持的NFT等级
@@ -431,17 +501,21 @@ function _calculateDynamicMultiplier(uint8 level) internal view returns (uint256
 // 使用ethers.js连接合约
 import { ethers } from 'ethers';
 
-// 合约地址 (需要替换为实际部署地址)
-const STAKING_ADDRESS = "0x...";
-const CONFIG_ADDRESS = "0x...";
-const READER_ADDRESS = "0x...";
-const CPNFT_ADDRESS = "0x...";
+// 合约地址 (Sepolia测试网已部署地址)
+const STAKING_ADDRESS = "0x23983f63C7Eb0e920Fa73146293A51B215310Ac2";
+const CONFIG_ADDRESS = "0x50fd41550bB5f6116a8b1330Cb50FAc41E658A69";
+const READER_ADDRESS = "0x3243Fac23cfa3196525de9d1C28d3AD34E9783E8";
+const CPNFT_ADDRESS = "0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed";
+const CPOP_TOKEN_ADDRESS = "0xA2d58d11c2752b010C2444fa2f795c6cf4cb76Bc";
+const ACCOUNT_MANAGER_ADDRESS = "0x2E4f862Ba3ee6D84dd19ae9f002F5D8c0C5675ef";
 
 // 合约ABI (需要导入实际的ABI)
-const stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, provider);
-const configContract = new ethers.Contract(CONFIG_ADDRESS, CONFIG_ABI, provider);
-const readerContract = new ethers.Contract(READER_ADDRESS, READER_ABI, provider);
-const cpnftContract = new ethers.Contract(CPNFT_ADDRESS, CPNFT_ABI, provider);
+const stakingContract = new ethers.Contract(STAKING_ADDRESS, StakingABI, provider);
+const configContract = new ethers.Contract(CONFIG_ADDRESS, StakingConfigABI, provider);
+const readerContract = new ethers.Contract(READER_ADDRESS, StakingReaderABI, provider);
+const cpnftContract = new ethers.Contract(CPNFT_ADDRESS, CPNFTABI, provider);
+const cpopTokenContract = new ethers.Contract(CPOP_TOKEN_ADDRESS, CPOPTokenABI, provider);
+const accountManagerContract = new ethers.Contract(ACCOUNT_MANAGER_ADDRESS, AccountManagerABI, provider);
 ```
 
 ### 2. 质押流程
@@ -790,3 +864,22 @@ const { timestamp, quarterlyMultiplier, dynamicMultipliers } =
 - ✅ **季度调整**: 参数调整和历史记录功能
 - ✅ **模块化架构**: 配置、逻辑、查询分离设计
 - ✅ **批量操作**: 支持批量质押和奖励领取
+
+## 🎉 部署状态
+
+**✅ 已成功部署到Sepolia测试网**
+
+- **Staking部署时间**: 2025-09-29T08:33:30.943Z
+- **StakingReader部署时间**: 2025-09-29T08:36:26.468Z
+- **网络**: Sepolia测试网 (Chain ID: 11155111)
+- **状态**: 所有合约已部署并完成初始化
+- **权限**: 所有必要权限已正确设置
+- **可用性**: 系统已准备就绪，可开始质押操作
+
+**合约部署清单**:
+- ✅ Staking Contract (Proxy) - 主质押合约
+- ✅ StakingConfig Contract - 配置管理合约  
+- ✅ StakingReader Contract - 前端查询合约
+- ✅ 所有依赖合约权限设置完成
+
+**下一步**: 前端集成和用户测试
