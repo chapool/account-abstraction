@@ -136,7 +136,7 @@ contract StakingReader {
         uint256[] memory bonuses
     ) {
         count = stakingContract.userLevelCounts(user, level);
-        currentBonus = _calculateComboBonus(user, level);
+        currentBonus = stakingContract.getEffectiveComboBonus(user, level);
         
         uint256[3] memory configThresholds = configContract.getComboThresholds();
         uint256[3] memory configBonuses = configContract.getComboBonuses();
@@ -147,6 +147,32 @@ contract StakingReader {
         for (uint256 i = 0; i < 3; i++) {
             thresholds[i] = configThresholds[i];
             bonuses[i] = configBonuses[i];
+        }
+    }
+    
+    /**
+     * @dev Get detailed combo status for a user and level
+     */
+    function getComboStatus(address user, uint8 level) external view returns (
+        uint256 level_,
+        uint256 count,
+        uint256 effectiveFrom,
+        uint256 bonus,
+        bool isPending,
+        uint256 timeUntilEffective
+    ) {
+        Staking.ComboStatus memory status = stakingContract.getComboStatus(user, level);
+        
+        level_ = status.level;
+        count = status.count;
+        effectiveFrom = status.effectiveFrom;
+        bonus = status.bonus;
+        isPending = status.isPending;
+        
+        if (status.isPending && status.effectiveFrom > block.timestamp) {
+            timeUntilEffective = status.effectiveFrom - block.timestamp;
+        } else {
+            timeUntilEffective = 0;
         }
     }
     
@@ -468,6 +494,94 @@ contract StakingReader {
         
         for (uint8 level = 1; level <= 6; level++) {
             dynamicMultipliers[level - 1] = stakingContract.getHistoricalDynamicMultiplier(index, level);
+        }
+    }
+    
+    /**
+     * @dev Get historical quarterly multiplier for a specific timestamp
+     * @param timestamp The timestamp to get the quarterly multiplier for
+     * @return The quarterly multiplier that was active at that timestamp
+     */
+    function getHistoricalQuarterlyMultiplier(uint256 timestamp) external view returns (uint256) {
+        return stakingContract.getHistoricalQuarterlyMultiplier(timestamp);
+    }
+    
+    /**
+     * @dev Get detailed reward breakdown for a specific day
+     * @param tokenId The NFT token ID
+     * @param dayOffset Days from stake start (0 = first day)
+     * @return baseReward The base reward before adjustments
+     * @return decayedReward The reward after decay
+     * @return quarterlyMultiplier The quarterly multiplier applied
+     * @return dynamicMultiplier The dynamic multiplier applied
+     * @return finalReward The final reward for this day
+     */
+    function getDailyRewardBreakdown(uint256 tokenId, uint256 dayOffset) external view returns (
+        uint256 baseReward,
+        uint256 decayedReward,
+        uint256 quarterlyMultiplier,
+        uint256 dynamicMultiplier,
+        uint256 finalReward
+    ) {
+        return stakingContract.getDailyRewardBreakdown(tokenId, dayOffset);
+    }
+    
+    /**
+     * @dev Get comprehensive reward calculation for a staked NFT
+     * Shows how dynamic adjustments affect rewards over time
+     * @param tokenId The NFT token ID
+     * @return totalDays Total staking days
+     * @return totalRewards Total rewards earned
+     * @return baseRewards Array of base rewards for each day
+     * @return decayedRewards Array of decayed rewards for each day
+     * @return quarterlyMultipliers Array of quarterly multipliers for each day
+     * @return dynamicMultipliers Array of dynamic multipliers for each day
+     * @return dailyRewards Array of final daily rewards
+     */
+    function getComprehensiveRewardCalculation(uint256 tokenId) external view returns (
+        uint256 totalDays,
+        uint256 totalRewards,
+        uint256[] memory baseRewards,
+        uint256[] memory decayedRewards,
+        uint256[] memory quarterlyMultipliers,
+        uint256[] memory dynamicMultipliers,
+        uint256[] memory dailyRewards
+    ) {
+        (
+            address owner,
+            uint256 tokenId_,
+            uint8 level,
+            uint256 stakeTime,
+            uint256 lastClaimTime,
+            bool isActive,
+            uint256 totalRewards_,
+            uint256 pendingRewards
+        ) = stakingContract.stakes(tokenId);
+        
+        require(isActive, "NFT is not staked");
+        
+        totalDays = (block.timestamp - lastClaimTime) / 1 days;
+        totalRewards = pendingRewards;
+        
+        if (totalDays == 0) {
+            return (0, 0, new uint256[](0), new uint256[](0), new uint256[](0), new uint256[](0), new uint256[](0));
+        }
+        
+        baseRewards = new uint256[](totalDays);
+        decayedRewards = new uint256[](totalDays);
+        quarterlyMultipliers = new uint256[](totalDays);
+        dynamicMultipliers = new uint256[](totalDays);
+        dailyRewards = new uint256[](totalDays);
+        
+        // Calculate breakdown for each day
+        for (uint256 day = 0; day < totalDays; day++) {
+            (
+                baseRewards[day],
+                decayedRewards[day],
+                quarterlyMultipliers[day],
+                dynamicMultipliers[day],
+                dailyRewards[day]
+            ) = stakingContract.getDailyRewardBreakdown(tokenId, (block.timestamp - stakeTime) / 1 days - (totalDays - 1 - day));
         }
     }
 }

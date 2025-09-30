@@ -131,7 +131,7 @@ contract StakingConfig is Ownable {
         
         // Continuous staking configurations
         continuousConfigs[0] = ContinuousConfig(30, 1000, 0, 0);  // 30 days: 10% bonus
-        continuousConfigs[1] = ContinuousConfig(90, 3000, 0, 0);  // 90 days: 30% bonus
+        continuousConfigs[1] = ContinuousConfig(90, 2000, 0, 0);  // 90 days: 20% bonus
         
         // Dynamic balance configuration
         dynamicConfig = DynamicConfig({
@@ -457,11 +457,15 @@ contract StakingConfig is Ownable {
         
         // Automatically record historical adjustment in Staking contract
         if (stakingContract != address(0)) {
-            stakingContract.call(
+            (bool success, ) = stakingContract.call(
                 abi.encodeWithSignature("recordHistoricalAdjustment()")
             );
             // Continue with quarterly adjustment regardless of historical recording success
             // This ensures quarterly adjustment is not blocked by historical recording issues
+            if (!success) {
+                // Log warning but don't fail the quarterly adjustment
+                emit ConfigUpdated("historical_recording_failed", msg.sender);
+            }
         }
         
         emit QuarterlyAdjustmentExecuted(quarterlyAdjustments.length - 1, latest.multiplier, block.timestamp);

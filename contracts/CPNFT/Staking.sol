@@ -63,6 +63,17 @@ contract Staking is
     
     HistoricalAdjustment[] public historicalAdjustments;
     
+    // Combo status for next-day effect mechanism
+    struct ComboStatus {
+        uint8 level;
+        uint256 count;
+        uint256 effectiveFrom; // Timestamp when this status becomes effective
+        uint256 bonus;         // The bonus that will be applied
+        bool isPending;        // Whether there's a pending status change
+    }
+    
+    mapping(address => mapping(uint8 => ComboStatus)) public userComboStatus;
+    
     // ============================================
     // EVENTS
     // ============================================
@@ -161,6 +172,9 @@ contract Staking is
         userStakes[msg.sender].push(tokenId);
         userLevelCounts[msg.sender][level]++;
         
+        // Update combo status for next-day effect
+        _updateComboStatus(msg.sender, level);
+        
         // Update platform stats
         totalStakedPerLevel[level]++;
         totalStakedCount++;
@@ -214,6 +228,9 @@ contract Staking is
         // Update user data
         _removeUserStake(msg.sender, tokenId);
         userLevelCounts[msg.sender][stakeInfo.level]--;
+        
+        // Update combo status for next-day effect
+        _updateComboStatus(msg.sender, stakeInfo.level);
         
         // Update platform stats
         totalStakedPerLevel[stakeInfo.level]--;
@@ -272,6 +289,9 @@ contract Staking is
             _removeUserStake(msg.sender, tokenId);
             userLevelCounts[msg.sender][stakeInfo.level]--;
             
+            // Update combo status for next-day effect
+            _updateComboStatus(msg.sender, stakeInfo.level);
+            
             // Update platform stats
             totalStakedPerLevel[stakeInfo.level]--;
             totalStakedCount--;
@@ -306,13 +326,13 @@ contract Staking is
         uint256 baseReward = configContract.getDailyReward(stakeInfo.level);
         uint256 decayInterval = configContract.getDecayInterval(stakeInfo.level);
         uint256 decayRate = configContract.getDecayRate(stakeInfo.level);
-        uint256 quarterlyMultiplier = configContract.getQuarterlyMultiplier();
         
         uint256 totalRewards = 0;
         
         // Calculate rewards day by day with phase-based decay and dynamic adjustment
         for (uint256 day = 0; day < totalDays; day++) {
             uint256 currentDayFromStake = (block.timestamp - stakeInfo.stakeTime) / 1 days - (totalDays - 1 - day);
+            uint256 currentDayTimestamp = stakeInfo.stakeTime + (currentDayFromStake * 1 days);
             
             uint256 dailyReward = baseReward;
             
@@ -333,21 +353,22 @@ contract Staking is
                 }
             }
             
-            // Apply quarterly adjustment
-            dailyReward = dailyReward * quarterlyMultiplier / 10000;
+            // Apply historical quarterly adjustment for this specific day
+            uint256 historicalQuarterlyMultiplier = _getHistoricalQuarterlyMultiplier(currentDayTimestamp);
+            dailyReward = dailyReward * historicalQuarterlyMultiplier / 10000;
             
-            // Apply historical dynamic multiplier
+            // Apply historical dynamic multiplier for this specific day
             uint256 dynamicMultiplier = _getHistoricalDynamicMultiplier(
                 stakeInfo.level, 
-                stakeInfo.stakeTime + (currentDayFromStake * 1 days)
+                currentDayTimestamp
             );
             dailyReward = dailyReward * dynamicMultiplier / 10000;
             
             totalRewards += dailyReward;
         }
         
-        // Calculate combo bonus
-        uint256 comboBonus = _calculateComboBonus(msg.sender, stakeInfo.level);
+        // Calculate combo bonus based on current NFT's individual decay state
+        uint256 comboBonus = _calculateComboBonus(stakeInfo.owner, stakeInfo.level);
         totalRewards = totalRewards * (10000 + comboBonus) / 10000;
         
         // Add continuous staking bonus
@@ -475,13 +496,13 @@ contract Staking is
         uint256 baseReward = configContract.getDailyReward(level);
         uint256 decayInterval = configContract.getDecayInterval(level);
         uint256 decayRate = configContract.getDecayRate(level);
-        uint256 quarterlyMultiplier = configContract.getQuarterlyMultiplier();
         
         uint256 totalRewards = 0;
         
         // Calculate rewards day by day with proper phase-based decay
         for (uint256 day = 0; day < totalDays; day++) {
             uint256 currentDayFromStake = (block.timestamp - stakeTime) / 1 days - (totalDays - 1 - day);
+            uint256 currentDayTimestamp = stakeTime + (currentDayFromStake * 1 days);
             
             uint256 dailyReward = baseReward;
             
@@ -502,13 +523,14 @@ contract Staking is
                 }
             }
             
-            // Apply quarterly adjustment
-            dailyReward = dailyReward * quarterlyMultiplier / 10000;
+            // Apply historical quarterly adjustment for this specific day
+            uint256 historicalQuarterlyMultiplier = _getHistoricalQuarterlyMultiplier(currentDayTimestamp);
+            dailyReward = dailyReward * historicalQuarterlyMultiplier / 10000;
             
-            // Apply historical dynamic multiplier
+            // Apply historical dynamic multiplier for this specific day
             uint256 dynamicMultiplier = _getHistoricalDynamicMultiplier(
                 level, 
-                stakeTime + (currentDayFromStake * 1 days)
+                currentDayTimestamp
             );
             dailyReward = dailyReward * dynamicMultiplier / 10000;
             
@@ -558,11 +580,25 @@ contract Staking is
     }
     
     /**
-     * @dev Calculate combo bonus for user's level
+     * @dev Calculate combo bonus for user's level with next-day effect
      */
     function _calculateComboBonus(address user, uint8 level) internal view returns (uint256) {
-        uint256 count = userLevelCounts[user][level];
+        ComboStatus memory status = userComboStatus[user][level];
         
+        // If there's a pending status change and it's time to apply it
+        if (status.isPending && block.timestamp >= status.effectiveFrom) {
+            return status.bonus;
+        }
+        
+        // Otherwise, calculate based on current count (for immediate effect on new stakes)
+        uint256 count = userLevelCounts[user][level];
+        return _calculateComboBonusByCount(count);
+    }
+    
+    /**
+     * @dev Calculate combo bonus based on count
+     */
+    function _calculateComboBonusByCount(uint256 count) internal view returns (uint256) {
         // Get combo config
         uint256[3] memory thresholds = configContract.getComboThresholds();
         uint256[3] memory bonuses = configContract.getComboBonuses();
@@ -642,6 +678,24 @@ contract Staking is
     }
     
     /**
+     * @dev Get historical quarterly multiplier for a specific timestamp
+     * @param timestamp The timestamp to get the quarterly multiplier for
+     * @return The quarterly multiplier that was active at that timestamp
+     */
+    function _getHistoricalQuarterlyMultiplier(uint256 timestamp) internal view returns (uint256) {
+        // Find the most recent historical adjustment before or at the given timestamp
+        for (uint256 i = historicalAdjustments.length; i > 0; i--) {
+            HistoricalAdjustment storage adjustment = historicalAdjustments[i - 1];
+            if (adjustment.timestamp <= timestamp) {
+                return adjustment.quarterlyMultiplier;
+            }
+        }
+        
+        // If no historical adjustment found, use current quarterly multiplier as fallback
+        return configContract.getQuarterlyMultiplier();
+    }
+    
+    /**
      * @dev Calculate continuous staking bonus
      */
     function _calculateContinuousBonus(uint256 baseRewards, uint256 totalDays) internal view returns (uint256) {
@@ -654,6 +708,38 @@ contract Staking is
             }
         }
         return 0;
+    }
+    
+    /**
+     * @dev Update combo status for next-day effect
+     */
+    function _updateComboStatus(address user, uint8 level) internal {
+        uint256 currentCount = userLevelCounts[user][level];
+        ComboStatus storage status = userComboStatus[user][level];
+        
+        // Calculate what the new bonus should be
+        uint256 newBonus = _calculateComboBonusByCount(currentCount);
+        
+        // If there's a change in count, schedule it for next day
+        if (status.count != currentCount) {
+            status.level = level;
+            status.count = currentCount;
+            status.effectiveFrom = block.timestamp + 1 days; // Next day effect
+            status.bonus = newBonus;
+            status.isPending = true;
+        }
+    }
+    
+    /**
+     * @dev Apply pending combo status changes
+     */
+    function _applyPendingComboStatus(address user, uint8 level) internal {
+        ComboStatus storage status = userComboStatus[user][level];
+        
+        if (status.isPending && block.timestamp >= status.effectiveFrom) {
+            status.isPending = false;
+            // Status is now effectively applied
+        }
     }
     
     // ============================================
@@ -778,6 +864,88 @@ contract Staking is
      */
     function getHistoricalAdjustmentCount() external view returns (uint256) {
         return historicalAdjustments.length;
+    }
+    
+    /**
+     * @dev Get combo status for a user and level
+     * @param user User address
+     * @param level NFT level
+     * @return ComboStatus struct with current combo information
+     */
+    function getComboStatus(address user, uint8 level) external view returns (ComboStatus memory) {
+        return userComboStatus[user][level];
+    }
+    
+    /**
+     * @dev Get effective combo bonus for a user and level
+     * @param user User address
+     * @param level NFT level
+     * @return The currently effective combo bonus
+     */
+    function getEffectiveComboBonus(address user, uint8 level) external view returns (uint256) {
+        return _calculateComboBonus(user, level);
+    }
+    
+    /**
+     * @dev Get historical quarterly multiplier for a specific timestamp
+     * @param timestamp The timestamp to get the quarterly multiplier for
+     * @return The quarterly multiplier that was active at that timestamp
+     */
+    function getHistoricalQuarterlyMultiplier(uint256 timestamp) external view returns (uint256) {
+        return _getHistoricalQuarterlyMultiplier(timestamp);
+    }
+    
+    /**
+     * @dev Calculate detailed reward breakdown for a specific day
+     * @param tokenId The NFT token ID
+     * @param dayOffset Days from stake start (0 = first day)
+     * @return baseReward The base reward before adjustments
+     * @return decayedReward The reward after decay
+     * @return quarterlyMultiplier The quarterly multiplier applied
+     * @return dynamicMultiplier The dynamic multiplier applied
+     * @return finalReward The final reward for this day
+     */
+    function getDailyRewardBreakdown(uint256 tokenId, uint256 dayOffset) external view returns (
+        uint256 baseReward,
+        uint256 decayedReward,
+        uint256 quarterlyMultiplier,
+        uint256 dynamicMultiplier,
+        uint256 finalReward
+    ) {
+        StakeInfo memory stakeInfo = stakes[tokenId];
+        require(stakeInfo.isActive, "NFT is not staked");
+        
+        uint256 currentDayTimestamp = stakeInfo.stakeTime + (dayOffset * 1 days);
+        
+        baseReward = configContract.getDailyReward(stakeInfo.level);
+        decayedReward = baseReward;
+        
+        // Apply decay if applicable
+        uint256 decayInterval = configContract.getDecayInterval(stakeInfo.level);
+        uint256 decayRate = configContract.getDecayRate(stakeInfo.level);
+        
+        if (decayInterval > 0 && dayOffset >= decayInterval) {
+            uint256 completedCycles = dayOffset / decayInterval;
+            
+            for (uint256 i = 0; i < completedCycles; i++) {
+                uint256 totalDecaySoFar = (i + 1) * decayRate;
+                if (totalDecaySoFar > configContract.getMaxDecayRate(stakeInfo.level)) {
+                    uint256 remainingDecay = configContract.getMaxDecayRate(stakeInfo.level) - (i * decayRate);
+                    decayedReward = decayedReward * (10000 - remainingDecay) / 10000;
+                    break;
+                }
+                
+                decayedReward = decayedReward * (10000 - decayRate) / 10000;
+            }
+        }
+        
+        // Get historical multipliers for this day
+        quarterlyMultiplier = _getHistoricalQuarterlyMultiplier(currentDayTimestamp);
+        dynamicMultiplier = _getHistoricalDynamicMultiplier(stakeInfo.level, currentDayTimestamp);
+        
+        // Calculate final reward
+        finalReward = decayedReward * quarterlyMultiplier / 10000;
+        finalReward = finalReward * dynamicMultiplier / 10000;
     }
     
     // ============================================
