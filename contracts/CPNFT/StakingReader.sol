@@ -560,11 +560,29 @@ contract StakingReader is
     }
     
     // ============================================
-    // CONFIGURATION QUERIES
+    // 配置查询函数
     // ============================================
     
     /**
-     * @dev Get all configuration data
+     * @notice 这些函数提供系统配置的查询功能
+     * @dev 包括基础配置、奖励配置、Combo配置等
+     */
+    
+    /**
+     * @notice 获取所有配置数据
+     * @dev 返回系统的所有配置参数，包括基础配置、奖励配置、Combo配置等
+     * @return minStakeDays 最小质押天数
+     * @return earlyWithdrawPenalty 提前解质押惩罚（以基点表示）
+     * @return dailyRewards 每个等级的每日基础奖励
+     * @return decayIntervals 每个等级的衰减周期
+     * @return decayRates 每个等级的衰减率
+     * @return maxDecayRates 每个等级的最大衰减率
+     * @return comboThresholds Combo阈值数组
+     * @return comboBonuses Combo加成数组
+     * @return comboMinDays Combo最小天数要求
+     * @return continuousThresholds 连续质押阈值
+     * @return continuousBonuses 连续质押奖励
+     * @return quarterlyMultiplier 季度乘数
      */
     function getConfiguration() external view returns (
         uint256 minStakeDays,
@@ -600,7 +618,14 @@ contract StakingReader is
     }
     
     /**
-     * @dev Get platform statistics
+     * @notice 获取平台详细统计数据
+     * @dev 返回平台的完整统计信息，包括质押数量、供应量、质押比例等
+     * @return totalStakedNFTs 总质押NFT数量
+     * @return stakedPerLevel 每个等级的质押数量数组
+     * @return supplyPerLevel 每个等级的总供应量数组
+     * @return stakingRatios 每个等级的质押比例数组（以基点表示）
+     * @return dynamicMultipliers 每个等级的动态倍率数组
+     * @return totalRewardsToday 今日预计总收益
      */
     function getPlatformStatistics() external view returns (
         uint256 totalStakedNFTs,
@@ -625,7 +650,10 @@ contract StakingReader is
     }
     
     /**
-     * @dev Get contract versions
+     * @notice 获取合约版本信息
+     * @dev 返回质押合约和配置合约的版本号
+     * @return stakingVersion 质押合约版本号
+     * @return configVersion 配置合约版本号
      */
     function getVersions() external view returns (
         string memory stakingVersion,
@@ -636,14 +664,20 @@ contract StakingReader is
     }
     
     // ============================================
-    // HISTORICAL ADJUSTMENT QUERIES
+    // 历史调整查询函数
     // ============================================
     
     /**
-     * @dev Get historical adjustment record
-     * @param index Index of the adjustment record
-     * @return timestamp When the adjustment was recorded
-     * @return quarterlyMultiplier The quarterly multiplier at that time
+     * @notice 这些函数提供历史调整记录的查询功能
+     * @dev 包括季度调整、动态倍率调整等历史记录
+     */
+    
+    /**
+     * @notice 获取历史调整记录
+     * @dev 返回指定索引的历史调整记录
+     * @param index 调整记录的索引
+     * @return timestamp 调整记录的时间戳
+     * @return quarterlyMultiplier 当时的季度乘数（以基点表示）
      */
     function getHistoricalAdjustment(uint256 index) external view returns (
         uint256 timestamp,
@@ -653,27 +687,30 @@ contract StakingReader is
     }
     
     /**
-     * @dev Get historical dynamic multiplier for a specific level and time
-     * @param index Index of the adjustment record
-     * @param level NFT level (1-6)
-     * @return The dynamic multiplier for that level at that time
+     * @notice 获取特定等级和时间的历史动态倍率
+     * @dev 返回指定调整记录中特定等级的动态倍率
+     * @param index 调整记录的索引
+     * @param level NFT等级（1-6: C, B, A, S, SS, SSS）
+     * @return 该等级在该时间点的动态倍率（以基点表示）
      */
     function getHistoricalDynamicMultiplier(uint256 index, uint8 level) external view returns (uint256) {
         return stakingContract.getHistoricalDynamicMultiplier(index, level);
     }
     
     /**
-     * @dev Get number of historical adjustments
-     * @return Number of adjustment records
+     * @notice 获取历史调整记录的数量
+     * @dev 返回系统中存储的历史调整记录总数
+     * @return 调整记录的总数
      */
     function getHistoricalAdjustmentCount() external view returns (uint256) {
         return stakingContract.getHistoricalAdjustmentCount();
     }
     
     /**
-     * @dev Get all historical adjustments for frontend display
-     * @return timestamps Array of timestamps
-     * @return quarterlyMultipliers Array of quarterly multipliers
+     * @notice 获取所有历史调整记录
+     * @dev 返回所有历史调整记录的时间戳和季度乘数，用于前端展示
+     * @return timestamps 调整记录的时间戳数组
+     * @return quarterlyMultipliers 季度乘数数组（以基点表示）
      */
     function getAllHistoricalAdjustments() external view returns (
         uint256[] memory timestamps,
@@ -690,9 +727,10 @@ contract StakingReader is
     }
     
     /**
-     * @dev Get historical dynamic multipliers for all levels at a specific time
-     * @param index Index of the adjustment record
-     * @return multipliers Array of dynamic multipliers for levels 1-6
+     * @notice 获取特定时间点所有等级的历史动态倍率
+     * @dev 返回指定调整记录中所有等级的动态倍率
+     * @param index 调整记录的索引
+     * @return multipliers 所有等级的动态倍率数组[C, B, A, S, SS, SSS]（以基点表示）
      */
     function getHistoricalDynamicMultipliersForAllLevels(uint256 index) external view returns (uint256[6] memory multipliers) {
         for (uint8 level = 1; level <= 6; level++) {
@@ -701,11 +739,12 @@ contract StakingReader is
     }
     
     /**
-     * @dev Get complete historical adjustment data for frontend
-     * @param index Index of the adjustment record
-     * @return timestamp When the adjustment was recorded
-     * @return quarterlyMultiplier The quarterly multiplier at that time
-     * @return dynamicMultipliers Array of dynamic multipliers for levels 1-6
+     * @notice 获取完整的历史调整数据
+     * @dev 返回指定调整记录的所有数据，包括时间戳、季度乘数和所有等级的动态倍率
+     * @param index 调整记录的索引
+     * @return timestamp 调整记录的时间戳
+     * @return quarterlyMultiplier 当时的季度乘数（以基点表示）
+     * @return dynamicMultipliers 所有等级的动态倍率数组[C, B, A, S, SS, SSS]（以基点表示）
      */
     function getCompleteHistoricalAdjustment(uint256 index) external view returns (
         uint256 timestamp,
@@ -720,23 +759,25 @@ contract StakingReader is
     }
     
     /**
-     * @dev Get historical quarterly multiplier for a specific timestamp
-     * @param timestamp The timestamp to get the quarterly multiplier for
-     * @return The quarterly multiplier that was active at that timestamp
+     * @notice 获取指定时间点的历史季度乘数
+     * @dev 返回特定时间点生效的季度乘数
+     * @param timestamp 要查询的时间戳
+     * @return 该时间点的季度乘数（以基点表示）
      */
     function getHistoricalQuarterlyMultiplier(uint256 timestamp) external view returns (uint256) {
         return stakingContract.getHistoricalQuarterlyMultiplier(timestamp);
     }
     
     /**
-     * @dev Get detailed reward breakdown for a specific day
-     * @param tokenId The NFT token ID
-     * @param dayOffset Days from stake start (0 = first day)
-     * @return baseReward The base reward before adjustments
-     * @return decayedReward The reward after decay
-     * @return quarterlyMultiplier The quarterly multiplier applied
-     * @return dynamicMultiplier The dynamic multiplier applied
-     * @return finalReward The final reward for this day
+     * @notice 获取特定日期的详细收益明细
+     * @dev 返回指定日期的收益计算过程，包括基础收益、衰减、各种乘数等
+     * @param tokenId NFT的ID
+     * @param dayOffset 从质押开始的天数（0 = 第一天）
+     * @return baseReward 基础收益（未应用任何调整）
+     * @return decayedReward 衰减后的收益
+     * @return quarterlyMultiplier 应用的季度乘数（以基点表示）
+     * @return dynamicMultiplier 应用的动态倍率（以基点表示）
+     * @return finalReward 该日的最终收益（应用所有调整后）
      */
     function getDailyRewardBreakdown(uint256 tokenId, uint256 dayOffset) external view returns (
         uint256 baseReward,
@@ -1019,6 +1060,18 @@ contract StakingReader is
      * @return quarterlyMultipliers Array of quarterly multipliers for each day
      * @return dynamicMultipliers Array of dynamic multipliers for each day
      * @return dailyRewards Array of final daily rewards
+     */
+    /**
+     * @notice 获取NFT的完整收益计算明细
+     * @dev 展示动态调整如何影响每日收益，包括所有乘数和加成的影响
+     * @param tokenId NFT的ID
+     * @return totalDays 总质押天数
+     * @return totalRewards 已获得的总收益
+     * @return baseRewards 每日基础收益数组
+     * @return decayedRewards 每日衰减后收益数组
+     * @return quarterlyMultipliers 每日季度乘数数组
+     * @return dynamicMultipliers 每日动态乘数数组
+     * @return dailyRewards 每日最终收益数组（应用所有乘数和加成后）
      */
     function getComprehensiveRewardCalculation(uint256 tokenId) external view returns (
         uint256 totalDays,
