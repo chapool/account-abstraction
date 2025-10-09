@@ -30,10 +30,12 @@ contracts/CPNFT/
 
 ### 已部署合约地址 (Sepolia测试网)
 
-**质押系统合约:**
-- **Staking Contract (Proxy)**: `0x23983f63C7Eb0e920Fa73146293A51B215310Ac2`
-- **StakingConfig Contract**: `0x50fd41550bB5f6116a8b1330Cb50FAc41E658A69`
-- **StakingReader Contract**: `0x3243Fac23cfa3196525de9d1C28d3AD34E9783E8`
+**质押系统合约 (最新部署):**
+- **Staking Contract (Proxy)**: `0x51a07dE2Bd277F0E6412452e3B54982Fc32CA6E5`
+  - Implementation: 自动管理
+- **StakingConfig Contract**: `0x37196054B23Be5CB977AA3284A3A844a8fe77861`
+- **StakingReader Contract (Proxy)**: `0x6C9f7Fb0376C961FE79cED8cf09EbBBaDBfF0051`
+  - Implementation: `0xb700544fB85d95A09Db71E2BE29Bb76d06386E7c`
 
 **依赖合约:**
 - **CPNFT Contract**: `0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed`
@@ -72,9 +74,15 @@ contracts/CPNFT/
 
 ### 部署时间
 
-**部署时间**: 2025-09-29T08:33:30.943Z  
+**最新部署**: 2025-01-09 (优化版本)  
 **网络**: Sepolia测试网 (Chain ID: 11155111)  
 **部署者**: `0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35`
+
+**更新说明:**
+- Staking 合约: v3.1.0 (批量操作事件优化)
+- StakingReader 合约: v2.0.0 (可升级 + 大小优化)
+- 新增用户统计查询功能
+- 合约大小优化，符合24KB限制
 
 ### 合约版本
 
@@ -85,14 +93,24 @@ contracts/CPNFT/
 ### 前端集成地址
 
 ```javascript
-// 合约地址配置
+// 合约地址配置 (最新版本)
 const CONTRACT_ADDRESSES = {
-  STAKING: "0x23983f63C7Eb0e920Fa73146293A51B215310Ac2",
-  STAKING_CONFIG: "0x50fd41550bB5f6116a8b1330Cb50FAc41E658A69",
-  STAKING_READER: "0x3243Fac23cfa3196525de9d1C28d3AD34E9783E8",
-  CPNFT: "0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed",
-  CPOP_TOKEN: "0xA2d58d11c2752b010C2444fa2f795c6cf4cb76Bc",
-  ACCOUNT_MANAGER: "0x2E4f862Ba3ee6D84dd19ae9f002F5D8c0C5675ef"
+  // 核心质押合约
+  STAKING: "0x51a07dE2Bd277F0E6412452e3B54982Fc32CA6E5",           // 主质押合约 (可升级)
+  STAKING_CONFIG: "0x37196054B23Be5CB977AA3284A3A844a8fe77861",   // 配置合约
+  STAKING_READER: "0x6C9f7Fb0376C961FE79cED8cf09EbBBaDBfF0051",   // 查询合约 (可升级)
+  
+  // 依赖合约
+  CPNFT: "0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed",           // NFT合约
+  CPOP_TOKEN: "0xA2d58d11c2752b010C2444fa2f795c6cf4cb76Bc",      // 代币合约
+  ACCOUNT_MANAGER: "0x2E4f862Ba3ee6D84dd19ae9f002F5D8c0C5675ef"  // 账户管理
+};
+
+// 网络配置
+const NETWORK_CONFIG = {
+  chainId: 11155111,        // Sepolia
+  name: "Sepolia Testnet",
+  rpcUrl: "https://sepolia.infura.io/v3/YOUR_INFURA_KEY"
 };
 ```
 
@@ -603,16 +621,58 @@ async function getRewardCalculation(tokenId) {
     };
 }
 
-// 获取用户所有质押
-async function getUserStakes(userAddress) {
-    // 注意: 需要通过其他方式获取用户的质押NFT列表
-    // 例如通过事件监听或NFT合约查询
-    const stakes = [];
-    
-    // 这里需要根据实际需求实现获取用户质押NFT列表的逻辑
-    // 可以通过监听Staked事件来维护用户质押列表
-    
-    return stakes;
+// 获取用户质押汇总信息 (新增功能)
+async function getUserStakingSummary(userAddress) {
+    const summary = await readerContract.getUserStakingSummary(userAddress);
+    return {
+        totalStakedCount: summary.totalStakedCount.toString(),
+        totalClaimedRewards: ethers.utils.formatEther(summary.totalClaimedRewards),
+        totalPendingRewards: ethers.utils.formatEther(summary.totalPendingRewards),
+        levelStakingCounts: summary.levelStakingCounts.map(c => c.toString()),
+        longestStakingDuration: Math.floor(summary.longestStakingDuration / 86400) + ' 天',
+        totalEffectiveMultiplier: (summary.totalEffectiveMultiplier / 100).toFixed(2) + 'x'
+    };
+}
+
+// 获取用户质押的NFT列表 (分页，新增功能)
+async function getUserStakedNFTs(userAddress, offset = 0, limit = 10) {
+    const result = await readerContract.getUserStakedNFTs(userAddress, offset, limit);
+    return {
+        nfts: result.nfts.map(nft => ({
+            tokenId: nft.tokenId.toString(),
+            level: nft.level,
+            stakingDuration: Math.floor(nft.stakingDuration / 86400) + ' 天',
+            pendingRewards: ethers.utils.formatEther(nft.pendingRewards),
+            totalRewards: ethers.utils.formatEther(nft.totalRewards),
+            effectiveMultiplier: (nft.effectiveMultiplier / 100).toFixed(2) + 'x'
+        })),
+        total: result.total.toString()
+    };
+}
+
+// 获取用户收益统计 (新增功能)
+async function getUserRewardStats(userAddress) {
+    const stats = await readerContract.getUserRewardStats(userAddress);
+    return {
+        totalHistoricalRewards: ethers.utils.formatEther(stats.totalHistoricalRewards),
+        totalPendingRewards: ethers.utils.formatEther(stats.totalPendingRewards),
+        rewardsPerLevel: stats.rewardsPerLevel.map(r => ethers.utils.formatEther(r)),
+        last24HoursRewards: ethers.utils.formatEther(stats.last24HoursRewards),
+        averageDailyRewards: ethers.utils.formatEther(stats.averageDailyRewards)
+    };
+}
+
+// 获取用户Combo汇总 (新增功能)
+async function getUserComboSummary(userAddress) {
+    const summary = await readerContract.getUserComboSummary(userAddress);
+    return {
+        currentComboCounts: summary.currentComboCounts.map(c => c.toString()),
+        comboBonus: summary.comboBonus.map(b => (b / 100).toFixed(2) + '%'),
+        nextComboThreshold: summary.nextComboThreshold.map(t => 
+            t.toString() === ethers.constants.MaxUint256.toString() ? '已达最高' : t.toString()
+        ),
+        hasPendingCombo: summary.hasPendingCombo
+    };
 }
 ```
 
@@ -792,6 +852,72 @@ if (historicalCount > 0) {
     });
 }
 ```
+
+### 📊 StakingReader 新功能说明 (v2.0)
+
+#### 🆕 用户统计查询功能
+
+StakingReader v2.0 新增了一系列用户级别的统计查询功能，专为前端展示优化：
+
+**1. 用户质押汇总 (`getUserStakingSummary`)**
+- 总质押数量
+- 已领取总收益
+- 待领取总收益
+- 各等级质押数量统计
+- 最长质押时间
+- 综合收益倍率
+
+```javascript
+const summary = await readerContract.getUserStakingSummary(userAddress);
+// 返回用户的完整质押概览数据
+```
+
+**2. 用户质押NFT列表 (`getUserStakedNFTs`)**
+- 支持分页查询
+- 包含每个NFT的详细信息：tokenId、等级、质押时长、收益、倍率
+- 适合展示用户的质押资产列表
+
+```javascript
+const { nfts, total } = await readerContract.getUserStakedNFTs(userAddress, 0, 10);
+// offset: 起始位置, limit: 每页数量
+```
+
+**3. 用户收益统计 (`getUserRewardStats`)**
+- 历史总收益
+- 当前待领取收益
+- 各等级收益分布
+- 最近24小时收益
+- 平均每日收益
+
+```javascript
+const stats = await readerContract.getUserRewardStats(userAddress);
+// 返回用户的收益统计数据
+```
+
+**4. 用户Combo汇总 (`getUserComboSummary`)**
+- 各等级当前Combo数量
+- 各等级Combo加成
+- 距离下一个Combo的数量
+- 待生效Combo状态
+
+```javascript
+const combo = await readerContract.getUserComboSummary(userAddress);
+// 返回用户的Combo状态信息
+```
+
+#### 🔧 合约优化特性
+
+**可升级性**
+- 采用UUPS代理模式，支持未来功能扩展
+- 合约依赖可动态更新
+
+**大小优化**
+- 移除冗余功能，合约大小从25KB优化到符合24KB限制
+- 保留核心查询功能和新增的用户统计功能
+
+**Gas优化**
+- 所有函数都是view类型，查询不消耗gas
+- 优化了内部计算逻辑，减少栈深度
 
 ### 📊 历史调整记录查询
 
