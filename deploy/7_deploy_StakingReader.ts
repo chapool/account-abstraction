@@ -1,13 +1,28 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { Contract } from "ethers";
+import * as fs from "fs";
+import * as path from "path";
 
 async function main() {
   console.log("🚀 Deploying StakingReader Contract...");
 
-  // Contract addresses from previous deployment
-  const STAKING_ADDRESS = "0x23983f63C7Eb0e920Fa73146293A51B215310Ac2";
-  const CONFIG_ADDRESS = "0x50fd41550bB5f6116a8b1330Cb50FAc41E658A69";
-  const CPNFT_ADDRESS = "0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed";
+  // Contract addresses (defaults, will try to override from staking-deployment-results.json)
+  let STAKING_ADDRESS = "0x51a07dE2Bd277F0E6412452e3B54982Fc32CA6E5";
+  let CONFIG_ADDRESS = "0x37196054B23Be5CB977AA3284A3A844a8fe77861";
+  let CPNFT_ADDRESS = "0xcC63bf57EF4b4fE5635cF0745Ae7E2C75A63c7Ed";
+
+  try {
+    const resultsPath = path.join(__dirname, "..", "staking-deployment-results.json");
+    if (fs.existsSync(resultsPath)) {
+      const deploymentInfo = JSON.parse(fs.readFileSync(resultsPath, "utf-8"));
+      STAKING_ADDRESS = deploymentInfo?.contracts?.Staking?.address ?? STAKING_ADDRESS;
+      CONFIG_ADDRESS = deploymentInfo?.contracts?.StakingConfig?.address ?? CONFIG_ADDRESS;
+      CPNFT_ADDRESS = deploymentInfo?.contracts?.dependencies?.CPNFT ?? CPNFT_ADDRESS;
+      console.log("Using addresses from staking-deployment-results.json");
+    }
+  } catch (err) {
+    console.log("⚠️  Could not read staking-deployment-results.json, using default addresses");
+  }
 
   // Get the deployer
   const [deployer] = await ethers.getSigners();
@@ -15,19 +30,21 @@ async function main() {
   console.log("Account balance:", ethers.utils.formatEther(await deployer.getBalance()), "ETH");
 
   // ============================================
-  // STEP 1: Deploy StakingReader Contract
+  // STEP 1: Deploy StakingReader Contract (UUPS proxy)
   // ============================================
   console.log("\n📋 Step 1: Deploying StakingReader...");
   
   const StakingReaderFactory = await ethers.getContractFactory("StakingReader");
-  const stakingReader = await StakingReaderFactory.deploy(
-    STAKING_ADDRESS,
-    CONFIG_ADDRESS,
-    CPNFT_ADDRESS
+  const stakingReader = await upgrades.deployProxy(
+    StakingReaderFactory,
+    [STAKING_ADDRESS, CONFIG_ADDRESS, CPNFT_ADDRESS, (await ethers.getSigners())[0].address],
+    { initializer: "initialize", kind: "uups" }
   );
   await stakingReader.deployed();
+  const implementation = await upgrades.erc1967.getImplementationAddress(stakingReader.address);
 
   console.log("✅ StakingReader deployed to:", stakingReader.address);
+  console.log("✅ StakingReader implementation:", implementation);
 
   // ============================================
   // STEP 2: Verify Deployment

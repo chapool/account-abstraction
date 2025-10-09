@@ -1,11 +1,11 @@
 {
   "network": "sepolia",
   "chainId": 11155111,
-  "timestamp": "2025-09-29T08:36:26.468Z",
+  "timestamp": "2025-10-09T05:50:50.680Z",
   "deployer": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35",
   "contracts": {
     "StakingReader": {
-      "address": "0x3243Fac23cfa3196525de9d1C28d3AD34E9783E8",
+      "address": "0x6C9f7Fb0376C961FE79cED8cf09EbBBaDBfF0051",
       "version": "1.0.0"
     },
     "dependencies": {
