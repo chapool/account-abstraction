@@ -298,6 +298,9 @@ contract Staking is
             
             // Set NFT as not staked in CPNFT contract
             cpnftContract.setStakeStatus(tokenId, false);
+            
+            // Emit individual event for each token
+            emit NFTUnstaked(msg.sender, tokenId, rewards, block.timestamp);
         }
         
         // Send total rewards to AA account
