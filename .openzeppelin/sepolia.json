@@ -85,6 +85,21 @@
       "address": "0x6C9f7Fb0376C961FE79cED8cf09EbBBaDBfF0051",
       "txHash": "0xa96f6f2f7983b8977cae6a19b97d80bc218f0f8b40ee2f10655703a3acdf6477",
       "kind": "uups"
+    },
+    {
+      "address": "0x3eCA9E28583C469CAA654fcb49Bd94Ce25C0262C",
+      "txHash": "0xd8e16815f05f1b6ed134763c02e32f5adf22fc9cb75fcc7e0940321322a49301",
+      "kind": "uups"
+    },
+    {
+      "address": "0x36e996d1691cB1C9ca4a1F8D2760F8aCF503B943",
+      "txHash": "0xe4639e039bdc168c9ed206ebf0ad4775782ea654627b97161961019cca0ad0df",
+      "kind": "uups"
+    },
+    {
+      "address": "0x3a42F2F6962Fdc9bb8392F73C94e79071De5eC8d",
+      "txHash": "0xa8172601abc2627a6eeab6f4c7cecce66129b4eb5a1783277614b84ccebbb849",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -1691,6 +1706,343 @@
             "type": "t_contract(CPNFT)9036",
             "contract": "StakingReader",
             "src": "contracts/CPNFT/StakingReader.sol:70"
+          }
+        ],
+        "types": {
+          "t_contract(CPNFT)9036": {
+            "label": "contract CPNFT",
+            "numberOfBytes": "20"
+          },
+          "t_contract(Staking)11940": {
+            "label": "contract Staking",
+            "numberOfBytes": "20"
+          },
+          "t_contract(StakingConfig)13377": {
+            "label": "contract StakingConfig",
+            "numberOfBytes": "20"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
+    "1eb3b6563baa2917db39a79e640c7224bd1171c47b4354effed0f810b50b961d": {
+      "address": "0xdcF879beaec31A5DA51fc2e1F8Da62465C1bF92B",
+      "txHash": "0x69155cfc6ad8a78ab8ba0d262749e8199ea5432f7653442526737c7b7ce381d8",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "_baseTokenURI",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "CPNFT",
+            "src": "contracts/CPNFT/CPNFT.sol:26"
+          },
+          {
+            "label": "_tokenIdCounter",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "CPNFT",
+            "src": "contracts/CPNFT/CPNFT.sol:29"
+          },
+          {
+            "label": "_tokenLevels",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_enum(NFTLevel)8435)",
+            "contract": "CPNFT",
+            "src": "contracts/CPNFT/CPNFT.sol:32"
+          },
+          {
+            "label": "_isStaked",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_mapping(t_uint256,t_bool)",
+            "contract": "CPNFT",
+            "src": "contracts/CPNFT/CPNFT.sol:33"
+          },
+          {
+            "label": "stakingContract",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "CPNFT",
+            "src": "contracts/CPNFT/CPNFT.sol:36"
+          },
+          {
+            "label": "levelSupply",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_enum(NFTLevel)8435,t_uint256)",
+            "contract": "CPNFT",
+            "src": "contracts/CPNFT/CPNFT.sol:39"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(NFTLevel)8435": {
+            "label": "enum CPNFT.NFTLevel",
+            "members": [
+              "NORMAL",
+              "C",
+              "B",
+              "A",
+              "S",
+              "SS",
+              "SSS"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_enum(NFTLevel)8435,t_uint256)": {
+            "label": "mapping(enum CPNFT.NFTLevel => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_enum(NFTLevel)8435)": {
+            "label": "mapping(uint256 => enum CPNFT.NFTLevel)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ERC721": [
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_name",
+              "type": "t_string_storage",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:27"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_symbol",
+              "type": "t_string_storage",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:30"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_owners",
+              "type": "t_mapping(t_uint256,t_address)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:32"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_balances",
+              "type": "t_mapping(t_address,t_uint256)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:34"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_tokenApprovals",
+              "type": "t_mapping(t_uint256,t_address)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:36"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_operatorApprovals",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:38"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
+    "1276ed5ba289a45d4d6f1fe620133dfd0bd8487b5e3e5624baaf68ee987939ae": {
+      "address": "0xca1dB6076B2278AA8F56edfDC036CD732cb17738",
+      "txHash": "0x64f7caca376cdb664e078913b365849ef000daae3ae3810ef086c6f5261887ff",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "stakingContract",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(Staking)11940",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:84"
+          },
+          {
+            "label": "configContract",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(StakingConfig)13377",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:86"
+          },
+          {
+            "label": "cpnftContract",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(CPNFT)9036",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:89"
+          }
+        ],
+        "types": {
+          "t_contract(CPNFT)9036": {
+            "label": "contract CPNFT",
+            "numberOfBytes": "20"
+          },
+          "t_contract(Staking)11940": {
+            "label": "contract Staking",
+            "numberOfBytes": "20"
+          },
+          "t_contract(StakingConfig)13377": {
+            "label": "contract StakingConfig",
+            "numberOfBytes": "20"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
+    "b495494c9c50e38ef8128625e9826c3367a6cd0823e7a2948ba7225fefc36b91": {
+      "address": "0xba391A0AA9F98E0fB306e3C53fc84f951a6D7a47",
+      "txHash": "0x2df03879ff511d18ee9e810b23f1f830db4fc24478cac3c4b32145dd6d6ba053",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "stakingContract",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(Staking)11940",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:84"
+          },
+          {
+            "label": "configContract",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(StakingConfig)13377",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:86"
+          },
+          {
+            "label": "cpnftContract",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(CPNFT)9036",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:88"
           }
         ],
         "types": {

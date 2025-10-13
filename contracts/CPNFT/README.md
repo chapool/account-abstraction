@@ -34,7 +34,7 @@ contracts/CPNFT/
 - **Staking Contract (Proxy)**: `0x51a07dE2Bd277F0E6412452e3B54982Fc32CA6E5`
   - Implementation: 自动管理
 - **StakingConfig Contract**: `0x37196054B23Be5CB977AA3284A3A844a8fe77861`
-- **StakingReader Contract (Proxy)**: `0x6C9f7Fb0376C961FE79cED8cf09EbBBaDBfF0051`
+- **StakingReader Contract (Proxy)**: `0x3eCA9E28583C469CAA654fcb49Bd94Ce25C0262C` ✅
   - Implementation: `0xb700544fB85d95A09Db71E2BE29Bb76d06386E7c`
 
 **依赖合约:**
