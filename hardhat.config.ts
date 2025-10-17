@@ -85,6 +85,12 @@ const config: HardhatUserConfig = {
       timeout: 60000
     }
   },
+  namedAccounts: {
+    deployer: {
+      default: 0,
+      sepoliaCustom: 0
+    }
+  },
   mocha: {
     timeout: 10000
   }

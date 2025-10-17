@@ -1,0 +1,28 @@
+{
+  "network": "sepoliaCustom",
+  "chainId": 11155111,
+  "networkName": "Sepolia Testnet",
+  "contractName": "BatchTransfer",
+  "contractAddress": "0x29aAD71f97Da6AA0F4096cfd50DA395eAa18D964",
+  "deployer": "0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35",
+  "transactionHash": "0x4ca33acf2b57787c5d2a8e940b95978e725bbf9ffe8c75f8d93e0c7b7834e26b",
+  "gasUsed": 1578999,
+  "deploymentDate": "2025-10-17",
+  "blockExplorer": "https://sepolia.etherscan.io/address/0x29aAD71f97Da6AA0F4096cfd50DA395eAa18D964",
+  "verified": false,
+  "features": [
+    "批量转移 NFT 给多个接收者",
+    "批量转移多个 NFT 给单个接收者",
+    "转移来自不同集合的 NFT",
+    "批量转移 ERC20 代币（不同金额）",
+    "批量转移 ERC20 代币（相同金额）",
+    "批量转移多种 ERC20 代币",
+    "组合转移 NFT 和 FT"
+  ],
+  "notes": [
+    "使用 ReentrancyGuardTransient 优化 gas 消耗",
+    "支持 ERC721 和 ERC20 标准",
+    "包含安全检查和输入验证"
+  ]
+}
+

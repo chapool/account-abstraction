@@ -34,6 +34,18 @@ Account abstraction allows users to interact with Ethereum using smart contract 
 
 - **SimpleAccountFactory** (`contracts/accounts/SimpleAccountFactory.sol`): A sample factory contract for SimpleAccount
 
+## Utility Contracts
+
+- **BatchTransfer** (`contracts/utils/BatchTransfer.sol`): Batch transfer utility for NFTs (ERC721) and Fungible Tokens (ERC20)
+  - **Deployed on Sepolia**: `0x29aAD71f97Da6AA0F4096cfd50DA395eAa18D964`
+  - **Documentation**: [BatchTransfer Usage Guide](./docs/BatchTransfer-Usage-Guide.md)
+  - **Deployment Info**: [BATCH_TRANSFER_DEPLOYMENT.md](./BATCH_TRANSFER_DEPLOYMENT.md)
+  - Features:
+    - Batch transfer NFTs to multiple recipients
+    - Batch transfer ERC20 tokens with different or equal amounts
+    - Combined NFT + FT transfers in single transaction
+    - Multi-collection and multi-token support
+    - Gas optimized with ReentrancyGuardTransient
 
 # Developer setup
 
