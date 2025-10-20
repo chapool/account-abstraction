@@ -74,6 +74,10 @@ contract Staking is
     
     mapping(address => mapping(uint8 => ComboStatus)) public userComboStatus;
     
+    // Testing mode for time manipulation (NEW - added in upgrade)
+    bool public testMode;
+    uint256 public testTimestamp;
+    
     // ============================================
     // EVENTS
     // ============================================
@@ -122,6 +126,66 @@ contract Staking is
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
     
     // ============================================
+    // TIME MANAGEMENT FOR TESTING
+    // ============================================
+    
+    /**
+     * @dev Get current timestamp (real or test)
+     */
+    function _getCurrentTimestamp() internal view returns (uint256) {
+        return testMode ? testTimestamp : block.timestamp;
+    }
+    
+    /**
+     * @dev Enable test mode and set initial test timestamp
+     */
+    function enableTestMode(uint256 initialTimestamp) external onlyOwner {
+        testMode = true;
+        testTimestamp = initialTimestamp > 0 ? initialTimestamp : block.timestamp;
+    }
+    
+    /**
+     * @dev Disable test mode (back to real time)
+     */
+    function disableTestMode() external onlyOwner {
+        testMode = false;
+        testTimestamp = 0;
+    }
+    
+    /**
+     * @dev Set test timestamp (only in test mode)
+     */
+    function setTestTimestamp(uint256 timestamp) external onlyOwner {
+        require(testMode, "Not in test mode");
+        require(timestamp >= testTimestamp, "Cannot go back in time");
+        testTimestamp = timestamp;
+    }
+    
+    /**
+     * @dev Fast forward time (only in test mode)
+     */
+    function fastForwardTime(uint256 seconds_) external onlyOwner {
+        require(testMode, "Not in test mode");
+        testTimestamp += seconds_;
+    }
+    
+    /**
+     * @dev Fast forward by days (only in test mode)
+     */
+    function fastForwardDays(uint256 days_) external onlyOwner {
+        require(testMode, "Not in test mode");
+        testTimestamp += days_ * 1 days;
+    }
+    
+    /**
+     * @dev Fast forward by minutes (only in test mode)
+     */
+    function fastForwardMinutes(uint256 minutes_) external onlyOwner {
+        require(testMode, "Not in test mode");
+        testTimestamp += minutes_ * 1 minutes;
+    }
+    
+    // ============================================
     // STAKING FUNCTIONS
     // ============================================
     
@@ -143,7 +207,7 @@ contract Staking is
             _stake(tokenIds[i]);
         }
         
-        emit BatchStaked(msg.sender, tokenIds, block.timestamp);
+        emit BatchStaked(msg.sender, tokenIds, _getCurrentTimestamp());
     }
     
     /**
@@ -161,8 +225,8 @@ contract Staking is
             owner: msg.sender,
             tokenId: tokenId,
             level: level,
-            stakeTime: block.timestamp,
-            lastClaimTime: block.timestamp,
+            stakeTime: _getCurrentTimestamp(),
+            lastClaimTime: _getCurrentTimestamp(),
             isActive: true,
             totalRewards: 0,
             pendingRewards: 0
@@ -182,7 +246,7 @@ contract Staking is
         // Set NFT as staked in CPNFT contract
         cpnftContract.setStakeStatus(tokenId, true);
         
-        emit NFTStaked(msg.sender, tokenId, level, block.timestamp);
+        emit NFTStaked(msg.sender, tokenId, level, _getCurrentTimestamp());
         
         // Get supply from CPNFT contract
         uint256 supply = _getLevelSupply(level);
@@ -203,7 +267,7 @@ contract Staking is
         
         // Check for early withdrawal penalty
         uint256 minStakeDays = configContract.getMinStakeDays();
-        uint256 stakingDays = (block.timestamp - stakeInfo.stakeTime) / 1 days;
+        uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
         
         if (stakingDays < minStakeDays) {
             uint256 penalty = configContract.getEarlyWithdrawPenalty();
@@ -239,7 +303,7 @@ contract Staking is
         // Set NFT as not staked in CPNFT contract
         cpnftContract.setStakeStatus(tokenId, false);
         
-        emit NFTUnstaked(msg.sender, tokenId, rewards, block.timestamp);
+        emit NFTUnstaked(msg.sender, tokenId, rewards, _getCurrentTimestamp());
         
         // Get supply from CPNFT contract
         uint256 supply = _getLevelSupply(stakeInfo.level);
@@ -267,7 +331,7 @@ contract Staking is
             
             // Check for early withdrawal penalty
             uint256 minStakeDays = configContract.getMinStakeDays();
-            uint256 stakingDays = (block.timestamp - stakeInfo.stakeTime) / 1 days;
+            uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
             
             if (stakingDays < minStakeDays) {
                 uint256 penalty = configContract.getEarlyWithdrawPenalty();
@@ -300,7 +364,7 @@ contract Staking is
             cpnftContract.setStakeStatus(tokenId, false);
             
             // Emit individual event for each token
-            emit NFTUnstaked(msg.sender, tokenId, rewards, block.timestamp);
+            emit NFTUnstaked(msg.sender, tokenId, rewards, _getCurrentTimestamp());
         }
         
         // Send total rewards to AA account
@@ -309,7 +373,7 @@ contract Staking is
             cpopTokenContract.mint(aaAccount, totalRewards);
         }
         
-        emit BatchUnstaked(msg.sender, tokenIds, totalRewards, block.timestamp);
+        emit BatchUnstaked(msg.sender, tokenIds, totalRewards, _getCurrentTimestamp());
     }
     
     // ============================================
@@ -323,7 +387,7 @@ contract Staking is
         StakeInfo memory stakeInfo = stakes[tokenId];
         
         // Calculate base rewards with phase-based decay and dynamic adjustment
-        uint256 totalDays = (block.timestamp - stakeInfo.lastClaimTime) / 1 days;
+        uint256 totalDays = (_getCurrentTimestamp() - stakeInfo.lastClaimTime) / 1 days;
         if (totalDays == 0) return 0;
         
         uint256 baseReward = configContract.getDailyReward(stakeInfo.level);
@@ -334,7 +398,7 @@ contract Staking is
         
         // Calculate rewards day by day with phase-based decay and dynamic adjustment
         for (uint256 day = 0; day < totalDays; day++) {
-            uint256 currentDayFromStake = (block.timestamp - stakeInfo.stakeTime) / 1 days - (totalDays - 1 - day);
+            uint256 currentDayFromStake = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days - (totalDays - 1 - day);
             uint256 currentDayTimestamp = stakeInfo.stakeTime + (currentDayFromStake * 1 days);
             
             uint256 dailyReward = baseReward;
@@ -375,7 +439,7 @@ contract Staking is
         totalRewards = totalRewards * (10000 + comboBonus) / 10000;
         
         // Add continuous staking bonus
-        uint256 stakingDays = (block.timestamp - stakeInfo.stakeTime) / 1 days;
+        uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
         uint256 continuousBonus = _calculateContinuousBonus(totalRewards, stakingDays);
         totalRewards += continuousBonus;
         
@@ -403,7 +467,7 @@ contract Staking is
         require(rewards > 0, "No pending rewards");
         
         // Update last claim time
-        stakeInfo.lastClaimTime = block.timestamp;
+        stakeInfo.lastClaimTime = _getCurrentTimestamp();
         stakeInfo.pendingRewards = 0;
         stakeInfo.totalRewards += rewards;
         
@@ -411,7 +475,7 @@ contract Staking is
         address aaAccount = _getAAAccount(msg.sender);
         cpopTokenContract.mint(aaAccount, rewards);
         
-        emit RewardsClaimed(msg.sender, tokenId, rewards, block.timestamp);
+        emit RewardsClaimed(msg.sender, tokenId, rewards, _getCurrentTimestamp());
     }
 
     /**
@@ -438,12 +502,12 @@ contract Staking is
             
             if (rewards > 0) {
                 // Update last claim time
-                stakeInfo.lastClaimTime = block.timestamp;
+                stakeInfo.lastClaimTime = _getCurrentTimestamp();
                 stakeInfo.pendingRewards = 0;
                 stakeInfo.totalRewards += rewards;
                 totalRewards += rewards;
                 
-                emit RewardsClaimed(msg.sender, tokenId, rewards, block.timestamp);
+                emit RewardsClaimed(msg.sender, tokenId, rewards, _getCurrentTimestamp());
             }
         }
         
@@ -452,7 +516,7 @@ contract Staking is
         // Send total rewards to AA account
         cpopTokenContract.mint(aaAccount, totalRewards);
         
-        emit BatchRewardsClaimed(msg.sender, tokenIds.length, totalRewards, block.timestamp);
+        emit BatchRewardsClaimed(msg.sender, tokenIds.length, totalRewards, _getCurrentTimestamp());
     }
     
     // ============================================
@@ -493,7 +557,7 @@ contract Staking is
         uint256 stakeTime,
         uint256 lastClaimTime
     ) internal view returns (uint256) {
-        uint256 totalDays = (block.timestamp - lastClaimTime) / 1 days;
+        uint256 totalDays = (_getCurrentTimestamp() - lastClaimTime) / 1 days;
         if (totalDays == 0) return 0;
         
         uint256 baseReward = configContract.getDailyReward(level);
@@ -504,7 +568,7 @@ contract Staking is
         
         // Calculate rewards day by day with proper phase-based decay
         for (uint256 day = 0; day < totalDays; day++) {
-            uint256 currentDayFromStake = (block.timestamp - stakeTime) / 1 days - (totalDays - 1 - day);
+            uint256 currentDayFromStake = (_getCurrentTimestamp() - stakeTime) / 1 days - (totalDays - 1 - day);
             uint256 currentDayTimestamp = stakeTime + (currentDayFromStake * 1 days);
             
             uint256 dailyReward = baseReward;
@@ -553,7 +617,7 @@ contract Staking is
         uint8 level,
         uint256 stakeTime
     ) internal view returns (uint256) {
-        uint256 stakingDays = (block.timestamp - stakeTime) / 1 days;
+        uint256 stakingDays = (_getCurrentTimestamp() - stakeTime) / 1 days;
         uint256 decayInterval = configContract.getDecayInterval(level);
         uint256 decayRate = configContract.getDecayRate(level);
         uint256 maxDecay = configContract.getMaxDecayRate(level);
@@ -589,7 +653,7 @@ contract Staking is
         ComboStatus memory status = userComboStatus[user][level];
         
         // If there's a pending status change and it's time to apply it
-        if (status.isPending && block.timestamp >= status.effectiveFrom) {
+        if (status.isPending && _getCurrentTimestamp() >= status.effectiveFrom) {
             return status.bonus;
         }
         
@@ -727,7 +791,7 @@ contract Staking is
         if (status.count != currentCount) {
             status.level = level;
             status.count = currentCount;
-            status.effectiveFrom = block.timestamp + 1 days; // Next day effect
+            status.effectiveFrom = _getCurrentTimestamp() + 1 days; // Next day effect
             status.bonus = newBonus;
             status.isPending = true;
         }
@@ -739,7 +803,7 @@ contract Staking is
     function _applyPendingComboStatus(address user, uint8 level) internal {
         ComboStatus storage status = userComboStatus[user][level];
         
-        if (status.isPending && block.timestamp >= status.effectiveFrom) {
+        if (status.isPending && _getCurrentTimestamp() >= status.effectiveFrom) {
             status.isPending = false;
             // Status is now effectively applied
         }
@@ -822,7 +886,7 @@ contract Staking is
         historicalAdjustments.push();
         HistoricalAdjustment storage newRecord = historicalAdjustments[historicalAdjustments.length - 1];
         
-        newRecord.timestamp = block.timestamp;
+        newRecord.timestamp = _getCurrentTimestamp();
         
         // Get current quarterly multiplier
         (uint256 minStakeDays, uint256 earlyWithdrawPenalty, uint256 quarterlyMultiplier, uint256 lastQuarterlyUpdate) = configContract.getBasicConfig();
