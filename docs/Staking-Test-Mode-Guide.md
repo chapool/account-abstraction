@@ -4,6 +4,235 @@
 
 Staking 合约现在支持**测试模式**，允许你控制合约内部的时间流逝，无需等待真实的时间。这对于测试时间相关的功能（如质押奖励、衰减、持续质押奖励等）非常有用。
 
+## 环境准备（首次使用必读）
+
+### 前提条件
+
+如果你是第一次使用，需要先配置开发环境。以下是详细步骤：
+
+### 1. 安装 Node.js
+
+Node.js 是运行这些脚本所需的基础环境。
+
+**Mac 用户：**
+```bash
+# 方法 1: 使用官方安装包（推荐新手）
+# 访问 https://nodejs.org/
+# 下载 LTS 版本（推荐版本 18.x 或 20.x）
+# 双击安装包，按提示安装
+
+# 方法 2: 使用 Homebrew（如果已安装）
+brew install node@20
+```
+
+**Windows 用户：**
+```bash
+# 访问 https://nodejs.org/
+# 下载 Windows Installer (.msi)
+# 双击安装包，按提示安装
+# 安装时勾选 "Add to PATH"
+```
+
+**Linux 用户：**
+```bash
+# Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# CentOS/RHEL
+curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+sudo yum install -y nodejs
+```
+
+**验证安装：**
+```bash
+# 打开终端（Mac/Linux）或命令提示符（Windows）
+node --version    # 应该显示 v18.x.x 或 v20.x.x
+npm --version     # 应该显示 9.x.x 或更高版本
+```
+
+### 2. 获取项目代码
+
+**如果你还没有项目代码：**
+
+```bash
+# 1. 打开终端（Mac/Linux）或命令提示符（Windows）
+
+# 2. 克隆项目（需要 Git，如果没有请先安装 Git）
+git clone https://github.com/chapool/account-abstraction.git
+
+# 3. 进入项目目录
+cd account-abstraction
+```
+
+**如果你已经有项目代码：**
+
+```bash
+# 1. 打开终端，进入项目目录
+cd /path/to/account-abstraction
+
+# 2. 拉取最新代码
+git pull origin main
+```
+
+### 3. 安装项目依赖
+
+第一次使用或代码更新后需要安装依赖：
+
+```bash
+# 确保你在项目根目录（account-abstraction 文件夹内）
+# 安装所有依赖包（这可能需要几分钟）
+npm install
+
+# 如果遇到权限错误（Mac/Linux），可以尝试：
+# sudo npm install
+```
+
+**等待安装完成**，你会看到类似这样的提示：
+```
+added 1234 packages in 2m
+```
+
+### 4. 配置环境变量
+
+环境变量包含了连接区块链所需的信息（RPC URL、私钥等）。
+
+```bash
+# 1. 检查是否已有配置文件
+ls -la | grep .env.sepolia
+
+# 2. 如果没有，创建配置文件
+# Mac/Linux:
+cp .env.example .env.sepolia
+
+# Windows:
+copy .env.example .env.sepolia
+
+# 3. 编辑配置文件（使用你喜欢的编辑器）
+# Mac: 
+open .env.sepolia
+# 或
+nano .env.sepolia
+
+# Windows:
+notepad .env.sepolia
+
+# Linux:
+vim .env.sepolia
+# 或
+nano .env.sepolia
+```
+
+**配置文件内容示例：**
+```env
+# Sepolia 测试网 RPC URL（使用 Alchemy 或 Infura）
+ETH_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY
+
+# 部署者私钥（请确保这是测试账户，不要使用真实资金的账户）
+PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE
+
+# 其他配置...
+```
+
+⚠️ **安全提示：**
+- **永远不要**将真实资金账户的私钥放入配置文件
+- **永远不要**将 `.env.sepolia` 文件提交到 Git
+- 使用专门的测试账户
+- 在测试网上进行所有操作
+
+### 5. 验证环境配置
+
+运行一个简单的测试来验证环境是否正确配置：
+
+```bash
+# 检查当前网络和账户
+npx hardhat run scripts/check-staking-owner.ts --network sepoliaCustom
+```
+
+**成功的输出示例：**
+```
+当前账户: 0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35
+合约 Owner: 0xa3B605fB633AD0A0DC4B74b10bBfc40fDB050d35
+是否为当前账户: true
+```
+
+如果看到这样的输出，说明环境配置成功！✅
+
+### 6. 常用命令说明
+
+**基本命令格式：**
+```bash
+npx hardhat run scripts/<脚本名称>.ts --network sepoliaCustom
+```
+
+**命令组成部分：**
+- `npx`: Node.js 包执行器，无需全局安装即可运行包
+- `hardhat`: 区块链开发框架
+- `run`: 运行脚本命令
+- `scripts/<脚本名称>.ts`: 要执行的脚本文件
+- `--network sepoliaCustom`: 指定网络（Sepolia 测试网）
+
+**快速参考：**
+```bash
+# 查看时间状态
+npx hardhat run scripts/check-time-status.ts --network sepoliaCustom
+
+# 启用测试模式
+npx hardhat run scripts/enable-test-mode.ts --network sepoliaCustom
+
+# 快进时间（注意 -- 后面才是脚本参数）
+npx hardhat run scripts/fast-forward-time.ts --network sepoliaCustom -- --minutes 60
+
+# 禁用测试模式
+npx hardhat run scripts/disable-test-mode.ts --network sepoliaCustom
+```
+
+### 7. 故障排查
+
+**问题 1: 命令找不到**
+```bash
+# 错误: command not found: npx
+# 解决: Node.js 未正确安装，重新安装 Node.js
+
+# 错误: command not found: hardhat
+# 解决: 依赖未安装，运行 npm install
+```
+
+**问题 2: 网络连接错误**
+```bash
+# 错误: could not detect network
+# 解决: 检查 .env.sepolia 中的 ETH_RPC_URL 是否正确
+```
+
+**问题 3: 权限错误**
+```bash
+# 错误: execution reverted 或 Not authorized
+# 解决: 确保 PRIVATE_KEY 对应的账户是合约的 owner
+```
+
+**问题 4: Gas 不足**
+```bash
+# 错误: insufficient funds for gas
+# 解决: 确保测试账户有足够的 Sepolia ETH
+# 可以从水龙头获取: https://sepoliafaucet.com/
+```
+
+### 8. 获取测试 ETH
+
+在 Sepolia 测试网上操作需要测试 ETH（用于支付 gas 费用）：
+
+1. 访问 Sepolia 水龙头：https://sepoliafaucet.com/
+2. 输入你的钱包地址（`.env.sepolia` 中私钥对应的地址）
+3. 完成验证（可能需要 Twitter 账号）
+4. 等待接收（通常几分钟内到账）
+
+**检查余额：**
+```bash
+# 运行任何脚本时会显示余额，例如：
+npx hardhat run scripts/check-staking-owner.ts --network sepoliaCustom
+# 输出会包含: 部署者余额: 2.31 ETH
+```
+
 ## 功能说明
 
 ### 时间控制机制
