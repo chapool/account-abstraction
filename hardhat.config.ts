@@ -46,7 +46,7 @@ const optimizedCompilerSettings = {
   version: '0.8.28',
   settings: {
     evmVersion: 'cancun',
-    optimizer: { enabled: true, runs: 1000000 },
+    optimizer: { enabled: true, runs: 800 },
     viaIR: true
   }
 }
