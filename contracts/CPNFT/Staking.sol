@@ -137,6 +137,13 @@ contract Staking is
     }
     
     /**
+     * @dev Get current timestamp (public version for external contracts)
+     */
+    function getCurrentTimestamp() external view returns (uint256) {
+        return _getCurrentTimestamp();
+    }
+    
+    /**
      * @dev Enable test mode and set initial test timestamp
      */
     function enableTestMode(uint256 initialTimestamp) external onlyOwner {
@@ -274,8 +281,8 @@ contract Staking is
             rewards = rewards * (10000 - penalty) / 10000;
         }
         
-        // Add continuous staking bonus
-        uint256 continuousBonus = _calculateContinuousBonus(rewards, stakingDays);
+        // Add continuous staking bonus (based on rewards at threshold)
+        uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
         rewards += continuousBonus;
         
         // Send rewards to AA account
@@ -338,8 +345,8 @@ contract Staking is
                 rewards = rewards * (10000 - penalty) / 10000;
             }
             
-            // Add continuous staking bonus
-            uint256 continuousBonus = _calculateContinuousBonus(rewards, stakingDays);
+            // Add continuous staking bonus (based on rewards at threshold)
+            uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
             rewards += continuousBonus;
             
             totalRewards += rewards;
@@ -440,7 +447,7 @@ contract Staking is
         
         // Add continuous staking bonus
         uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
-        uint256 continuousBonus = _calculateContinuousBonus(totalRewards, stakingDays);
+        uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
         totalRewards += continuousBonus;
         
         return totalRewards;
@@ -763,18 +770,57 @@ contract Staking is
     }
     
     /**
-     * @dev Calculate continuous staking bonus
+     * @dev Calculate continuous staking bonus (based on rewards at threshold)
      */
-    function _calculateContinuousBonus(uint256 baseRewards, uint256 totalDays) internal view returns (uint256) {
+    function _calculateContinuousBonus(uint256 tokenId, uint256 totalStakingDays) internal view returns (uint256) {
         uint256[2] memory thresholds = configContract.getContinuousThresholds();
         uint256[2] memory bonuses = configContract.getContinuousBonuses();
         
+        uint256 applicableThreshold = 0;
+        uint256 applicableBonus = 0;
+        
         for (uint256 i = thresholds.length; i > 0; i--) {
-            if (totalDays >= thresholds[i - 1]) {
-                return baseRewards * bonuses[i - 1] / 10000;
+            if (totalStakingDays >= thresholds[i - 1]) {
+                applicableThreshold = thresholds[i - 1];
+                applicableBonus = bonuses[i - 1];
+                break;
             }
         }
-        return 0;
+        
+        if (applicableBonus == 0) return 0;
+        
+        StakeInfo memory stakeInfo = stakes[tokenId];
+        uint256 rewardsAtThreshold = 0;
+        uint256 baseReward = configContract.getDailyReward(stakeInfo.level);
+        uint256 decayInterval = configContract.getDecayInterval(stakeInfo.level);
+        uint256 decayRate = configContract.getDecayRate(stakeInfo.level);
+        
+        for (uint256 day = 0; day < applicableThreshold; day++) {
+            uint256 currentDayTimestamp = stakeInfo.stakeTime + (day * 1 days);
+            uint256 dailyReward = baseReward;
+            
+            if (decayInterval > 0 && day >= decayInterval) {
+                uint256 completedCycles = day / decayInterval;
+                for (uint256 i = 0; i < completedCycles; i++) {
+                    uint256 totalDecaySoFar = (i + 1) * decayRate;
+                    if (totalDecaySoFar > configContract.getMaxDecayRate(stakeInfo.level)) {
+                        uint256 remainingDecay = configContract.getMaxDecayRate(stakeInfo.level) - (i * decayRate);
+                        dailyReward = dailyReward * (10000 - remainingDecay) / 10000;
+                        break;
+                    }
+                    dailyReward = dailyReward * (10000 - decayRate) / 10000;
+                }
+            }
+            
+            dailyReward = dailyReward * _getHistoricalQuarterlyMultiplier(currentDayTimestamp) / 10000;
+            dailyReward = dailyReward * _getHistoricalDynamicMultiplier(stakeInfo.level, currentDayTimestamp) / 10000;
+            rewardsAtThreshold += dailyReward;
+        }
+        
+        uint256 comboBonus = _calculateComboBonus(stakeInfo.owner, stakeInfo.level);
+        rewardsAtThreshold = rewardsAtThreshold * (10000 + comboBonus) / 10000;
+        
+        return rewardsAtThreshold * applicableBonus / 10000;
     }
     
     /**

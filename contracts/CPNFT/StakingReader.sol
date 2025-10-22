@@ -133,7 +133,7 @@ contract StakingReader is
         ) = stakingContract.stakes(tokenId);
         
         uint256 realTimePendingRewards = pendingRewards;
-        if (isActive && block.timestamp > lastClaimTime) {
+        if (isActive && stakingContract.getCurrentTimestamp() > lastClaimTime) {
             realTimePendingRewards = stakingContract.calculatePendingRewards(tokenId);
         }
         
@@ -218,7 +218,7 @@ contract StakingReader is
             summary.totalClaimedRewards += totalRewards;
             summary.totalPendingRewards += stakingContract.calculatePendingRewards(tokenIds[i]);
             
-            uint256 duration = block.timestamp - stakeTime;
+            uint256 duration = stakingContract.getCurrentTimestamp() - stakeTime;
             if (duration > longestDuration) longestDuration = duration;
             
             uint256 comboBonus = stakingContract.getEffectiveComboBonus(user, level);
@@ -264,7 +264,7 @@ contract StakingReader is
             nfts[idx++] = StakedNFTInfo({
                 tokenId: tokenIds[i],
                 level: lv,
-                stakingDuration: block.timestamp - st,
+                stakingDuration: stakingContract.getCurrentTimestamp() - st,
                 pendingRewards: stakingContract.calculatePendingRewards(tokenIds[i]),
                 totalRewards: tr,
                 effectiveMultiplier: mult
@@ -290,7 +290,7 @@ contract StakingReader is
         uint256[] memory tokenIds = _getUserTokenIds(user);
         if (tokenIds.length == 0) return stats;
         
-        uint256 currentTime = block.timestamp;
+        uint256 currentTime = stakingContract.getCurrentTimestamp();
         uint256 oneDayAgo = currentTime - 1 days;
         uint256 totalStakingDays = 0;
         
@@ -399,6 +399,9 @@ contract StakingReader is
         
         // 统计各等级的Combo加成
         uint256[6] memory comboBonuses;
+        uint256 totalComboBonus = 0;
+        uint256 totalRewardBeforeCombo = 0;
+        
         for (uint8 level = 1; level <= 6; level++) {
             comboBonuses[level - 1] = stakingContract.getEffectiveComboBonus(user, level);
         }
@@ -410,7 +413,7 @@ contract StakingReader is
             if (!isActive) continue;
             
             // 计算当前天数偏移
-            uint256 dayOffset = (block.timestamp - stakeTime) / 1 days;
+            uint256 dayOffset = (stakingContract.getCurrentTimestamp() - stakeTime) / 1 days;
             
             // 获取每日奖励分解
             try stakingContract.getDailyRewardBreakdown(tokenIds[i], dayOffset) returns (
@@ -427,13 +430,19 @@ contract StakingReader is
                 // 累加衰减后收益
                 rewards.totalDecayedReward += decayedReward;
                 
-                // 应用Combo加成
+                // 应用Combo加成（finalReward已包含quarterly和dynamic，需要再应用combo）
                 uint256 comboBonus = comboBonuses[level - 1];
                 uint256 rewardWithCombo = finalReward * (10000 + comboBonus) / 10000;
                 
                 // 累加最终收益
                 rewards.totalFinalReward += rewardWithCombo;
                 rewards.finalRewardPerLevel[level - 1] += rewardWithCombo;
+                
+                // 计算 combo 贡献（用于加权平均）
+                if (comboBonus > 0) {
+                    totalRewardBeforeCombo += finalReward;
+                    totalComboBonus += finalReward * comboBonus;
+                }
                 
                 // 统计NFT数量
                 rewards.nftCountPerLevel[level - 1]++;
@@ -444,14 +453,18 @@ contract StakingReader is
             }
         }
         
-        // 计算平均Combo加成（加权平均）
-        if (rewards.totalDecayedReward > 0) {
-            rewards.totalComboBonus = ((rewards.totalFinalReward - rewards.totalDecayedReward) * 10000) / rewards.totalDecayedReward;
+        // 计算加权平均Combo加成
+        if (totalRewardBeforeCombo > 0) {
+            rewards.totalComboBonus = totalComboBonus / totalRewardBeforeCombo;
         }
         
-        // 计算平均动态乘数（加权平均）
-        if (rewards.totalBaseReward > 0) {
-            rewards.totalDynamicMultiplier = (rewards.totalDecayedReward * 10000) / rewards.totalBaseReward;
+        // 计算平均动态乘数（基于 decayed 到 final before combo 的增益）
+        // finalReward = decayedReward * quarterlyMultiplier * dynamicMultiplier / (10000 * 10000)
+        // 我们需要反推综合乘数
+        if (rewards.totalDecayedReward > 0) {
+            // totalFinalReward 包含 combo，需要移除 combo 影响
+            uint256 finalBeforeCombo = (rewards.totalFinalReward * 10000) / (10000 + rewards.totalComboBonus);
+            rewards.totalDynamicMultiplier = (finalBeforeCombo * 10000) / rewards.totalDecayedReward;
         }
         
         // 计算总乘数：最终收益 / 基础收益 * 10000
@@ -486,7 +499,7 @@ contract StakingReader is
             
             if (!isActive || nftLevel != level) continue;
             
-            uint256 dayOffset = (block.timestamp - stakeTime) / 1 days;
+            uint256 dayOffset = (stakingContract.getCurrentTimestamp() - stakeTime) / 1 days;
             
             try stakingContract.getDailyRewardBreakdown(tokenIds[i], dayOffset) returns (
                 uint256 base,
@@ -521,7 +534,7 @@ contract StakingReader is
         (address owner,, uint8 level, uint256 stakeTime,, bool isActive,,) = stakingContract.stakes(tokenId);
         require(isActive, "NFT is not staked");
         
-        uint256 dayOffset = (block.timestamp - stakeTime) / 1 days;
+        uint256 dayOffset = (stakingContract.getCurrentTimestamp() - stakeTime) / 1 days;
         
         // 获取基础分解
         uint256 quarterlyMult;

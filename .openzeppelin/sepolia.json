@@ -97,13 +97,12 @@
       "kind": "uups"
     },
     {
-      "address": "0x3a42F2F6962Fdc9bb8392F73C94e79071De5eC8d",
-      "txHash": "0xa8172601abc2627a6eeab6f4c7cecce66129b4eb5a1783277614b84ccebbb849",
+      "address": "0x09644cE18F425745a706F5515075266155f3AAC5",
+      "txHash": "0xd155b3e62e4f6ff974ebb6136e88c7cb42cb7987ab611246b2a90c2c41b5c360",
       "kind": "uups"
     },
     {
-      "address": "0x09644cE18F425745a706F5515075266155f3AAC5",
-      "txHash": "0xd155b3e62e4f6ff974ebb6136e88c7cb42cb7987ab611246b2a90c2c41b5c360",
+      "address": "0x3a42F2F6962Fdc9bb8392F73C94e79071De5eC8d",
       "kind": "uups"
     }
   ],
@@ -2410,6 +2409,165 @@
               "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:43"
             }
           ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
+    "479be03f006360597626e10cf38f37c40962d0c2e5e295053b08cc70b8489cc8": {
+      "address": "0x0602a110e63e00bceF1fe27343268A7CC0993DF5",
+      "txHash": "0x925683e5fb4e290e61d6b2b8e04996501b688fef921f559e49011595dd3db59c",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "stakingContract",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(Staking)12078",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:84"
+          },
+          {
+            "label": "configContract",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(StakingConfig)13515",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:86"
+          },
+          {
+            "label": "cpnftContract",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(CPNFT)9036",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:88"
+          }
+        ],
+        "types": {
+          "t_contract(CPNFT)9036": {
+            "label": "contract CPNFT",
+            "numberOfBytes": "20"
+          },
+          "t_contract(Staking)12078": {
+            "label": "contract Staking",
+            "numberOfBytes": "20"
+          },
+          "t_contract(StakingConfig)13515": {
+            "label": "contract StakingConfig",
+            "numberOfBytes": "20"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
+    "96862128aa309d957061fe2cde93c7b3d0f8333bf0b4d71d7e2e18850cd3d1fc": {
+      "address": "0x3d1F3595AF7eb858b1DB0b5cDd51b2064aa7dA2B",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "stakingContract",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(Staking)12301",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:84"
+          },
+          {
+            "label": "configContract",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(StakingConfig)13738",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:86"
+          },
+          {
+            "label": "cpnftContract",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(CPNFT)9036",
+            "contract": "StakingReader",
+            "src": "contracts/CPNFT/StakingReader.sol:88"
+          }
+        ],
+        "types": {
+          "t_contract(CPNFT)9036": {
+            "label": "contract CPNFT",
+            "numberOfBytes": "20"
+          },
+          "t_contract(Staking)12301": {
+            "label": "contract Staking",
+            "numberOfBytes": "20"
+          },
+          "t_contract(StakingConfig)13738": {
+            "label": "contract StakingConfig",
+            "numberOfBytes": "20"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        },
+        "namespaces": {
           "erc7201:openzeppelin.storage.Ownable": [
             {
               "contract": "OwnableUpgradeable",
