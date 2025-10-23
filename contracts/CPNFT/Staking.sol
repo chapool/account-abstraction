@@ -692,9 +692,8 @@ contract Staking is
             return status.bonus;
         }
         
-        // Otherwise, calculate based on current count (for immediate effect on new stakes)
-        uint256 count = userLevelCounts[user][level];
-        return _calculateComboBonusByCount(count, level);
+        // No combo bonus until the waiting period is over
+        return 0;
     }
     
     /**
@@ -896,18 +895,6 @@ contract Staking is
             status.effectiveFrom = _getCurrentTimestamp() + (waitDays * 1 days);
             status.bonus = newBonus;
             status.isPending = true;
-        }
-    }
-    
-    /**
-     * @dev Apply pending combo status changes
-     */
-    function _applyPendingComboStatus(address user, uint8 level) internal {
-        ComboStatus storage status = userComboStatus[user][level];
-        
-        if (status.isPending && _getCurrentTimestamp() >= status.effectiveFrom) {
-            status.isPending = false;
-            // Status is now effectively applied
         }
     }
     
@@ -1122,6 +1109,6 @@ contract Staking is
     // ============================================
     
     function version() public pure returns (string memory) {
-        return "3.6.0";
+        return "3.7.0";
     }
 }
