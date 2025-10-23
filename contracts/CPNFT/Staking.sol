@@ -888,13 +888,17 @@ contract Staking is
             status.level = level;
             status.count = currentCount;
             
-            // Get wait days from config based on count
-            uint256[3] memory minDays = configContract.getComboMinDays();
-            uint256 waitDays = _getWaitDaysForCount(currentCount, minDays);
-            
-            status.effectiveFrom = _getCurrentTimestamp() + (waitDays * 1 days);
-            status.bonus = newBonus;
-            status.isPending = true;
+            // Update if the bonus level changes (upgrade or downgrade)
+            if (newBonus != status.bonus) {
+                // Get wait days from config based on count
+                uint256[3] memory minDays = configContract.getComboMinDays();
+                uint256 waitDays = _getWaitDaysForCount(currentCount, minDays);
+                
+                status.effectiveFrom = _getCurrentTimestamp() + (waitDays * 1 days);
+                status.bonus = newBonus;
+                status.isPending = true;
+            }
+            // If bonus level is the same, keep the current status unchanged
         }
     }
     
@@ -1109,6 +1113,6 @@ contract Staking is
     // ============================================
     
     function version() public pure returns (string memory) {
-        return "3.7.0";
+        return "3.9.0";
     }
 }
