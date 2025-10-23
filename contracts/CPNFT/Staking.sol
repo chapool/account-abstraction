@@ -43,6 +43,7 @@ contract Staking is
         bool isActive;
         uint256 totalRewards;
         uint256 pendingRewards;
+        bool continuousBonusClaimed;  // 标记连续质押奖励是否已发放
     }
     
     mapping(uint256 => StakeInfo) public stakes;
@@ -236,7 +237,8 @@ contract Staking is
             lastClaimTime: _getCurrentTimestamp(),
             isActive: true,
             totalRewards: 0,
-            pendingRewards: 0
+            pendingRewards: 0,
+            continuousBonusClaimed: false
         });
         
         // Update user data
@@ -281,9 +283,12 @@ contract Staking is
             rewards = rewards * (10000 - penalty) / 10000;
         }
         
-        // Add continuous staking bonus (based on rewards at threshold)
-        uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
-        rewards += continuousBonus;
+        // Add continuous staking bonus (based on rewards at threshold) - only if not already claimed
+        if (!stakeInfo.continuousBonusClaimed) {
+            uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
+            rewards += continuousBonus;
+            stakeInfo.continuousBonusClaimed = true;
+        }
         
         // Send rewards to AA account
         if (rewards > 0) {
@@ -345,9 +350,12 @@ contract Staking is
                 rewards = rewards * (10000 - penalty) / 10000;
             }
             
-            // Add continuous staking bonus (based on rewards at threshold)
-            uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
-            rewards += continuousBonus;
+            // Add continuous staking bonus (based on rewards at threshold) - only if not already claimed
+            if (!stakeInfo.continuousBonusClaimed) {
+                uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
+                rewards += continuousBonus;
+                stakeInfo.continuousBonusClaimed = true;
+            }
             
             totalRewards += rewards;
             
@@ -445,10 +453,12 @@ contract Staking is
         uint256 comboBonus = _calculateComboBonus(stakeInfo.owner, stakeInfo.level);
         totalRewards = totalRewards * (10000 + comboBonus) / 10000;
         
-        // Add continuous staking bonus
-        uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
-        uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
-        totalRewards += continuousBonus;
+        // Add continuous staking bonus only if not already claimed
+        if (!stakeInfo.continuousBonusClaimed) {
+            uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
+            uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
+            totalRewards += continuousBonus;
+        }
         
         return totalRewards;
     }
@@ -477,6 +487,15 @@ contract Staking is
         stakeInfo.lastClaimTime = _getCurrentTimestamp();
         stakeInfo.pendingRewards = 0;
         stakeInfo.totalRewards += rewards;
+        
+        // Mark continuous bonus as claimed if it was included in this claim
+        if (!stakeInfo.continuousBonusClaimed) {
+            uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
+            uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
+            if (continuousBonus > 0) {
+                stakeInfo.continuousBonusClaimed = true;
+            }
+        }
         
         // Send rewards to AA account
         address aaAccount = _getAAAccount(msg.sender);
@@ -513,6 +532,15 @@ contract Staking is
                 stakeInfo.pendingRewards = 0;
                 stakeInfo.totalRewards += rewards;
                 totalRewards += rewards;
+                
+                // Mark continuous bonus as claimed if it was included in this claim
+                if (!stakeInfo.continuousBonusClaimed) {
+                    uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
+                    uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
+                    if (continuousBonus > 0) {
+                        stakeInfo.continuousBonusClaimed = true;
+                    }
+                }
                 
                 emit RewardsClaimed(msg.sender, tokenId, rewards, _getCurrentTimestamp());
             }
@@ -666,13 +694,37 @@ contract Staking is
         
         // Otherwise, calculate based on current count (for immediate effect on new stakes)
         uint256 count = userLevelCounts[user][level];
-        return _calculateComboBonusByCount(count);
+        return _calculateComboBonusByCount(count, level);
     }
     
     /**
-     * @dev Calculate combo bonus based on count
+     * @dev Get wait days for combo bonus based on count
      */
-    function _calculateComboBonusByCount(uint256 count) internal view returns (uint256) {
+    function _getWaitDaysForCount(uint256 count, uint256[3] memory minDays) internal view returns (uint256) {
+        // Get thresholds from config contract
+        uint256[3] memory thresholds = configContract.getComboThresholds();
+        
+        // Check thresholds in reverse order (highest first)
+        for (uint256 i = thresholds.length; i > 0; i--) {
+            uint256 threshold = thresholds[i - 1];
+            
+            if (count >= threshold) {
+                return minDays[i - 1];
+            }
+        }
+        
+        return 0;
+    }
+    
+    /**
+     * @dev Calculate combo bonus based on count and level
+     */
+    function _calculateComboBonusByCount(uint256 count, uint8 level) internal view returns (uint256) {
+        // SSS级别(level 6)不适用10个NFT组合
+        if (level == 6 && count >= 10) {
+            return 0;
+        }
+        
         // Get combo config
         uint256[3] memory thresholds = configContract.getComboThresholds();
         uint256[3] memory bonuses = configContract.getComboBonuses();
@@ -720,7 +772,6 @@ contract Staking is
             uint256 lowStakeThreshold,
             uint256 highStakeMultiplier,
             uint256 lowStakeMultiplier,
-            uint256 quarterlyAdjustmentMax
         ) = configContract.getDynamicConfig();
         
         if (stakingRatio > highStakeThreshold) {
@@ -831,13 +882,18 @@ contract Staking is
         ComboStatus storage status = userComboStatus[user][level];
         
         // Calculate what the new bonus should be
-        uint256 newBonus = _calculateComboBonusByCount(currentCount);
+        uint256 newBonus = _calculateComboBonusByCount(currentCount, level);
         
-        // If there's a change in count, schedule it for next day
+        // If there's a change in count, schedule it for the configured wait period
         if (status.count != currentCount) {
             status.level = level;
             status.count = currentCount;
-            status.effectiveFrom = _getCurrentTimestamp() + 1 days; // Next day effect
+            
+            // Get wait days from config based on count
+            uint256[3] memory minDays = configContract.getComboMinDays();
+            uint256 waitDays = _getWaitDaysForCount(currentCount, minDays);
+            
+            status.effectiveFrom = _getCurrentTimestamp() + (waitDays * 1 days);
             status.bonus = newBonus;
             status.isPending = true;
         }
@@ -935,7 +991,7 @@ contract Staking is
         newRecord.timestamp = _getCurrentTimestamp();
         
         // Get current quarterly multiplier
-        (uint256 minStakeDays, uint256 earlyWithdrawPenalty, uint256 quarterlyMultiplier, uint256 lastQuarterlyUpdate) = configContract.getBasicConfig();
+        (, , uint256 quarterlyMultiplier, ) = configContract.getBasicConfig();
         newRecord.quarterlyMultiplier = quarterlyMultiplier;
         
         // Record current dynamic multipliers for all levels
@@ -1066,6 +1122,6 @@ contract Staking is
     // ============================================
     
     function version() public pure returns (string memory) {
-        return "3.1.0";
+        return "3.6.0";
     }
 }

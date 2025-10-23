@@ -129,7 +129,8 @@ contract StakingReader is
             uint256 lastClaimTime,
             bool isActive,
             uint256 totalRewards,
-            uint256 pendingRewards
+            uint256 pendingRewards,
+            bool continuousBonusClaimed
         ) = stakingContract.stakes(tokenId);
         
         uint256 realTimePendingRewards = pendingRewards;
@@ -145,7 +146,8 @@ contract StakingReader is
             lastClaimTime: lastClaimTime,
             isActive: isActive,
             totalRewards: totalRewards,
-            pendingRewards: realTimePendingRewards
+            pendingRewards: realTimePendingRewards,
+            continuousBonusClaimed: continuousBonusClaimed
         });
     }
     
@@ -207,7 +209,7 @@ contract StakingReader is
         uint256 totalMultiplier = 0;
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            (address owner_, uint256 tokenId_, uint8 level, uint256 stakeTime, uint256 lastClaimTime, bool isActive, uint256 totalRewards,) = stakingContract.stakes(tokenIds[i]);
+            (address owner_, uint256 tokenId_, uint8 level, uint256 stakeTime, uint256 lastClaimTime, bool isActive, uint256 totalRewards, uint256 pendingRewards, bool continuousBonusClaimed) = stakingContract.stakes(tokenIds[i]);
             
             if (!isActive) continue;
             
@@ -255,7 +257,7 @@ contract StakingReader is
         uint256 idx = 0;
         
         for (uint256 i = offset; i < end; i++) {
-            (,, uint8 lv, uint256 st,, bool active, uint256 tr,) = stakingContract.stakes(tokenIds[i]);
+            (,, uint8 lv, uint256 st,, bool active, uint256 tr, uint256 pr, bool cbc) = stakingContract.stakes(tokenIds[i]);
             
             if (!active) continue;
             
@@ -295,16 +297,16 @@ contract StakingReader is
         uint256 totalStakingDays = 0;
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            (address owner_, uint256 tokenId_, uint8 level, uint256 stakeTime, uint256 lastClaimTime, bool isActive, uint256 totalRewards,) = stakingContract.stakes(tokenIds[i]);
+            (address owner_, uint256 tokenId_, uint8 level, uint256 stakeTime, uint256 lastClaimTime, bool isActive, uint256 totalRewards, uint256 pendingRewards, bool continuousBonusClaimed) = stakingContract.stakes(tokenIds[i]);
             
             if (!isActive) continue;
             
             stats.totalHistoricalRewards += totalRewards;
-            uint256 pendingRewards = stakingContract.calculatePendingRewards(tokenIds[i]);
-            stats.totalPendingRewards += pendingRewards;
+            uint256 realTimePendingRewards = stakingContract.calculatePendingRewards(tokenIds[i]);
+            stats.totalPendingRewards += realTimePendingRewards;
             
             if (level >= 1 && level <= 6) {
-                stats.rewardsPerLevel[level - 1] += totalRewards + pendingRewards;
+                stats.rewardsPerLevel[level - 1] += totalRewards + realTimePendingRewards;
             }
             
             if (lastClaimTime < oneDayAgo) {
@@ -408,7 +410,7 @@ contract StakingReader is
         
         // 遍历所有质押的NFT
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            (,, uint8 level, uint256 stakeTime,, bool isActive,,) = stakingContract.stakes(tokenIds[i]);
+            (,, uint8 level, uint256 stakeTime,, bool isActive,, uint256 pendingRewards, bool continuousBonusClaimed) = stakingContract.stakes(tokenIds[i]);
             
             if (!isActive) continue;
             
@@ -495,7 +497,7 @@ contract StakingReader is
         uint256 comboBonus = stakingContract.getEffectiveComboBonus(user, level);
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            (,, uint8 nftLevel, uint256 stakeTime,, bool isActive,,) = stakingContract.stakes(tokenIds[i]);
+            (,, uint8 nftLevel, uint256 stakeTime,, bool isActive,, uint256 pendingRewards, bool continuousBonusClaimed) = stakingContract.stakes(tokenIds[i]);
             
             if (!isActive || nftLevel != level) continue;
             
@@ -531,7 +533,7 @@ contract StakingReader is
         uint256 dynamicMultiplier,
         uint256 finalReward
     ) {
-        (address owner,, uint8 level, uint256 stakeTime,, bool isActive,,) = stakingContract.stakes(tokenId);
+        (address owner,, uint8 level, uint256 stakeTime,, bool isActive,, uint256 pendingRewards, bool continuousBonusClaimed) = stakingContract.stakes(tokenId);
         require(isActive, "NFT is not staked");
         
         uint256 dayOffset = (stakingContract.getCurrentTimestamp() - stakeTime) / 1 days;
