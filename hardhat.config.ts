@@ -35,7 +35,10 @@ function getNetwork1 (url: string): { url: string, accounts: { mnemonic: string 
 }
 
 function getNetwork (name: string): { url: string, accounts: { mnemonic: string } } {
-  const url = process.env.SEPOLIA_RPC_URL || `https://${name}.infura.io/v3/${process.env.INFURA_ID}`
+  // Use Alchemy by default for Sepolia, fallback to Infura
+  const defaultSepoliaUrl = 'https://eth-sepolia.g.alchemy.com/v2/CDpjLA10IDFcyjqnNHlVE'
+  const url = process.env.SEPOLIA_RPC_URL || 
+              (name === 'sepolia' ? defaultSepoliaUrl : `https://${name}.infura.io/v3/${process.env.INFURA_ID}`)
   return getNetwork1(url)
   // return getNetwork1(`wss://${name}.infura.io/ws/v3/${process.env.INFURA_ID}`)
 }
@@ -83,7 +86,7 @@ const config: HardhatUserConfig = {
     sepolia: getNetwork('sepolia'),
     proxy: getNetwork1('http://localhost:8545'),
     sepoliaCustom: {
-      url: process.env.ETH_RPC_URL || process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/' + process.env.INFURA_ID,
+      url: process.env.ETH_RPC_URL || process.env.SEPOLIA_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/CDpjLA10IDFcyjqnNHlVE',
       chainId: 11155111,
       gasPrice: 20000000000,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
