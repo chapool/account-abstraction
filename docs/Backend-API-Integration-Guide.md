@@ -59,43 +59,47 @@ function calculatePendingRewards(uint256 tokenId) external view returns (uint256
 function claimRewards(uint256 tokenId) external nonReentrant whenNotPaused;
 ```
 
-#### 批量领取（推荐使用）
+#### 批量领取（后端管理员专用）
 
 ```solidity
 /**
- * @dev 批量领取奖励（后端调用）
+ * @dev 批量领取奖励（Backend/Admin only）
  * @param tokenIds 要领取的 NFT 列表
- * @return 返回实际领取的 Token 列表和总奖励
+ * @param userAddress 用户地址（奖励将发送到该用户的 AA 账户）
+ * @notice 只有合约 owner 可以调用
  */
-function batchClaimRewards(uint256[] calldata tokenIds) 
-    external 
-    nonReentrant 
-    whenNotPaused 
-    returns (
-        uint256[] memory claimedTokenIds,
-        uint256 totalClaimed
-    );
+function batchClaimRewards(
+    uint256[] calldata tokenIds,
+    address userAddress
+) external nonReentrant whenNotPaused onlyOwner;
 ```
 
-**注意**：该函数会自动限制单个 NFT 最多领取 90 天的奖励，超出部分需要下次再领。
+**重要**：
+- ⚠️ **只有合约 owner 可以调用**
+- 后端需要使用 **owner 私钥** 调用此函数
+- 奖励会发送到 `userAddress` 的 AA 账户
+- 自动限制单个 NFT 最多领取 90 天的奖励
 
-### 3. 批量解质押
+### 3. 批量解质押（后端管理员专用）
 
 ```solidity
 /**
- * @dev 批量解质押（后端调用）
+ * @dev 批量解质押（Backend/Admin only）
  * @param tokenIds 要解质押的 NFT 列表
- * @return 返回实际解质押的 Token 列表和总奖励
+ * @param userAddress 用户地址（奖励将发送到该用户的 AA 账户）
+ * @notice 只有合约 owner 可以调用
  */
-function batchUnstake(uint256[] calldata tokenIds) 
-    external 
-    nonReentrant 
-    whenNotPaused 
-    returns (
-        uint256[] memory unstakedTokenIds,
-        uint256 totalRewards
-    );
+function batchUnstake(
+    uint256[] calldata tokenIds,
+    address userAddress
+) external nonReentrant whenNotPaused onlyOwner;
 ```
+
+**重要**：
+- ⚠️ **只有合约 owner 可以调用**
+- 后端需要使用 **owner 私钥** 调用此函数
+- 奖励会发送到 `userAddress` 的 AA 账户
+- NFT 会返还给用户
 
 ---
 
@@ -1043,6 +1047,76 @@ POST /api/staking/claim-rewards
 
 ---
 
+## ⚠️ 重要变更说明
+
+### 批量函数改为 Owner Only
+
+**v4.1.0 版本变更**：
+
+`batchClaimRewards` 和 `batchUnstake` 现在只有合约 owner 可以调用！
+
+### 新的函数签名
+
+```solidity
+// 旧版本 (v4.0.0)
+function batchClaimRewards(uint256[] calldata tokenIds) 
+    external nonReentrant whenNotPaused;
+
+// 新版本 (v4.1.0)
+function batchClaimRewards(
+    uint256[] calldata tokenIds,
+    address userAddress  // 新增参数
+) external nonReentrant whenNotPaused onlyOwner;
+```
+
+### 为什么这样修改？
+
+1. **安全性**：防止恶意用户批量操作
+2. **用户体验**：后端统一处理，用户只需点击一次
+3. **Gas 优化**：后端可以智能分批，自动重试
+
+### 后端调用方式
+
+```typescript
+// 使用 owner 私钥
+const ownerWallet = new ethers.Wallet(OWNER_PRIVATE_KEY, provider);
+const staking = new ethers.Contract(STAKING_ADDRESS, ABI, ownerWallet);
+
+// 调用批量领取
+await staking.batchClaimRewards(
+  [4812, 3416, 3393],  // tokenIds
+  "0xDf3715f4693CC308c961AaF0AacD56400E229F43"  // userAddress
+);
+```
+
+### 环境变量配置
+
+```bash
+# .env
+STAKING_ADDRESS=0x51a07dE2Bd277F0E6412452e3B54982Fc32CA6E5
+STAKING_OWNER_PRIVATE_KEY=0x...  # 合约 owner 私钥
+```
+
+### 安全性注意事项
+
+1. **保护 owner 私钥**：
+   - 使用环境变量，不要硬编码
+   - 使用密钥管理系统（如 AWS KMS）
+   - 定期轮换密钥
+
+2. **权限验证**：
+   - 验证 userAddress 是否为真实用户
+   - 验证 tokenIds 是否属于该用户
+   - 添加 rate limiting
+
+3. **监控和日志**：
+   - 记录所有批量操作
+   - 监控异常调用
+   - 设置告警
+
+---
+
 **文档状态**: ✅ 完成  
+**版本**: v4.1.0  
 **待执行**: 后端实现 → 测试 → 上线
 

@@ -323,17 +323,25 @@ contract Staking is
     }
     
     /**
-     * @dev Unstake multiple NFTs in batch
+     * @dev Unstake multiple NFTs in batch (Backend/Admin only)
+     * @param tokenIds Array of token IDs to unstake
+     * @param userAddress The user address whose NFTs will be unstaked
+     * @notice Only contract owner or authorized backend can call this function
+     * @notice This function allows backend to unstake NFTs on behalf of users
      */
-    function batchUnstake(uint256[] calldata tokenIds) external nonReentrant whenNotPaused {
+    function batchUnstake(
+        uint256[] calldata tokenIds,
+        address userAddress
+    ) external nonReentrant whenNotPaused onlyOwner {
         require(tokenIds.length > 0, "Token IDs array cannot be empty");
         require(tokenIds.length <= 50, "Too many tokens in batch");
+        require(userAddress != address(0), "Invalid user address");
         
         uint256 totalRewards = 0;
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
             uint256 tokenId = tokenIds[i];
-            require(stakes[tokenId].owner == msg.sender, "Not the owner of this stake");
+            require(stakes[tokenId].owner == userAddress, "Not the owner of this stake");
             require(stakes[tokenId].isActive, "NFT is not staked");
             
             StakeInfo storage stakeInfo = stakes[tokenId];
@@ -365,11 +373,11 @@ contract Staking is
             stakeInfo.pendingRewards = 0;
             
             // Update user data
-            _removeUserStake(msg.sender, tokenId);
-            userLevelCounts[msg.sender][stakeInfo.level]--;
+            _removeUserStake(userAddress, tokenId);
+            userLevelCounts[userAddress][stakeInfo.level]--;
             
             // Update combo status for next-day effect
-            _updateComboStatus(msg.sender, stakeInfo.level);
+            _updateComboStatus(userAddress, stakeInfo.level);
             
             // Update platform stats
             totalStakedPerLevel[stakeInfo.level]--;
@@ -379,16 +387,16 @@ contract Staking is
             cpnftContract.setStakeStatus(tokenId, false);
             
             // Emit individual event for each token
-            emit NFTUnstaked(msg.sender, tokenId, rewards, _getCurrentTimestamp());
+            emit NFTUnstaked(userAddress, tokenId, rewards, _getCurrentTimestamp());
         }
         
         // Send total rewards to AA account
         if (totalRewards > 0) {
-            address aaAccount = _getAAAccount(msg.sender);
+            address aaAccount = _getAAAccount(userAddress);
             cpopTokenContract.mint(aaAccount, totalRewards);
         }
         
-        emit BatchUnstaked(msg.sender, tokenIds, totalRewards, _getCurrentTimestamp());
+        emit BatchUnstaked(userAddress, tokenIds, totalRewards, _getCurrentTimestamp());
     }
     
     // ============================================
@@ -505,20 +513,27 @@ contract Staking is
     }
 
     /**
-     * @dev Batch claim rewards for multiple NFTs
+     * @dev Batch claim rewards for multiple NFTs (Backend/Admin only)
      * @param tokenIds Array of token IDs to claim rewards for
+     * @param userAddress The user address whose rewards will be claimed
+     * @notice Only contract owner or authorized backend can call this function
+     * @notice This function allows backend to claim rewards on behalf of users
      */
-    function batchClaimRewards(uint256[] calldata tokenIds) external nonReentrant whenNotPaused {
+    function batchClaimRewards(
+        uint256[] calldata tokenIds, 
+        address userAddress
+    ) external nonReentrant whenNotPaused onlyOwner {
         require(tokenIds.length > 0, "Empty token IDs array");
         require(tokenIds.length <= 50, "Too many tokens in batch");
+        require(userAddress != address(0), "Invalid user address");
         
-        address aaAccount = _getAAAccount(msg.sender);
+        address aaAccount = _getAAAccount(userAddress);
         uint256 totalRewards = 0;
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
             uint256 tokenId = tokenIds[i];
             
-            require(stakes[tokenId].owner == msg.sender, "Not the owner of this stake");
+            require(stakes[tokenId].owner == userAddress, "Not the owner of this stake");
             require(stakes[tokenId].isActive, "NFT is not staked");
             
             StakeInfo storage stakeInfo = stakes[tokenId];
@@ -542,7 +557,7 @@ contract Staking is
                     }
                 }
                 
-                emit RewardsClaimed(msg.sender, tokenId, rewards, _getCurrentTimestamp());
+                emit RewardsClaimed(userAddress, tokenId, rewards, _getCurrentTimestamp());
             }
         }
         
@@ -551,7 +566,7 @@ contract Staking is
         // Send total rewards to AA account
         cpopTokenContract.mint(aaAccount, totalRewards);
         
-        emit BatchRewardsClaimed(msg.sender, tokenIds.length, totalRewards, _getCurrentTimestamp());
+        emit BatchRewardsClaimed(userAddress, tokenIds.length, totalRewards, _getCurrentTimestamp());
     }
     
     // ============================================
