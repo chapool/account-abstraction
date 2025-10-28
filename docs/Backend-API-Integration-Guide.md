@@ -69,8 +69,8 @@ function claimRewards(uint256 tokenId) external nonReentrant whenNotPaused;
  * @notice 只有合约 owner 可以调用
  */
 function batchClaimRewards(
-    uint256[] calldata tokenIds,
-    address userAddress
+    address userAddress,
+    uint256[] calldata tokenIds
 ) external nonReentrant whenNotPaused onlyOwner;
 ```
 
@@ -90,8 +90,8 @@ function batchClaimRewards(
  * @notice 只有合约 owner 可以调用
  */
 function batchUnstake(
-    uint256[] calldata tokenIds,
-    address userAddress
+    address userAddress,
+    uint256[] calldata tokenIds
 ) external nonReentrant whenNotPaused onlyOwner;
 ```
 
@@ -1064,8 +1064,8 @@ function batchClaimRewards(uint256[] calldata tokenIds)
 
 // 新版本 (v4.1.0)
 function batchClaimRewards(
-    uint256[] calldata tokenIds,
-    address userAddress  // 新增参数
+    address userAddress,  // 新增参数
+    uint256[] calldata tokenIds
 ) external nonReentrant whenNotPaused onlyOwner;
 ```
 
