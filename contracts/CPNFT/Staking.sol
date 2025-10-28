@@ -264,14 +264,14 @@ contract Staking is
     
     /**
      * @dev Unstake multiple NFTs in batch (Backend/Admin only)
-     * @param tokenIds Array of token IDs to unstake
      * @param userAddress The user address whose NFTs will be unstaked
+     * @param tokenIds Array of token IDs to unstake
      * @notice Only contract owner or authorized backend can call this function
      * @notice This function allows backend to unstake NFTs on behalf of users
      */
     function batchUnstake(
-        uint256[] calldata tokenIds,
-        address userAddress
+        address userAddress,
+        uint256[] calldata tokenIds
     ) external nonReentrant whenNotPaused onlyOwner {
         require(tokenIds.length > 0, "Token IDs array cannot be empty");
         require(tokenIds.length <= 50, "Too many tokens in batch");
@@ -420,14 +420,14 @@ contract Staking is
 
     /**
      * @dev Batch claim rewards for multiple NFTs (Backend/Admin only)
-     * @param tokenIds Array of token IDs to claim rewards for
      * @param userAddress The user address whose rewards will be claimed
+     * @param tokenIds Array of token IDs to claim rewards for
      * @notice Only contract owner or authorized backend can call this function
      * @notice This function allows backend to claim rewards on behalf of users
      */
     function batchClaimRewards(
-        uint256[] calldata tokenIds, 
-        address userAddress
+        address userAddress,
+        uint256[] calldata tokenIds
     ) external nonReentrant whenNotPaused onlyOwner {
         require(tokenIds.length > 0, "Empty token IDs array");
         require(tokenIds.length <= 50, "Too many tokens in batch");
