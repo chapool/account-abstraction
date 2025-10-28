@@ -11,7 +11,11 @@ import * as fs from 'fs'
 import * as dotenv from 'dotenv'
 
 // Load environment variables
-dotenv.config({ path: '.env.sepolia' })
+if (process.env.NODE_ENV === 'production' || process.env.SEPOLIA) {
+  dotenv.config({ path: '.env.sepolia' })
+} else {
+  dotenv.config()
+}
 
 const SALT = '0x0a59dbff790c23c976a548690c27297883cc66b4c67024f9117b0238995e35e9'
 process.env.SALT = process.env.SALT ?? SALT
@@ -31,7 +35,8 @@ function getNetwork1 (url: string): { url: string, accounts: { mnemonic: string 
 }
 
 function getNetwork (name: string): { url: string, accounts: { mnemonic: string } } {
-  return getNetwork1(`https://${name}.infura.io/v3/${process.env.INFURA_ID}`)
+  const url = process.env.SEPOLIA_RPC_URL || `https://${name}.infura.io/v3/${process.env.INFURA_ID}`
+  return getNetwork1(url)
   // return getNetwork1(`wss://${name}.infura.io/ws/v3/${process.env.INFURA_ID}`)
 }
 
@@ -46,7 +51,7 @@ const optimizedCompilerSettings = {
   version: '0.8.28',
   settings: {
     evmVersion: 'cancun',
-    optimizer: { enabled: true, runs: 800 },
+    optimizer: { enabled: true, runs: 1000000 },
     viaIR: true
   }
 }
@@ -68,7 +73,7 @@ const config: HardhatUserConfig = {
       'contracts/core/EntryPoint.sol': optimizedCompilerSettings,
       'contracts/core/EntryPointSimulations.sol': optimizedCompilerSettings,
       'contracts/accounts/SimpleAccount.sol': optimizedCompilerSettings,
-      'contracts/cpop/CPNFTStaking.sol': optimizedCompilerSettings
+      'contracts/CPNFT/Staking.sol': optimizedCompilerSettings
     }
   },
   networks: {
@@ -78,17 +83,11 @@ const config: HardhatUserConfig = {
     sepolia: getNetwork('sepolia'),
     proxy: getNetwork1('http://localhost:8545'),
     sepoliaCustom: {
-      url: process.env.ETH_RPC_URL!,
+      url: process.env.ETH_RPC_URL || process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/' + process.env.INFURA_ID,
       chainId: 11155111,
       gasPrice: 20000000000,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       timeout: 60000
-    }
-  },
-  namedAccounts: {
-    deployer: {
-      default: 0,
-      sepoliaCustom: 0
     }
   },
   mocha: {
