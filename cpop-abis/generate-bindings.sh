@@ -16,6 +16,8 @@ abigen --abi SessionKeyManager.abi.json --pkg cpop --type SessionKeyManager --ou
 abigen --abi Payment.abi.json --pkg cpop --type Payment --out "payment.go"
 abigen --abi MockUSDT.abi.json --pkg cpop --type MockUSDT --out "mock_usdt.go"
 abigen --abi CPNFT.abi.json --pkg cpop --type CPNFT --out "cp_nft.go"
+abigen --abi Staking.abi.json --pkg cpop --type Staking --out "staking.go"
+abigen --abi StakingReader.abi.json --pkg cpop --type StakingReader --out "staking_reader.go"
 
 echo "Fixing duplicate type definitions..."
 ./fix-duplicates.sh
