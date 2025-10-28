@@ -263,66 +263,6 @@ contract Staking is
     }
     
     /**
-     * @dev Unstake a single NFT
-     */
-    function unstake(uint256 tokenId) external nonReentrant whenNotPaused {
-        require(stakes[tokenId].owner == msg.sender, "Not the owner of this stake");
-        require(stakes[tokenId].isActive, "NFT is not staked");
-        
-        StakeInfo storage stakeInfo = stakes[tokenId];
-        
-        // Calculate rewards
-        uint256 rewards = _calculateTotalRewards(tokenId);
-        
-        // Check for early withdrawal penalty
-        uint256 minStakeDays = configContract.getMinStakeDays();
-        uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
-        
-        if (stakingDays < minStakeDays) {
-            uint256 penalty = configContract.getEarlyWithdrawPenalty();
-            rewards = rewards * (10000 - penalty) / 10000;
-        }
-        
-        // Add continuous staking bonus (based on rewards at threshold) - only if not already claimed
-        if (!stakeInfo.continuousBonusClaimed) {
-            uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
-            rewards += continuousBonus;
-            stakeInfo.continuousBonusClaimed = true;
-        }
-        
-        // Send rewards to AA account
-        if (rewards > 0) {
-            address aaAccount = _getAAAccount(msg.sender);
-            cpopTokenContract.mint(aaAccount, rewards);
-        }
-        
-        // Update stake info
-        stakeInfo.isActive = false;
-        stakeInfo.totalRewards = rewards;
-        stakeInfo.pendingRewards = 0;
-        
-        // Update user data
-        _removeUserStake(msg.sender, tokenId);
-        userLevelCounts[msg.sender][stakeInfo.level]--;
-        
-        // Update combo status for next-day effect
-        _updateComboStatus(msg.sender, stakeInfo.level);
-        
-        // Update platform stats
-        totalStakedPerLevel[stakeInfo.level]--;
-        totalStakedCount--;
-        
-        // Set NFT as not staked in CPNFT contract
-        cpnftContract.setStakeStatus(tokenId, false);
-        
-        emit NFTUnstaked(msg.sender, tokenId, rewards, _getCurrentTimestamp());
-        
-        // Get supply from CPNFT contract
-        uint256 supply = _getLevelSupply(stakeInfo.level);
-        emit PlatformStatsUpdated(stakeInfo.level, totalStakedPerLevel[stakeInfo.level], supply);
-    }
-    
-    /**
      * @dev Unstake multiple NFTs in batch (Backend/Admin only)
      * @param tokenIds Array of token IDs to unstake
      * @param userAddress The user address whose NFTs will be unstaked
@@ -476,40 +416,6 @@ contract Staking is
      */
     function calculatePendingRewards(uint256 tokenId) external view returns (uint256) {
         return _calculatePendingRewards(tokenId);
-    }
-
-    /**
-     * @dev Claim pending rewards without unstaking
-     */
-    function claimRewards(uint256 tokenId) external nonReentrant whenNotPaused {
-        require(stakes[tokenId].owner == msg.sender, "Not the owner of this stake");
-        require(stakes[tokenId].isActive, "NFT is not staked");
-        
-        StakeInfo storage stakeInfo = stakes[tokenId];
-        
-        // Calculate rewards since last claim
-        uint256 rewards = _calculatePendingRewards(tokenId);
-        require(rewards > 0, "No pending rewards");
-        
-        // Update last claim time
-        stakeInfo.lastClaimTime = _getCurrentTimestamp();
-        stakeInfo.pendingRewards = 0;
-        stakeInfo.totalRewards += rewards;
-        
-        // Mark continuous bonus as claimed if it was included in this claim
-        if (!stakeInfo.continuousBonusClaimed) {
-            uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
-            uint256 continuousBonus = _calculateContinuousBonus(tokenId, stakingDays);
-            if (continuousBonus > 0) {
-                stakeInfo.continuousBonusClaimed = true;
-            }
-        }
-        
-        // Send rewards to AA account
-        address aaAccount = _getAAAccount(msg.sender);
-        cpopTokenContract.mint(aaAccount, rewards);
-        
-        emit RewardsClaimed(msg.sender, tokenId, rewards, _getCurrentTimestamp());
     }
 
     /**
