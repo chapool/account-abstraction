@@ -1116,7 +1116,138 @@ STAKING_OWNER_PRIVATE_KEY=0x...  # 合约 owner 私钥
 
 ---
 
+## Go Bindings 使用指南
+
+### 安装
+
+```bash
+cd cpop-abis
+go mod tidy
+```
+
+### 导入
+
+```go
+import (
+    "github.com/HzBay/account-abstraction/cpop-abis"
+    "github.com/ethereum/go-ethereum/accounts/abi/bind"
+    "github.com/ethereum/go-ethereum/ethclient"
+)
+```
+
+### 连接到 Staking 合约
+
+```go
+// 连接到 Sepolia 网络
+client, err := ethclient.Dial("https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Staking 合约地址
+stakingAddress := common.HexToAddress("0x51a07dE2Bd277F0E6412452e3B54982Fc32CA6E5")
+
+// 创建合约实例
+staking, err := cpop.NewStaking(stakingAddress, client)
+if err != nil {
+    log.Fatal(err)
+}
+
+// StakingReader 合约地址
+readerAddress := common.HexToAddress("0xbbEe6e5FF90f0B6EFF185F73c71b0deE6Fe9D0A6")
+reader, err := cpop.NewStakingReader(readerAddress, client)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+### 调用批量领取函数
+
+```go
+// 准备参数
+userAddress := common.HexToAddress("0xDf3715f4693CC308c961AaF0AacD56400E229F43")
+tokenIds := []*big.Int{big.NewInt(4812), big.NewInt(3416), big.NewInt(3393)}
+
+// 获取 owner 私钥
+ownerPrivateKey := os.Getenv("STAKING_OWNER_PRIVATE_KEY")
+auth, err := bind.NewKeyedTransactorWithChainID(
+    privateKey, 
+    big.NewInt(11155111), // Sepolia chain ID
+)
+
+// 调用批量领取
+tx, err := staking.BatchClaimRewards(auth, userAddress, tokenIds)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction hash: %s\n", tx.Hash().Hex())
+
+// 等待确认
+receipt, err := bind.WaitMined(context.Background(), client, tx)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction confirmed in block: %d\n", receipt.BlockNumber)
+```
+
+### 调用批量解质押函数
+
+```go
+// 调用批量解质押
+tx, err := staking.BatchUnstake(auth, userAddress, tokenIds)
+if err != nil {
+    log.Fatal(err)
+}
+
+// 等待确认...
+```
+
+### 查询功能
+
+```go
+// 查询组合状态
+comboStatus, err := staking.GetComboStatus(nil, userAddress, 3) // Level 3 = A级
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("当前数量: %d\n", comboStatus.Count)
+fmt.Printf("加成值: %d 基点 (%.2f%%)\n", comboStatus.Bonus, float64(comboStatus.Bonus)/100)
+
+// 查询待领取奖励
+pendingRewards, err := staking.CalculatePendingRewards(nil, big.NewInt(4812))
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("待领取奖励: %s CPOP\n", pendingRewards.String())
+```
+
+### 使用 StakingReader 查询详细信息
+
+```go
+// 查询用户奖励统计
+stats, err := reader.GetUserRewardStats(nil, userAddress)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("总 NFT 数量: %d\n", stats.TotalNFTs)
+fmt.Printf("总待领取奖励: %s CPOP\n", stats.TotalPendingRewards.String())
+
+// 查询组合汇总
+comboSummary, err := reader.GetUserComboSummary(nil, userAddress)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("A 级组合加成: %d 基点\n", comboSummary.LevelComboBonuses[2]) // Index 2 = A级
+```
+
+---
+
 **文档状态**: ✅ 完成  
-**版本**: v4.1.0  
+**版本**: v4.1.3  
 **待执行**: 后端实现 → 测试 → 上线
 
