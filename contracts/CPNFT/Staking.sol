@@ -397,13 +397,24 @@ contract Staking is
     
     /**
      * @dev Calculate pending rewards since last claim (internal)
+     * @param tokenId The NFT token ID
+     * @param applyLimit Whether to apply 90-day limit (for Gas safety)
      */
-    function _calculatePendingRewards(uint256 tokenId) internal view returns (uint256) {
+    function _calculatePendingRewards(uint256 tokenId, bool applyLimit) internal view returns (uint256) {
         StakeInfo memory stakeInfo = stakes[tokenId];
         
         // Calculate base rewards with phase-based decay and dynamic adjustment
         uint256 totalDays = (_getCurrentTimestamp() - stakeInfo.lastClaimTime) / 1 days;
         if (totalDays == 0) return 0;
+        
+        // Gas optimization: Limit maximum calculation days to prevent gas overflow
+        // Only apply when claiming (to ensure Gas safety), not when displaying
+        if (applyLimit) {
+            uint256 MAX_CALCULATION_DAYS = 90;
+            if (totalDays > MAX_CALCULATION_DAYS) {
+                totalDays = MAX_CALCULATION_DAYS;
+            }
+        }
         
         uint256 baseReward = configContract.getDailyReward(stakeInfo.level);
         uint256 decayInterval = configContract.getDecayInterval(stakeInfo.level);
@@ -465,9 +476,10 @@ contract Staking is
 
     /**
      * @dev Calculate pending rewards since last claim (external for Reader)
+     * Note: This function has NO day limit for accurate display, but may timeout for very long periods
      */
     function calculatePendingRewards(uint256 tokenId) external view returns (uint256) {
-        return _calculatePendingRewards(tokenId);
+        return _calculatePendingRewards(tokenId, false); // false = 不加限制，显示完整奖励
     }
 
     /**
@@ -479,8 +491,8 @@ contract Staking is
         
         StakeInfo storage stakeInfo = stakes[tokenId];
         
-        // Calculate rewards since last claim
-        uint256 rewards = _calculatePendingRewards(tokenId);
+        // Calculate rewards since last claim (with 90-day limit to prevent Gas overflow)
+        uint256 rewards = _calculatePendingRewards(tokenId, true); // true = 限制90天，防止Gas超限
         require(rewards > 0, "No pending rewards");
         
         // Update last claim time
@@ -523,8 +535,8 @@ contract Staking is
             
             StakeInfo storage stakeInfo = stakes[tokenId];
             
-            // Calculate rewards since last claim
-            uint256 rewards = _calculatePendingRewards(tokenId);
+            // Calculate rewards since last claim (with 90-day limit to prevent Gas overflow)
+            uint256 rewards = _calculatePendingRewards(tokenId, true); // true = 限制90天
             
             if (rewards > 0) {
                 // Update last claim time
@@ -564,11 +576,12 @@ contract Staking is
     function _calculateTotalRewards(uint256 tokenId) internal view returns (uint256) {
         StakeInfo memory stakeInfo = stakes[tokenId];
         
-        // Calculate base rewards
+        // Calculate base rewards (with limit for Gas safety)
         uint256 baseRewards = _calculateRewards(
             stakeInfo.level,
             stakeInfo.stakeTime,
-            stakeInfo.lastClaimTime
+            stakeInfo.lastClaimTime,
+            true // true = 限制90天，防止Gas超限
         );
         
         // Calculate combo bonus
@@ -590,10 +603,19 @@ contract Staking is
     function _calculateRewards(
         uint8 level,
         uint256 stakeTime,
-        uint256 lastClaimTime
+        uint256 lastClaimTime,
+        bool applyLimit
     ) internal view returns (uint256) {
         uint256 totalDays = (_getCurrentTimestamp() - lastClaimTime) / 1 days;
         if (totalDays == 0) return 0;
+        
+        // Gas optimization: Limit maximum calculation days to prevent gas overflow
+        if (applyLimit) {
+            uint256 MAX_CALCULATION_DAYS = 90;
+            if (totalDays > MAX_CALCULATION_DAYS) {
+                totalDays = MAX_CALCULATION_DAYS;
+            }
+        }
         
         uint256 baseReward = configContract.getDailyReward(level);
         uint256 decayInterval = configContract.getDecayInterval(level);
@@ -1113,6 +1135,6 @@ contract Staking is
     // ============================================
     
     function version() public pure returns (string memory) {
-        return "3.9.0";
+        return "4.0.0";
     }
 }
