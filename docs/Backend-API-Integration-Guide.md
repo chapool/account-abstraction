@@ -1129,7 +1129,7 @@ go mod tidy
 
 ```go
 import (
-    "github.com/HzBay/account-abstraction/cpop-abis"
+    "github.com/chapool/account-abstraction/cpop-abis"
     "github.com/ethereum/go-ethereum/accounts/abi/bind"
     "github.com/ethereum/go-ethereum/ethclient"
 )
