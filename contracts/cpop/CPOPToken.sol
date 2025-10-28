@@ -73,9 +73,10 @@ contract CPOPToken is ICPOPToken {
     
     /**
      * @notice Transfer tokens
-     * @dev Gas optimized - minimal checks
+     * @dev Gas optimized - minimal checks with zero address validation
      */
     function transfer(address to, uint256 amount) external returns (bool) {
+        require(to != address(0), "Transfer to zero address");
         balanceOf[msg.sender] -= amount; // Will revert on underflow (Solidity 0.8+)
         
         // Unchecked block for gas optimization - safe since we checked underflow above
@@ -99,9 +100,12 @@ contract CPOPToken is ICPOPToken {
     
     /**
      * @notice Transfer from approved amount
-     * @dev Gas optimized transferFrom
+     * @dev Gas optimized transferFrom with zero address validation
      */
     function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        require(to != address(0), "Transfer to zero address");
+        require(from != address(0), "Transfer from zero address");
+        
         uint256 allowed = allowance[from][msg.sender];
         
         // Check allowance (will revert if insufficient)
@@ -126,6 +130,7 @@ contract CPOPToken is ICPOPToken {
      */
     function mint(address to, uint256 amount) external {
         if (!hasRole(msg.sender, MINTER_ROLE)) revert AccessDenied();
+        require(to != address(0), "Mint to zero address");
         
         unchecked {
             totalSupply += amount;
@@ -154,6 +159,8 @@ contract CPOPToken is ICPOPToken {
      * @dev BURNER_ROLE can burn from any address, others need approval
      */
     function burnFrom(address from, uint256 amount) external {
+        require(from != address(0), "Burn from zero address");
+        
         // BURNER_ROLE can burn from any address without approval
         if (!hasRole(msg.sender, BURNER_ROLE)) {
             uint256 allowed = allowance[from][msg.sender];
@@ -177,6 +184,7 @@ contract CPOPToken is ICPOPToken {
      */
     function adminBurn(address from, uint256 amount) external {
         if (!hasRole(msg.sender, BURNER_ROLE)) revert AccessDenied();
+        require(from != address(0), "Burn from zero address");
         
         balanceOf[from] -= amount; // Will revert on underflow
         
@@ -214,6 +222,8 @@ contract CPOPToken is ICPOPToken {
                 address to = recipients[i];
                 uint256 amount = amounts[i];
                 
+                require(to != address(0), "Batch mint to zero address");
+                
                 totalSupply += amount;
                 balanceOf[to] += amount;
                 
@@ -234,6 +244,8 @@ contract CPOPToken is ICPOPToken {
         for (uint256 i = 0; i < accounts.length; i++) {
             address from = accounts[i];
             uint256 amount = amounts[i];
+            
+            require(from != address(0), "Batch burn from zero address");
             
             balanceOf[from] -= amount; // Will revert on underflow (checked math)
             
@@ -271,6 +283,8 @@ contract CPOPToken is ICPOPToken {
                 address to = recipients[i];
                 uint256 amount = amounts[i];
                 
+                require(to != address(0), "Batch transfer to zero address");
+                
                 balanceOf[to] += amount;
                 emit Transfer(msg.sender, to, amount);
             }
@@ -295,6 +309,9 @@ contract CPOPToken is ICPOPToken {
             address fromAddr = from[i];
             address toAddr = to[i];
             uint256 amount = amounts[i];
+            
+            require(toAddr != address(0), "Batch transfer to zero address");
+            require(fromAddr != address(0), "Batch transfer from zero address");
             
             // Admin role bypasses allowance checks
             if (!isAdmin) {

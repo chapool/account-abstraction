@@ -68,7 +68,7 @@ const config: HardhatUserConfig = {
       'contracts/core/EntryPoint.sol': optimizedCompilerSettings,
       'contracts/core/EntryPointSimulations.sol': optimizedCompilerSettings,
       'contracts/accounts/SimpleAccount.sol': optimizedCompilerSettings,
-      'contracts/cpop/CPNFTStaking.sol': optimizedCompilerSettings
+      'contracts/CPNFT/Staking.sol': optimizedCompilerSettings
     }
   },
   networks: {
