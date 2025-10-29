@@ -127,7 +127,7 @@ contract StakingConfig is Ownable {
         // Combo configurations
         comboConfigs[0] = ComboConfig(3, 500, 7, 0);    // 3 NFTs: 5% bonus, 7 days
         comboConfigs[1] = ComboConfig(5, 1000, 15, 0);  // 5 NFTs: 10% bonus, 15 days
-        comboConfigs[2] = ComboConfig(10, 2000, 50, 0); // 10 NFTs: 20% bonus, 50 days
+        comboConfigs[2] = ComboConfig(10, 2000, 30, 0); // 10 NFTs: 20% bonus, 30 days
         
         // Continuous staking configurations
         continuousConfigs[0] = ContinuousConfig(30, 1000, 0, 0);  // 30 days: 10% bonus
