@@ -91,6 +91,13 @@ const config: HardhatUserConfig = {
       gasPrice: 20000000000,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       timeout: 60000
+    },
+    bnbTestnet: {
+      url: 'https://bnb-testnet.g.alchemy.com/v2/CDpjLA10IDFcyjqnNHlVE',
+      chainId: 97,
+      gasPrice: 20000000000,
+      accounts: ['0x7afae63a6cbe2fad617ede265676aa02d61b91cd8ca817bffbcd0fbb67e1f18a'],
+      timeout: 60000
     }
   },
   mocha: {

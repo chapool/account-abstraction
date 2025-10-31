@@ -2,11 +2,11 @@
 pragma solidity ^0.8.28;
 
 /**
- * @title ICPOPToken
- * @notice Interface for gas-optimized role-based CPOP token
+ * @title ICPPToken
+ * @notice Interface for gas-optimized role-based CPP token
  * @dev Lightweight role-based access control for maximum gas efficiency
  */
-interface ICPOPToken {
+interface ICPPToken {
     // Custom errors
     error AccessDenied();
     error InvalidRole();

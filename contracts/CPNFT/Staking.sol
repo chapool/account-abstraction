@@ -7,8 +7,8 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "./CPNFT.sol";
-import "../cpop/interfaces/ICPOPToken.sol";
-import "../cpop/interfaces/IAccountManager.sol";
+import "../CPP/interfaces/ICPPToken.sol";
+import "../CPP/interfaces/IAccountManager.sol";
 import "./StakingConfig.sol";
 
 /**
@@ -29,7 +29,7 @@ contract Staking is
     
     // Contract dependencies
     CPNFT public cpnftContract;
-    ICPOPToken public cpopTokenContract;
+    ICPPToken public CPPTokenContract;
     IAccountManager public accountManagerContract;
     StakingConfig public configContract;
     
@@ -97,7 +97,7 @@ contract Staking is
     
     function initialize(
         address _cpnftContract,
-        address _cpopTokenContract,
+        address _CPPTokenContract,
         address _accountManagerContract,
         address _configContract,
         address _owner
@@ -108,12 +108,12 @@ contract Staking is
         __Pausable_init();
         
         require(_cpnftContract != address(0), "CPNFT contract address cannot be zero");
-        require(_cpopTokenContract != address(0), "CPOP token contract address cannot be zero");
+        require(_CPPTokenContract != address(0), "CPP token contract address cannot be zero");
         require(_accountManagerContract != address(0), "Account manager contract address cannot be zero");
         require(_configContract != address(0), "Config contract address cannot be zero");
         
         cpnftContract = CPNFT(_cpnftContract);
-        cpopTokenContract = ICPOPToken(_cpopTokenContract);
+        CPPTokenContract = ICPPToken(_CPPTokenContract);
         accountManagerContract = IAccountManager(_accountManagerContract);
         configContract = StakingConfig(_configContract);
         
@@ -333,7 +333,7 @@ contract Staking is
         // Send total rewards to AA account
         if (totalRewards > 0) {
             address aaAccount = _getAAAccount(userAddress);
-            cpopTokenContract.mint(aaAccount, totalRewards);
+            CPPTokenContract.mint(aaAccount, totalRewards);
         }
         
         emit BatchUnstaked(userAddress, tokenIds, totalRewards, _getCurrentTimestamp());
@@ -470,7 +470,7 @@ contract Staking is
         require(totalRewards > 0, "No pending rewards");
         
         // Send total rewards to AA account
-        cpopTokenContract.mint(aaAccount, totalRewards);
+        CPPTokenContract.mint(aaAccount, totalRewards);
         
         emit BatchRewardsClaimed(userAddress, tokenIds.length, totalRewards, _getCurrentTimestamp());
     }
@@ -868,15 +868,15 @@ contract Staking is
     
     function updateContracts(
         address _cpnftContract,
-        address _cpopTokenContract,
+        address _CPPTokenContract,
         address _accountManagerContract,
         address _configContract
     ) external onlyOwner {
         if (_cpnftContract != address(0)) {
             cpnftContract = CPNFT(_cpnftContract);
         }
-        if (_cpopTokenContract != address(0)) {
-            cpopTokenContract = ICPOPToken(_cpopTokenContract);
+        if (_CPPTokenContract != address(0)) {
+            CPPTokenContract = ICPPToken(_CPPTokenContract);
         }
         if (_accountManagerContract != address(0)) {
             accountManagerContract = IAccountManager(_accountManagerContract);

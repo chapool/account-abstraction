@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "./interfaces/ICPOPToken.sol";
+import "./interfaces/ICPPToken.sol";
 
 /**
- * @title CPOPToken - Gas Optimized Role-Based ERC20
+ * @title CPPToken - Gas Optimized Role-Based ERC20
  * @notice Ultra gas-efficient ERC20 implementation with lightweight role system
  * @dev Uses bit-packed roles for minimal gas overhead while supporting multiple contracts
  */
-contract CPOPToken is ICPOPToken {
+contract CPPToken is ICPPToken {
     // Role constants (bit flags for gas efficiency)
     uint8 public constant ADMIN_ROLE = 1;     // 0001 - Can manage roles
     uint8 public constant MINTER_ROLE = 2;    // 0010 - Can mint tokens
     uint8 public constant BURNER_ROLE = 4;    // 0100 - Can burn tokens from any address
     
     // ERC20 basic storage - packed into single slot where possible
-    string public constant NAME = "CPOP Token";
-    string public constant SYMBOL = "CPOP";
+    string public constant NAME = "CPP Token";
+    string public constant SYMBOL = "CPP";
     uint8 public constant DECIMALS = 18;
     
     uint256 public totalSupply;

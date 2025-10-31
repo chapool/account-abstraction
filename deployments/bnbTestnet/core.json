@@ -1,0 +1,22 @@
+{
+  "network": "bnbTestnet",
+  "chainId": 97,
+  "deployer": "0xeA04842dBc32E2b8b3334b54C470e86e941e8a0d",
+  "entryPoint": "0xA5dE405f354A06c465463E63A7f455f0FE16eC22",
+  "timestamp": "2025-10-31T06:32:14.275Z",
+  "contracts": {
+    "CPPToken": "0x355dF6Ba94E815870449F53afa511c117147f63A",
+    "GasPriceOracle": "0x27593d4Fed6c4B812Ae8e2B64e38d8B039c8Fb91",
+    "MasterAggregator": "0x7b6d0d61aFA7aD5EFb452270160bD35a0F610f2e",
+    "SessionKeyManager": "0xa878f8B871C5F7fc95B5E7CB0347Ac66975C3103",
+    "AccountManager": "0xD69ECEdCf8E4ad5d173fD473A07B56DfD42f016e",
+    "GasPaymaster": "0x79B0209350C3e39525dcB4CC8ce5dCE1dA0D8C5C",
+    "CPNFT": "0x01cFBE9CC049d3De77184c2Add57Eba012a96222",
+    "StakingConfig": "0xb499a0D78BE79d2fCeE49dA07cB09c0150a8Cb63",
+    "Staking": "0x8ab3CD39295CF002103c183963e527f2536949Df",
+    "StakingReader": "0x429B4b2E685b72Df4cAa725E2D95f6e5D0e50cd4",
+    "BatchTransfer": "0x7A4A6b1942d4D09efCb84E0E9c4cB0257bA43C39",
+    "MockUSDT": "0x312fc28767329faF567f3Ad61943b447a53D09D6",
+    "Payment": "0xC4eCac5E8b3aA1f93736463f54EA38221b22791C"
+  }
+}
