@@ -372,6 +372,19 @@
   },
   {
     "inputs": [],
+    "name": "CPPTokenContract",
+    "outputs": [
+      {
+        "internalType": "contract ICPPToken",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "UPGRADE_INTERFACE_VERSION",
     "outputs": [
       {
@@ -416,6 +429,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "address",
+        "name": "userAddress",
+        "type": "address"
+      },
       {
         "internalType": "uint256[]",
         "name": "tokenIds",
@@ -483,19 +501,6 @@
     "outputs": [
       {
         "internalType": "contract CPNFT",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "cpopTokenContract",
-    "outputs": [
-      {
-        "internalType": "contract ICPOPToken",
         "name": "",
         "type": "address"
       }
@@ -807,7 +812,7 @@
       },
       {
         "internalType": "address",
-        "name": "_cpopTokenContract",
+        "name": "_CPPTokenContract",
         "type": "address"
       },
       {
@@ -900,19 +905,6 @@
       }
     ],
     "name": "setTestTimestamp",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "stake",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1063,7 +1055,7 @@
       },
       {
         "internalType": "address",
-        "name": "_cpopTokenContract",
+        "name": "_CPPTokenContract",
         "type": "address"
       },
       {

@@ -198,31 +198,32 @@ contract Staking is
     // ============================================
     
     /**
-     * @dev Stake a single NFT
+     * @dev Stake multiple NFTs in batch (Backend/Admin only)
+     * @param userAddress The user address whose NFTs will be staked
+     * @param tokenIds Array of token IDs to stake
+     * @notice Only contract owner or authorized backend can call this function
+     * @notice This function allows backend to stake NFTs on behalf of users
      */
-    function stake(uint256 tokenId) external nonReentrant whenNotPaused {
-        _stake(tokenId);
-    }
-    
-    /**
-     * @dev Stake multiple NFTs in batch
-     */
-    function batchStake(uint256[] calldata tokenIds) external nonReentrant whenNotPaused {
+    function batchStake(
+        address userAddress,
+        uint256[] calldata tokenIds
+    ) external nonReentrant whenNotPaused onlyOwner {
         require(tokenIds.length > 0, "Token IDs array cannot be empty");
         require(tokenIds.length <= 50, "Too many tokens in batch");
+        require(userAddress != address(0), "Invalid user address");
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            _stake(tokenIds[i]);
+            _stake(userAddress, tokenIds[i]);
         }
         
-        emit BatchStaked(msg.sender, tokenIds, _getCurrentTimestamp());
+        emit BatchStaked(userAddress, tokenIds, _getCurrentTimestamp());
     }
     
     /**
      * @dev Internal stake function
      */
-    function _stake(uint256 tokenId) internal {
-        require(cpnftContract.ownerOf(tokenId) == msg.sender, "Not the owner of this NFT");
+    function _stake(address userAddress, uint256 tokenId) internal {
+        require(cpnftContract.ownerOf(tokenId) == userAddress, "Not the owner of this NFT");
         require(!stakes[tokenId].isActive, "NFT is already staked");
         
         uint8 level = uint8(cpnftContract.getTokenLevel(tokenId));
@@ -230,7 +231,7 @@ contract Staking is
         
         // Create stake info
         stakes[tokenId] = StakeInfo({
-            owner: msg.sender,
+            owner: userAddress,
             tokenId: tokenId,
             level: level,
             stakeTime: _getCurrentTimestamp(),
@@ -242,11 +243,11 @@ contract Staking is
         });
         
         // Update user data
-        userStakes[msg.sender].push(tokenId);
-        userLevelCounts[msg.sender][level]++;
+        userStakes[userAddress].push(tokenId);
+        userLevelCounts[userAddress][level]++;
         
         // Update combo status for next-day effect
-        _updateComboStatus(msg.sender, level);
+        _updateComboStatus(userAddress, level);
         
         // Update platform stats
         totalStakedPerLevel[level]++;
@@ -255,7 +256,7 @@ contract Staking is
         // Set NFT as staked in CPNFT contract
         cpnftContract.setStakeStatus(tokenId, true);
         
-        emit NFTStaked(msg.sender, tokenId, level, _getCurrentTimestamp());
+        emit NFTStaked(userAddress, tokenId, level, _getCurrentTimestamp());
         
         // Get supply from CPNFT contract
         uint256 supply = _getLevelSupply(level);

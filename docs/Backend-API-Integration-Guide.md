@@ -80,7 +80,28 @@ function batchClaimRewards(
 - 奖励会发送到 `userAddress` 的 AA 账户
 - 自动限制单个 NFT 最多领取 90 天的奖励
 
-### 3. 批量解质押（后端管理员专用）
+### 3. 批量质押（后端管理员专用）
+
+```solidity
+/**
+ * @dev 批量质押（Backend/Admin only）
+ * @param userAddress 用户地址（NFT 将质押到该用户账户）
+ * @param tokenIds 要质押的 NFT 列表
+ * @notice 只有合约 owner 可以调用
+ */
+function batchStake(
+    address userAddress,
+    uint256[] calldata tokenIds
+) external nonReentrant whenNotPaused onlyOwner;
+```
+
+**重要**：
+- ⚠️ **只有合约 owner 可以调用**
+- 后端需要使用 **owner 私钥** 调用此函数
+- NFT 必须属于 `userAddress`
+- 质押后 NFT 状态会更新为已质押
+
+### 4. 批量解质押（后端管理员专用）
 
 ```solidity
 /**
@@ -165,7 +186,102 @@ function batchUnstake(
 7. 返回完整结果
 ```
 
-### 2. 用户解质押 API
+### 2. 用户质押 API
+
+#### 接口名称
+`POST /api/staking/stake`
+
+#### 请求参数
+
+```json
+{
+  "userAddress": "0x...",  // 用户钱包地址
+  "tokenIds": [4812, 3416, 3393]  // 要质押的 NFT 列表
+}
+```
+
+#### 响应结果
+
+```json
+{
+  "success": true,
+  "data": {
+    "stakedCount": 3,
+    "txHash": "0x...",  // 批量质押的交易哈希
+    "stakedNFTs": [
+      {
+        "tokenId": 4812,
+        "level": 3  // A级
+      },
+      {
+        "tokenId": 3416,
+        "level": 4  // S级
+      },
+      {
+        "tokenId": 3393,
+        "level": 2  // B级
+      }
+    ],
+    "failedNFTs": [],  // 质押失败的 NFT（如果有）
+    "estimatedGasCost": {
+      "eth": "0.0012",
+      "usd": "2.76"
+    }
+  },
+  "message": "成功质押 3 个 NFT"
+}
+```
+
+#### 业务流程
+
+```
+1. 后端接收请求
+2. 验证用户地址和 NFT 所有权
+3. 检查每个 NFT 是否已质押
+4. 过滤掉不符合质押条件的 NFT（如 NORMAL 级别）
+5. 一次性调用合约 batchStake（最多 50 个）
+6. 返回完整结果
+```
+
+#### 错误处理
+
+**NFT 已质押**：
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ALREADY_STAKED",
+    "message": "NFT 已质押",
+    "tokenId": 4812
+  }
+}
+```
+
+**NFT 不属于用户**：
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_OWNER",
+    "message": "不是该 NFT 的所有者",
+    "tokenId": 3416
+  }
+}
+```
+
+**NORMAL 级别 NFT 不能质押**：
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_LEVEL",
+    "message": "NORMAL 级别 NFT 不能质押",
+    "tokenId": 3393
+  }
+}
+```
+
+### 3. 用户解质押 API
 
 #### 接口名称
 `POST /api/staking/unstake`
@@ -564,6 +680,7 @@ async function estimateGasCost(tokenIds: number[]): Promise<{
 
 | 功能 | 合约函数 | API 端点 |
 |-----|---------|---------|
+| 质押 | `batchStake` | `POST /api/staking/stake` |
 | 领取奖励 | `batchClaimRewards` | `POST /api/staking/claim-rewards` |
 | 解质押 | `batchUnstake` | `POST /api/staking/unstake` |
 | 查询待领取天数 | `getPendingDays` | `GET /api/staking/pending-days/:tokenId` |
@@ -1082,10 +1199,16 @@ function batchClaimRewards(
 const ownerWallet = new ethers.Wallet(OWNER_PRIVATE_KEY, provider);
 const staking = new ethers.Contract(STAKING_ADDRESS, ABI, ownerWallet);
 
+// 调用批量质押
+await staking.batchStake(
+  "0xDf3715f4693CC308c961AaF0AacD56400E229F43",  // userAddress
+  [4812, 3416, 3393]  // tokenIds
+);
+
 // 调用批量领取
 await staking.batchClaimRewards(
-  [4812, 3416, 3393],  // tokenIds
-  "0xDf3715f4693CC308c961AaF0AacD56400E229F43"  // userAddress
+  "0xDf3715f4693CC308c961AaF0AacD56400E229F43",  // userAddress
+  [4812, 3416, 3393]  // tokenIds
 );
 ```
 
@@ -1159,6 +1282,37 @@ reader, err := cpop.NewStakingReader(readerAddress, client)
 if err != nil {
     log.Fatal(err)
 }
+```
+
+### 调用批量质押函数
+
+```go
+// 准备参数
+userAddress := common.HexToAddress("0xDf3715f4693CC308c961AaF0AacD56400E229F43")
+tokenIds := []*big.Int{big.NewInt(4812), big.NewInt(3416), big.NewInt(3393)}
+
+// 获取 owner 私钥
+ownerPrivateKey := os.Getenv("STAKING_OWNER_PRIVATE_KEY")
+auth, err := bind.NewKeyedTransactorWithChainID(
+    privateKey, 
+    big.NewInt(11155111), // Sepolia chain ID
+)
+
+// 调用批量质押
+tx, err := staking.BatchStake(auth, userAddress, tokenIds)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction hash: %s\n", tx.Hash().Hex())
+
+// 等待确认
+receipt, err := bind.WaitMined(context.Background(), client, tx)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction confirmed in block: %d\n", receipt.BlockNumber)
 ```
 
 ### 调用批量领取函数

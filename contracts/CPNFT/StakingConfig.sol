@@ -117,12 +117,12 @@ contract StakingConfig is Ownable {
         
         // Level configurations (C=1, B=2, A=3, S=4, SS=5, SSS=6)
         // Daily rewards in wei (1 CPP = 1 ether)
-        levelConfigs[1] = LevelConfig(3 ether, 20, 3500, 8000);   // C level: 3 CPP
-        levelConfigs[2] = LevelConfig(8 ether, 30, 3000, 7000);   // B level: 8 CPP
-        levelConfigs[3] = LevelConfig(15 ether, 45, 2500, 6000);  // A level: 15 CPP
-        levelConfigs[4] = LevelConfig(30 ether, 60, 2000, 5000);  // S level: 30 CPP
-        levelConfigs[5] = LevelConfig(50 ether, 90, 1500, 4000);  // SS level: 50 CPP
-        levelConfigs[6] = LevelConfig(100 ether, 180, 1000, 2000); // SSS level: 100 CPP
+        levelConfigs[1] = LevelConfig(0.1 ether, 20, 3500, 8000);   // C level: 0.1 CPP
+        levelConfigs[2] = LevelConfig(0.3 ether, 30, 3000, 7000);   // B level: 0.3 CPP
+        levelConfigs[3] = LevelConfig(0.5 ether, 45, 2500, 6000);  // A level: 0.5 CPP
+        levelConfigs[4] = LevelConfig(1.5 ether, 60, 2000, 5000);  // S level: 1.5 CPP
+        levelConfigs[5] = LevelConfig(3.5 ether, 90, 1500, 4000);  // SS level: 3.5 CPP
+        levelConfigs[6] = LevelConfig(65.8 ether, 180, 1000, 2000); // SSS level: 65.8 CPP
         
         // Combo configurations
         comboConfigs[0] = ComboConfig(3, 500, 7, 0);    // 3 NFTs: 5% bonus, 7 days
@@ -174,7 +174,7 @@ contract StakingConfig is Ownable {
     }
     
     function updateRewards(
-        uint32[6] calldata _rewards
+        uint256[6] calldata _rewards
     ) external onlyOwner {
         require(_rewards.length == 6, "Invalid rewards array length");
         
