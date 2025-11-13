@@ -310,7 +310,7 @@ contract Staking is
             
             // Update stake info
             stakeInfo.isActive = false;
-            stakeInfo.totalRewards = rewards;
+            stakeInfo.totalRewards += rewards;
             stakeInfo.pendingRewards = 0;
             
             // Update user data
