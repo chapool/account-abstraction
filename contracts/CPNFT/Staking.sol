@@ -209,7 +209,6 @@ contract Staking is
         uint256[] calldata tokenIds
     ) external nonReentrant whenNotPaused onlyOwner {
         require(tokenIds.length > 0, "Token IDs array cannot be empty");
-        require(tokenIds.length <= 50, "Too many tokens in batch");
         require(userAddress != address(0), "Invalid user address");
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -275,7 +274,6 @@ contract Staking is
         uint256[] calldata tokenIds
     ) external nonReentrant whenNotPaused onlyOwner {
         require(tokenIds.length > 0, "Token IDs array cannot be empty");
-        require(tokenIds.length <= 50, "Too many tokens in batch");
         require(userAddress != address(0), "Invalid user address");
         
         uint256 totalRewards = 0;
@@ -290,14 +288,8 @@ contract Staking is
             // Calculate rewards
             uint256 rewards = _calculateTotalRewards(tokenId);
             
-            // Check for early withdrawal penalty
-            uint256 minStakeDays = configContract.getMinStakeDays();
+            // Calculate staking days for continuous bonus
             uint256 stakingDays = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days;
-            
-            if (stakingDays < minStakeDays) {
-                uint256 penalty = configContract.getEarlyWithdrawPenalty();
-                rewards = rewards * (10000 - penalty) / 10000;
-            }
             
             // Add continuous staking bonus (based on rewards at threshold) - only if not already claimed
             if (!stakeInfo.continuousBonusClaimed) {
@@ -350,9 +342,12 @@ contract Staking is
     function _calculatePendingRewards(uint256 tokenId) internal view returns (uint256) {
         StakeInfo memory stakeInfo = stakes[tokenId];
         
+        uint256 timeElapsed = _getCurrentTimestamp() - stakeInfo.lastClaimTime;
+        if (timeElapsed == 0) return 0;
+        
         // Calculate base rewards with phase-based decay and dynamic adjustment
-        uint256 totalDays = (_getCurrentTimestamp() - stakeInfo.lastClaimTime) / 1 days;
-        if (totalDays == 0) return 0;
+        uint256 totalDays = timeElapsed / 1 days;
+        uint256 remainingSeconds = timeElapsed % 1 days; // 剩余不满一天的秒数
         
         uint256 baseReward = configContract.getDailyReward(stakeInfo.level);
         uint256 decayInterval = configContract.getDecayInterval(stakeInfo.level);
@@ -362,40 +357,40 @@ contract Staking is
         
         // Calculate rewards day by day with phase-based decay and dynamic adjustment
         for (uint256 day = 0; day < totalDays; day++) {
-            uint256 currentDayFromStake = (_getCurrentTimestamp() - stakeInfo.stakeTime) / 1 days - (totalDays - 1 - day);
+            uint256 currentDayFromStake = (stakeInfo.lastClaimTime - stakeInfo.stakeTime) / 1 days + day;
             uint256 currentDayTimestamp = stakeInfo.stakeTime + (currentDayFromStake * 1 days);
             
-            uint256 dailyReward = baseReward;
-            
-            // Apply decay based on current day from stake
-            if (decayInterval > 0 && currentDayFromStake > decayInterval) {
-                uint256 completedCycles = (currentDayFromStake - 1) / decayInterval;
-                
-                // Apply compound decay for each completed cycle
-                for (uint256 i = 0; i < completedCycles; i++) {
-                    uint256 totalDecaySoFar = (i + 1) * decayRate;
-                    if (totalDecaySoFar > configContract.getMaxDecayRate(stakeInfo.level)) {
-                        uint256 remainingDecay = configContract.getMaxDecayRate(stakeInfo.level) - (i * decayRate);
-                        dailyReward = dailyReward * (10000 - remainingDecay) / 10000;
-                        break;
-                    }
-                    
-                    dailyReward = dailyReward * (10000 - decayRate) / 10000;
-                }
-            }
-            
-            // Apply historical quarterly adjustment for this specific day
-            uint256 historicalQuarterlyMultiplier = _getHistoricalQuarterlyMultiplier(currentDayTimestamp);
-            dailyReward = dailyReward * historicalQuarterlyMultiplier / 10000;
-            
-            // Apply historical dynamic multiplier for this specific day
-            uint256 dynamicMultiplier = _getHistoricalDynamicMultiplier(
-                stakeInfo.level, 
-                currentDayTimestamp
+            // Use extracted function to calculate single day reward
+            uint256 dailyReward = _calculateSingleDayReward(
+                stakeInfo.level,
+                baseReward,
+                currentDayFromStake,
+                currentDayTimestamp,
+                decayInterval,
+                decayRate
             );
-            dailyReward = dailyReward * dynamicMultiplier / 10000;
             
             totalRewards += dailyReward;
+        }
+        
+        // Calculate partial day rewards (按秒计算) ⭐ 核心改进
+        if (remainingSeconds > 0) {
+            uint256 currentDayFromStake = (stakeInfo.lastClaimTime - stakeInfo.stakeTime) / 1 days + totalDays;
+            uint256 currentDayTimestamp = stakeInfo.stakeTime + (currentDayFromStake * 1 days);
+            
+            // Reuse the same function to calculate current incomplete day's reward
+            uint256 dailyReward = _calculateSingleDayReward(
+                stakeInfo.level,
+                baseReward,
+                currentDayFromStake,
+                currentDayTimestamp,
+                decayInterval,
+                decayRate
+            );
+            
+            // Calculate proportion by seconds: (daily reward * remaining seconds) / (total seconds in a day)
+            uint256 partialReward = (dailyReward * remainingSeconds) / 1 days;
+            totalRewards += partialReward;
         }
         
         // Calculate combo bonus based on current NFT's individual decay state
@@ -486,26 +481,114 @@ contract Staking is
     function _calculateTotalRewards(uint256 tokenId) internal view returns (uint256) {
         StakeInfo memory stakeInfo = stakes[tokenId];
         
-        // Calculate base rewards
-        uint256 baseRewards = _calculateRewards(
-            stakeInfo.level,
-            stakeInfo.stakeTime,
-            stakeInfo.lastClaimTime
-        );
+        // Use the same calculation logic as _calculatePendingRewards for consistency
+        // This ensures that unstake rewards match claim rewards
+        uint256 timeElapsed = _getCurrentTimestamp() - stakeInfo.lastClaimTime;
+        if (timeElapsed == 0) return 0;
         
-        // Calculate combo bonus
-        uint256 comboBonus = _calculateComboBonus(msg.sender, stakeInfo.level);
+        // Calculate base rewards with phase-based decay and dynamic adjustment
+        uint256 totalDays = timeElapsed / 1 days;
+        uint256 remainingSeconds = timeElapsed % 1 days;
         
-        // Calculate dynamic multiplier
-        uint256 dynamicMultiplier = _calculateDynamicMultiplier(stakeInfo.level);
+        uint256 baseReward = configContract.getDailyReward(stakeInfo.level);
+        uint256 decayInterval = configContract.getDecayInterval(stakeInfo.level);
+        uint256 decayRate = configContract.getDecayRate(stakeInfo.level);
         
-        // Apply bonuses
-        uint256 finalRewards = baseRewards * (10000 + comboBonus) / 10000;
-        finalRewards = finalRewards * dynamicMultiplier / 10000;
+        uint256 totalRewards = 0;
         
-        return finalRewards;
+        // Calculate rewards day by day with phase-based decay and dynamic adjustment
+        for (uint256 day = 0; day < totalDays; day++) {
+            uint256 currentDayFromStake = (stakeInfo.lastClaimTime - stakeInfo.stakeTime) / 1 days + day;
+            uint256 currentDayTimestamp = stakeInfo.stakeTime + (currentDayFromStake * 1 days);
+            
+            // Use extracted function to calculate single day reward
+            uint256 dailyReward = _calculateSingleDayReward(
+                stakeInfo.level,
+                baseReward,
+                currentDayFromStake,
+                currentDayTimestamp,
+                decayInterval,
+                decayRate
+            );
+            
+            totalRewards += dailyReward;
+        }
+        
+        // Calculate partial day rewards (按秒计算)
+        if (remainingSeconds > 0) {
+            uint256 currentDayFromStake = (stakeInfo.lastClaimTime - stakeInfo.stakeTime) / 1 days + totalDays;
+            uint256 currentDayTimestamp = stakeInfo.stakeTime + (currentDayFromStake * 1 days);
+            
+            // Reuse the same function to calculate current incomplete day's reward
+            uint256 dailyReward = _calculateSingleDayReward(
+                stakeInfo.level,
+                baseReward,
+                currentDayFromStake,
+                currentDayTimestamp,
+                decayInterval,
+                decayRate
+            );
+            
+            // Calculate proportion by seconds: (daily reward * remaining seconds) / (total seconds in a day)
+            uint256 partialReward = (dailyReward * remainingSeconds) / 1 days;
+            totalRewards += partialReward;
+        }
+        
+        // Calculate combo bonus using stake owner (not msg.sender)
+        uint256 comboBonus = _calculateComboBonus(stakeInfo.owner, stakeInfo.level);
+        totalRewards = totalRewards * (10000 + comboBonus) / 10000;
+        
+        return totalRewards;
     }
     
+    /**
+     * @dev Calculate single day reward with all adjustments
+     * @param level NFT level
+     * @param baseReward Base daily reward
+     * @param dayFromStake Day number from stake start (0-based)
+     * @param dayTimestamp Timestamp of this day
+     * @param decayInterval Decay interval in days
+     * @param decayRate Decay rate per interval
+     * @return Adjusted daily reward for this specific day
+     */
+    function _calculateSingleDayReward(
+        uint8 level,
+        uint256 baseReward,
+        uint256 dayFromStake,
+        uint256 dayTimestamp,
+        uint256 decayInterval,
+        uint256 decayRate
+    ) internal view returns (uint256) {
+        uint256 dailyReward = baseReward;
+        
+        // Apply decay based on current day from stake
+        if (decayInterval > 0 && dayFromStake > decayInterval) {
+            uint256 completedCycles = (dayFromStake - 1) / decayInterval;
+            
+            // Apply compound decay for each completed cycle
+            for (uint256 i = 0; i < completedCycles; i++) {
+                uint256 totalDecaySoFar = (i + 1) * decayRate;
+                if (totalDecaySoFar > configContract.getMaxDecayRate(level)) {
+                    uint256 remainingDecay = configContract.getMaxDecayRate(level) - (i * decayRate);
+                    dailyReward = dailyReward * (10000 - remainingDecay) / 10000;
+                    break;
+                }
+                
+                dailyReward = dailyReward * (10000 - decayRate) / 10000;
+            }
+        }
+        
+        // Apply historical quarterly adjustment for this specific day
+        uint256 historicalQuarterlyMultiplier = _getHistoricalQuarterlyMultiplier(dayTimestamp);
+        dailyReward = dailyReward * historicalQuarterlyMultiplier / 10000;
+        
+        // Apply historical dynamic multiplier for this specific day
+        uint256 dynamicMultiplier = _getHistoricalDynamicMultiplier(level, dayTimestamp);
+        dailyReward = dailyReward * dynamicMultiplier / 10000;
+        
+        return dailyReward;
+    }
+
     /**
      * @dev Calculate rewards for a specific NFT (simplified version)
      */
@@ -514,8 +597,11 @@ contract Staking is
         uint256 stakeTime,
         uint256 lastClaimTime
     ) internal view returns (uint256) {
-        uint256 totalDays = (_getCurrentTimestamp() - lastClaimTime) / 1 days;
-        if (totalDays == 0) return 0;
+        uint256 timeElapsed = _getCurrentTimestamp() - lastClaimTime;
+        if (timeElapsed == 0) return 0;
+        
+        uint256 totalDays = timeElapsed / 1 days;
+        uint256 remainingSeconds = timeElapsed % 1 days; // 剩余不满一天的秒数
         
         uint256 baseReward = configContract.getDailyReward(level);
         uint256 decayInterval = configContract.getDecayInterval(level);
@@ -525,40 +611,40 @@ contract Staking is
         
         // Calculate rewards day by day with proper phase-based decay
         for (uint256 day = 0; day < totalDays; day++) {
-            uint256 currentDayFromStake = (_getCurrentTimestamp() - stakeTime) / 1 days - (totalDays - 1 - day);
+            uint256 currentDayFromStake = (lastClaimTime - stakeTime) / 1 days + day;
             uint256 currentDayTimestamp = stakeTime + (currentDayFromStake * 1 days);
             
-            uint256 dailyReward = baseReward;
-            
-            // Apply decay based on current day from stake
-            if (decayInterval > 0 && currentDayFromStake > decayInterval) {
-                uint256 completedCycles = (currentDayFromStake - 1) / decayInterval;
-                
-                // Apply compound decay for each completed cycle
-                for (uint256 i = 0; i < completedCycles; i++) {
-                    uint256 totalDecaySoFar = (i + 1) * decayRate;
-                    if (totalDecaySoFar > configContract.getMaxDecayRate(level)) {
-                        uint256 remainingDecay = configContract.getMaxDecayRate(level) - (i * decayRate);
-                        dailyReward = dailyReward * (10000 - remainingDecay) / 10000;
-                        break;
-                    }
-                    
-                    dailyReward = dailyReward * (10000 - decayRate) / 10000;
-                }
-            }
-            
-            // Apply historical quarterly adjustment for this specific day
-            uint256 historicalQuarterlyMultiplier = _getHistoricalQuarterlyMultiplier(currentDayTimestamp);
-            dailyReward = dailyReward * historicalQuarterlyMultiplier / 10000;
-            
-            // Apply historical dynamic multiplier for this specific day
-            uint256 dynamicMultiplier = _getHistoricalDynamicMultiplier(
-                level, 
-                currentDayTimestamp
+            // Use extracted function to calculate single day reward
+            uint256 dailyReward = _calculateSingleDayReward(
+                level,
+                baseReward,
+                currentDayFromStake,
+                currentDayTimestamp,
+                decayInterval,
+                decayRate
             );
-            dailyReward = dailyReward * dynamicMultiplier / 10000;
             
             totalRewards += dailyReward;
+        }
+        
+        // Calculate partial day rewards (按秒计算) ⭐ 核心改进
+        if (remainingSeconds > 0) {
+            uint256 currentDayFromStake = (lastClaimTime - stakeTime) / 1 days + totalDays;
+            uint256 currentDayTimestamp = stakeTime + (currentDayFromStake * 1 days);
+            
+            // Reuse the same function to calculate current incomplete day's reward
+            uint256 dailyReward = _calculateSingleDayReward(
+                level,
+                baseReward,
+                currentDayFromStake,
+                currentDayTimestamp,
+                decayInterval,
+                decayRate
+            );
+            
+            // Calculate proportion by seconds: (daily reward * remaining seconds) / (total seconds in a day)
+            uint256 partialReward = (dailyReward * remainingSeconds) / 1 days;
+            totalRewards += partialReward;
         }
         
         return totalRewards;
@@ -1035,6 +1121,6 @@ contract Staking is
     // ============================================
     
     function version() public pure returns (string memory) {
-        return "4.1.3";
+        return "4.1.5";
     }
 }

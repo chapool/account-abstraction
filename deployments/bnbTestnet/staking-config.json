@@ -1,0 +1,64 @@
+{
+  "network": "bnbTestnet",
+  "chainId": 97,
+  "deployer": "0xeA04842dBc32E2b8b3334b54C470e86e941e8a0d",
+  "timestamp": "2025-11-04T10:12:36.109Z",
+  "contract": {
+    "name": "StakingConfig",
+    "address": "0x9b00c7311F7F4Ba4127f018b371D84D7a66041BA",
+    "version": "3.2.0"
+  },
+  "configuration": {
+    "levels": {
+      "C": {
+        "dailyReward": "100000000000000000",
+        "dailyRewardCPP": "0.1",
+        "decayInterval": "20",
+        "decayRate": "3500",
+        "maxDecayRate": "8000"
+      },
+      "B": {
+        "dailyReward": "300000000000000000",
+        "dailyRewardCPP": "0.3",
+        "decayInterval": "30",
+        "decayRate": "3000",
+        "maxDecayRate": "7000"
+      },
+      "A": {
+        "dailyReward": "500000000000000000",
+        "dailyRewardCPP": "0.5",
+        "decayInterval": "45",
+        "decayRate": "2500",
+        "maxDecayRate": "6000"
+      },
+      "S": {
+        "dailyReward": "1500000000000000000",
+        "dailyRewardCPP": "1.5",
+        "decayInterval": "60",
+        "decayRate": "2000",
+        "maxDecayRate": "5000"
+      },
+      "SS": {
+        "dailyReward": "3500000000000000000",
+        "dailyRewardCPP": "3.5",
+        "decayInterval": "90",
+        "decayRate": "1500",
+        "maxDecayRate": "4000"
+      },
+      "SSS": {
+        "dailyReward": "65800000000000000000",
+        "dailyRewardCPP": "65.8",
+        "decayInterval": "180",
+        "decayRate": "1000",
+        "maxDecayRate": "2000"
+      }
+    }
+  },
+  "stakingProxy": "0x8ab3CD39295CF002103c183963e527f2536949Df",
+  "stakingImplementation": "0x47852525f8095A58E47Dbbb05380CAd0AD731Cb8",
+  "previousImplementation": "0x3C764155b122fC2Cc49B24309BbA52D2BC396AcA",
+  "lastUpgrade": "2025-11-20T06:58:30.321Z",
+  "upgradeNote": "Removed 50 NFT limit from batchStake and batchUnstake",
+  "upgradeMethod": "upgradeToAndCall (UUPS)",
+  "proxyType": "UUPS"
+}

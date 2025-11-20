@@ -47,13 +47,12 @@
       "kind": "uups"
     },
     {
-      "address": "0x8ab3CD39295CF002103c183963e527f2536949Df",
-      "txHash": "0x4ba7fce2149697519d4037788d9e5c245b0a74b2c1810a21786621743e6062ab",
+      "address": "0x429B4b2E685b72Df4cAa725E2D95f6e5D0e50cd4",
+      "txHash": "0x6c721d792051ed4df2dc76ec85629a4b9554ca548c6287cc8a653b2972c81393",
       "kind": "uups"
     },
     {
-      "address": "0x429B4b2E685b72Df4cAa725E2D95f6e5D0e50cd4",
-      "txHash": "0x6c721d792051ed4df2dc76ec85629a4b9554ca548c6287cc8a653b2972c81393",
+      "address": "0x8ab3CD39295CF002103c183963e527f2536949Df",
       "kind": "uups"
     }
   ],
@@ -1048,6 +1047,347 @@
           }
         },
         "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
+    "ea328244fbc5cc1143af90eef1c80a0a5778581d242173101e096a1443e02d66": {
+      "address": "0x3C764155b122fC2Cc49B24309BbA52D2BC396AcA",
+      "layout": {
+        "solcVersion": "0.8.28",
+        "storage": [
+          {
+            "label": "cpnftContract",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(CPNFT)9054",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:31"
+          },
+          {
+            "label": "CPPTokenContract",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ICPPToken)16162",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:32"
+          },
+          {
+            "label": "accountManagerContract",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(IAccountManager)15947",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:33"
+          },
+          {
+            "label": "configContract",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(StakingConfig)13703",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:34"
+          },
+          {
+            "label": "stakes",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_struct(StakeInfo)9107_storage)",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:49"
+          },
+          {
+            "label": "userStakes",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:50"
+          },
+          {
+            "label": "userLevelCounts",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_address,t_mapping(t_uint8,t_uint256))",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:51"
+          },
+          {
+            "label": "totalStakedCount",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:53"
+          },
+          {
+            "label": "totalStakedPerLevel",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint8,t_uint256)",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:56"
+          },
+          {
+            "label": "historicalAdjustments",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_array(t_struct(HistoricalAdjustment)9138_storage)dyn_storage",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:65"
+          },
+          {
+            "label": "userComboStatus",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_address,t_mapping(t_uint8,t_struct(ComboStatus)9153_storage))",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:76"
+          },
+          {
+            "label": "testMode",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_bool",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:80"
+          },
+          {
+            "label": "testTimestamp",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_uint256",
+            "contract": "Staking",
+            "src": "contracts/CPNFT/Staking.sol:80"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(HistoricalAdjustment)9138_storage)dyn_storage": {
+            "label": "struct Staking.HistoricalAdjustment[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(CPNFT)9054": {
+            "label": "contract CPNFT",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IAccountManager)15947": {
+            "label": "contract IAccountManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ICPPToken)16162": {
+            "label": "contract ICPPToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(StakingConfig)13703": {
+            "label": "contract StakingConfig",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(address => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint8,t_struct(ComboStatus)9153_storage))": {
+            "label": "mapping(address => mapping(uint8 => struct Staking.ComboStatus))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint8,t_uint256))": {
+            "label": "mapping(address => mapping(uint8 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StakeInfo)9107_storage)": {
+            "label": "mapping(uint256 => struct Staking.StakeInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint8,t_struct(ComboStatus)9153_storage)": {
+            "label": "mapping(uint8 => struct Staking.ComboStatus)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint8,t_uint256)": {
+            "label": "mapping(uint8 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(ComboStatus)9153_storage": {
+            "label": "struct Staking.ComboStatus",
+            "members": [
+              {
+                "label": "level",
+                "type": "t_uint8",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "count",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "effectiveFrom",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "bonus",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "isPending",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(HistoricalAdjustment)9138_storage": {
+            "label": "struct Staking.HistoricalAdjustment",
+            "members": [
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "quarterlyMultiplier",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "dynamicMultipliers",
+                "type": "t_mapping(t_uint8,t_uint256)",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(StakeInfo)9107_storage": {
+            "label": "struct Staking.StakeInfo",
+            "members": [
+              {
+                "label": "owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "tokenId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "level",
+                "type": "t_uint8",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "stakeTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "lastClaimTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "isActive",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "totalRewards",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "pendingRewards",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "continuousBonusClaimed",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Pausable": [
+            {
+              "contract": "PausableUpgradeable",
+              "label": "_paused",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol:21"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:43"
+            }
+          ],
           "erc7201:openzeppelin.storage.Ownable": [
             {
               "contract": "OwnableUpgradeable",
