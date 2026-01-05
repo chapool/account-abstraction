@@ -117,12 +117,12 @@ contract StakingConfig is Ownable {
         
         // Level configurations (C=1, B=2, A=3, S=4, SS=5, SSS=6)
         // Daily rewards in wei (1 CPP = 1 ether)
-        levelConfigs[1] = LevelConfig(0.1 ether, 20, 3500, 8000);   // C level: 0.1 CPP
-        levelConfigs[2] = LevelConfig(0.3 ether, 30, 3000, 7000);   // B level: 0.3 CPP
-        levelConfigs[3] = LevelConfig(0.5 ether, 45, 2500, 6000);  // A level: 0.5 CPP
-        levelConfigs[4] = LevelConfig(1.5 ether, 60, 2000, 5000);  // S level: 1.5 CPP
-        levelConfigs[5] = LevelConfig(3.5 ether, 90, 1500, 4000);  // SS level: 3.5 CPP
-        levelConfigs[6] = LevelConfig(65.8 ether, 180, 1000, 2000); // SSS level: 65.8 CPP
+        levelConfigs[1] = LevelConfig(0.5 ether, 20, 3500, 8000);   // C level: 0.5 CPP
+        levelConfigs[2] = LevelConfig(2 ether, 30, 3000, 7000);     // B level: 2 CPP
+        levelConfigs[3] = LevelConfig(3 ether, 45, 2500, 6000);     // A level: 3 CPP
+        levelConfigs[4] = LevelConfig(5 ether, 60, 2000, 5000);     // S level: 5 CPP
+        levelConfigs[5] = LevelConfig(10 ether, 90, 1500, 4000);    // SS level: 10 CPP
+        levelConfigs[6] = LevelConfig(69 ether, 180, 1000, 2000);   // SSS level: 69 CPP
         
         // Combo configurations
         comboConfigs[0] = ComboConfig(3, 500, 7, 0);    // 3 NFTs: 5% bonus, 7 days

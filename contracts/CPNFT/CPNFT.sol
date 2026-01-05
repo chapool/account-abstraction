@@ -35,6 +35,9 @@ contract CPNFT is
     // Staking contract address
     address public stakingContract;
     
+    // Marketplace contract address
+    address public marketplaceContract;
+    
     // Level supply tracking
     mapping(NFTLevel => uint256) public levelSupply;
 
@@ -47,6 +50,7 @@ contract CPNFT is
     event TokenLevelSet(uint256 indexed tokenId, NFTLevel level);
     event TokenStakeStatusChanged(uint256 indexed tokenId, bool isStaked);
     event StakingContractSet(address indexed stakingContract);
+    event MarketplaceContractSet(address indexed marketplaceContract);
     event LevelSupplyUpdated(NFTLevel indexed level, uint256 newSupply);
 
     // ============================================
@@ -185,6 +189,7 @@ contract CPNFT is
      */
     function batchBurn(uint256[] calldata tokenIds) external onlyOwner {
         for (uint256 i = 0; i < tokenIds.length; i++) {
+            require(!_isStaked[tokenIds[i]], "Cannot burn staked token");
             burn(tokenIds[i]);
         }
     }
@@ -195,6 +200,7 @@ contract CPNFT is
      */
     function burn(uint256 tokenId) public onlyOwner {
         _requireOwned(tokenId);
+        require(!_isStaked[tokenId], "Cannot burn staked token");
         
         // Update level supply before burning
         NFTLevel level = _tokenLevels[tokenId];
@@ -293,6 +299,77 @@ contract CPNFT is
         require(msg.sender == stakingContract, "Only staking contract can call");
         _isStaked[tokenId] = staked;
         emit TokenStakeStatusChanged(tokenId, staked);
+    }
+    
+    // ============================================
+    // MARKETPLACE FUNCTIONS
+    // ============================================
+    
+    /**
+     * @dev Set marketplace contract address (only contract owner)
+     * @param _marketplaceContract Marketplace contract address
+     */
+    function setMarketplaceContract(address _marketplaceContract) external onlyOwner {
+        marketplaceContract = _marketplaceContract;
+        emit MarketplaceContractSet(_marketplaceContract);
+    }
+    
+    /**
+     * @dev Transfer NFT from one address to another (only callable by marketplace contract)
+     * @param from The current owner of the token
+     * @param to The address to receive the token
+     * @param tokenId The token ID to transfer
+     * @notice Marketplace contract can transfer without user approval
+     */
+    function marketplaceTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external {
+        require(msg.sender == marketplaceContract, "Only marketplace contract can call");
+        require(!_isStaked[tokenId], "Cannot transfer staked token");
+        _transfer(from, to, tokenId);
+    }
+    
+    /**
+     * @dev Safely transfer NFT from one address to another (only callable by marketplace contract)
+     * @param from The current owner of the token
+     * @param to The address to receive the token
+     * @param tokenId The token ID to transfer
+     * @notice Marketplace contract can transfer without user approval
+     */
+    function marketplaceSafeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external {
+        require(msg.sender == marketplaceContract, "Only marketplace contract can call");
+        require(!_isStaked[tokenId], "Cannot transfer staked token");
+        _safeTransfer(from, to, tokenId, "");
+    }
+    
+    /**
+     * @dev Batch transfer NFTs (only callable by marketplace contract)
+     * @param from Array of current token owners
+     * @param to Array of new token owners
+     * @param tokenIds Array of token IDs to be transferred
+     * @notice Marketplace contract can transfer without user approval
+     */
+    function marketplaceBatchTransferFrom(
+        address[] calldata from,
+        address[] calldata to,
+        uint256[] calldata tokenIds
+    ) external {
+        require(msg.sender == marketplaceContract, "Only marketplace contract can call");
+        require(
+            from.length == to.length && to.length == tokenIds.length,
+            "Arrays length mismatch"
+        );
+        
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            require(!_isStaked[tokenIds[i]], "Cannot transfer staked token");
+            _transfer(from[i], to[i], tokenIds[i]);
+        }
     }
     
     // ============================================

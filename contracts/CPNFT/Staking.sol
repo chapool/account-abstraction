@@ -426,7 +426,6 @@ contract Staking is
         uint256[] calldata tokenIds
     ) external nonReentrant whenNotPaused onlyOwner {
         require(tokenIds.length > 0, "Empty token IDs array");
-        require(tokenIds.length <= 50, "Too many tokens in batch");
         require(userAddress != address(0), "Invalid user address");
         
         address aaAccount = _getAAAccount(userAddress);
@@ -1121,6 +1120,6 @@ contract Staking is
     // ============================================
     
     function version() public pure returns (string memory) {
-        return "4.1.5";
+        return "4.1.6";
     }
 }

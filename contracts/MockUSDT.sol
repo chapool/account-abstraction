@@ -13,13 +13,13 @@ contract MockUSDT is ERC20, Ownable {
     uint8 private _decimals;
     
     constructor() ERC20("Mock USDT", "mUSDT") Ownable(msg.sender) {
-        _decimals = 6; // USDT has 6 decimals
+        _decimals = 18; // Changed to 18 decimals
         // Mint initial supply to deployer (1M USDT)
         _mint(msg.sender, 1_000_000 * 10**_decimals);
     }
     
     /**
-     * @notice Override decimals to return 6 (like real USDT)
+     * @notice Override decimals to return 18
      */
     function decimals() public view virtual override returns (uint8) {
         return _decimals;
