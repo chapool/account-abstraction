@@ -287,7 +287,7 @@ contract Marketplace is
      * @notice Only contract owner or authorized backend can call this function
      * @notice Buyer must have approved sufficient payment token amount
      */
-    function buyItem(uint256 listingId, address buyer) 
+    function buyItem(uint256 listingId, address buyer, address payer) 
         external 
         override 
         nonReentrant 
@@ -300,11 +300,11 @@ contract Marketplace is
         require(listing.listingType == ListingType.FixedPrice, "Not a fixed price listing");
         require(buyer != address(0), "Invalid buyer address");
         require(buyer != listing.seller, "Seller cannot buy own item");
+        require(payer != address(0), "Invalid payer address");
         
         uint256 price = listing.price;
         
-        // Transfer payment token from buyer to contract
-        IERC20(paymentToken).safeTransferFrom(buyer, address(this), price);
+        IERC20(paymentToken).safeTransferFrom(payer, address(this), price);
         
         // Calculate platform fee
         uint256 platformFee = (price * platformFeeRate) / 10000;
@@ -320,7 +320,7 @@ contract Marketplace is
         // Update listing status
         listing.status = ListingStatus.Sold;
         
-        emit ItemSold(listingId, listing.seller, buyer, price, platformFee);
+        emit ItemSold(listingId, listing.seller, buyer, payer, price, platformFee);
     }
     
     // ============================================
@@ -335,7 +335,7 @@ contract Marketplace is
      * @notice Only contract owner or authorized backend can call this function
      * @notice Bidder must have approved sufficient payment token amount
      */
-    function placeBid(uint256 listingId, address bidder, uint256 bidAmount) 
+    function placeBid(uint256 listingId, address bidder, address payer, uint256 bidAmount) 
         external 
         override 
         nonReentrant 
@@ -348,6 +348,7 @@ contract Marketplace is
         require(listing.listingType == ListingType.Auction, "Not an auction listing");
         require(bidder != address(0), "Invalid bidder address");
         require(bidder != listing.seller, "Seller cannot bid on own auction");
+        require(payer != address(0), "Invalid payer address");
         
         uint256 currentTime = _getCurrentTimestamp();
         require(currentTime < listing.endTime, "Auction has ended");
@@ -355,12 +356,14 @@ contract Marketplace is
         uint256 highestBidIdx = highestBidIndex[listingId];
         uint256 currentHighestBid = 0;
         address previousBidder = address(0);
+        address previousPayer = address(0);
         
         if (bids[listingId].length > 0 && highestBidIdx < bids[listingId].length) {
             Bid storage currentBid = bids[listingId][highestBidIdx];
             require(!currentBid.refunded, "Highest bid is refunded");
             currentHighestBid = currentBid.amount;
             previousBidder = currentBid.bidder;
+            previousPayer = currentBid.payer;
         } else {
             // First bid must be at least starting price
             require(bidAmount >= listing.price, "Bid must be at least starting price");
@@ -372,21 +375,21 @@ contract Marketplace is
             : listing.price;
         require(bidAmount >= minBid, "Bid amount too low");
         
-        // Transfer payment token from bidder to contract
-        IERC20(paymentToken).safeTransferFrom(bidder, address(this), bidAmount);
+        IERC20(paymentToken).safeTransferFrom(payer, address(this), bidAmount);
         
         // Refund previous highest bidder if exists
         uint256 refundAmount = 0;
         if (previousBidder != address(0)) {
             refundAmount = currentHighestBid;
             bids[listingId][highestBidIdx].refunded = true;
-            IERC20(paymentToken).safeTransfer(previousBidder, refundAmount);
-            emit BidRefunded(listingId, previousBidder, refundAmount);
+            IERC20(paymentToken).safeTransfer(previousPayer, refundAmount);
+            emit BidRefunded(listingId, previousBidder, previousPayer, refundAmount);
         }
         
         // Create new bid
         bids[listingId].push(Bid({
             bidder: bidder,
+            payer: payer,
             amount: bidAmount,
             timestamp: currentTime,
             refunded: false
@@ -394,7 +397,7 @@ contract Marketplace is
         
         highestBidIndex[listingId] = bids[listingId].length - 1;
         
-        emit BidPlaced(listingId, bidder, bidAmount, previousBidder, refundAmount);
+        emit BidPlaced(listingId, bidder, payer, bidAmount, previousBidder, refundAmount);
     }
     
     /**
@@ -451,7 +454,7 @@ contract Marketplace is
         // Update listing status
         listing.status = ListingStatus.Sold;
         
-        emit AuctionSettled(listingId, listing.seller, winner, finalPrice, platformFee);
+        emit AuctionSettled(listingId, listing.seller, winner, winningBid.payer, finalPrice, platformFee);
     }
     
     // ============================================
@@ -577,9 +580,9 @@ contract Marketplace is
         
         for (uint256 i = 0; i < listingBids.length; i++) {
             if (!listingBids[i].refunded) {
-                token.safeTransfer(listingBids[i].bidder, listingBids[i].amount);
+                token.safeTransfer(listingBids[i].payer, listingBids[i].amount);
                 listingBids[i].refunded = true;
-                emit BidRefunded(listingId, listingBids[i].bidder, listingBids[i].amount);
+                emit BidRefunded(listingId, listingBids[i].bidder, listingBids[i].payer, listingBids[i].amount);
             }
         }
     }

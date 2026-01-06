@@ -18,7 +18,7 @@ abigen --abi MockUSDT.abi.json --pkg cpop --type MockUSDT --out "mock_usdt.go"
 abigen --abi CPNFT.abi.json --pkg cpop --type CPNFT --out "cp_nft.go"
 abigen --abi Staking.abi.json --pkg cpop --type Staking --out "staking.go"
 abigen --abi StakingReader.abi.json --pkg cpop --type StakingReader --out "staking_reader.go"
-abigen --abi ../artifacts/contracts/C2C/Marketplace.sol/Marketplace.json --pkg cpop --type Marketplace --out "marketplace.go"
+abigen --abi Marketplace.abi.json --pkg cpop --type Marketplace --out "marketplace.go"
 
 echo "Fixing duplicate type definitions..."
 ./fix-duplicates.sh

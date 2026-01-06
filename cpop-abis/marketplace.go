@@ -32,6 +32,7 @@ var (
 // IMarketplaceBid is an auto generated low-level Go binding around an user-defined struct.
 type IMarketplaceBid struct {
 	Bidder    common.Address
+	Payer     common.Address
 	Amount    *big.Int
 	Timestamp *big.Int
 	Refunded  bool
@@ -53,7 +54,7 @@ type IMarketplaceListing struct {
 
 // MarketplaceMetaData contains all meta data concerning the Marketplace contract.
 var MarketplaceMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"AddressEmptyCode\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"ERC1967InvalidImplementation\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC1967NonPayable\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"EnforcedPause\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ExpectedPause\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FailedCall\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ReentrancyGuardReentrantCall\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"SafeERC20FailedOperation\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"UUPSUnauthorizedCallContext\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"slot\",\"type\":\"bytes32\"}],\"name\":\"UUPSUnsupportedProxiableUUID\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"winner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"finalPrice\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"platformFee\",\"type\":\"uint256\"}],\"name\":\"AuctionSettled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousBidder\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"refundAmount\",\"type\":\"uint256\"}],\"name\":\"BidPlaced\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BidRefunded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"buyer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"platformFee\",\"type\":\"uint256\"}],\"name\":\"ItemSold\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"}],\"name\":\"ListingCancelled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"nftContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"enumIMarketplace.ListingType\",\"name\":\"listingType\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"}],\"name\":\"ListingCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Paused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Unpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"Upgraded\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"UPGRADE_INTERFACE_VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"bids\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"refunded\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"buyer\",\"type\":\"address\"}],\"name\":\"buyItem\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"name\":\"cancelListing\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingType\",\"name\":\"listingType\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minBidIncrement\",\"type\":\"uint256\"}],\"name\":\"createListing\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"delistingLimit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"delistingRecords\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastResetTime\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"delistingWindow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"disableTestMode\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"emergencyWithdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"}],\"name\":\"emergencyWithdrawNFT\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"initialTimestamp\",\"type\":\"uint256\"}],\"name\":\"enableTestMode\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"name\":\"getBids\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"refunded\",\"type\":\"bool\"}],\"internalType\":\"structIMarketplace.Bid[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getDelistingRecord\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastResetTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"remainingCount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"name\":\"getHighestBid\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"refunded\",\"type\":\"bool\"}],\"internalType\":\"structIMarketplace.Bid\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"name\":\"getListing\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nftContract\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingType\",\"name\":\"listingType\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minBidIncrement\",\"type\":\"uint256\"}],\"internalType\":\"structIMarketplace.Listing\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getUserListings\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"highestBidIndex\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftContract\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_paymentToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_platformFeeRecipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_platformFeeRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_delistingLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_delistingWindow\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"listings\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nftContract\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingType\",\"name\":\"listingType\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minBidIncrement\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nextListingId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nftContract\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"onERC721Received\",\"outputs\":[{\"internalType\":\"bytes4\",\"name\":\"\",\"type\":\"bytes4\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paymentToken\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"bidAmount\",\"type\":\"uint256\"}],\"name\":\"placeBid\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"platformFeeRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"platformFeeRecipient\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proxiableUUID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"setTestTimestamp\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"winner\",\"type\":\"address\"}],\"name\":\"settleAuction\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"testMode\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"testTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_delistingLimit\",\"type\":\"uint256\"}],\"name\":\"updateDelistingLimit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_delistingWindow\",\"type\":\"uint256\"}],\"name\":\"updateDelistingWindow\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftContract\",\"type\":\"address\"}],\"name\":\"updateNFTContract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_paymentToken\",\"type\":\"address\"}],\"name\":\"updatePaymentToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_platformFeeRate\",\"type\":\"uint256\"}],\"name\":\"updatePlatformFeeRate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_platformFeeRecipient\",\"type\":\"address\"}],\"name\":\"updatePlatformFeeRecipient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newImplementation\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"upgradeToAndCall\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"userListings\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"AddressEmptyCode\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"ERC1967InvalidImplementation\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC1967NonPayable\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"EnforcedPause\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ExpectedPause\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FailedCall\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ReentrancyGuardReentrantCall\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"SafeERC20FailedOperation\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"UUPSUnauthorizedCallContext\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"slot\",\"type\":\"bytes32\"}],\"name\":\"UUPSUnsupportedProxiableUUID\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"winner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"finalPrice\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"platformFee\",\"type\":\"uint256\"}],\"name\":\"AuctionSettled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousBidder\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"refundAmount\",\"type\":\"uint256\"}],\"name\":\"BidPlaced\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BidRefunded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"buyer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"platformFee\",\"type\":\"uint256\"}],\"name\":\"ItemSold\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"}],\"name\":\"ListingCancelled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"nftContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"enumIMarketplace.ListingType\",\"name\":\"listingType\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"}],\"name\":\"ListingCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Paused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Unpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"Upgraded\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"UPGRADE_INTERFACE_VERSION\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"bids\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"refunded\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"buyer\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"}],\"name\":\"buyItem\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"name\":\"cancelListing\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingType\",\"name\":\"listingType\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minBidIncrement\",\"type\":\"uint256\"}],\"name\":\"createListing\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"delistingLimit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"delistingRecords\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastResetTime\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"delistingWindow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"disableTestMode\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"emergencyWithdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"}],\"name\":\"emergencyWithdrawNFT\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"initialTimestamp\",\"type\":\"uint256\"}],\"name\":\"enableTestMode\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"name\":\"getBids\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"refunded\",\"type\":\"bool\"}],\"internalType\":\"structIMarketplace.Bid[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCurrentTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getDelistingRecord\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastResetTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"remainingCount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"name\":\"getHighestBid\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"refunded\",\"type\":\"bool\"}],\"internalType\":\"structIMarketplace.Bid\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"}],\"name\":\"getListing\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nftContract\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingType\",\"name\":\"listingType\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minBidIncrement\",\"type\":\"uint256\"}],\"internalType\":\"structIMarketplace.Listing\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getUserListings\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"highestBidIndex\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftContract\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_paymentToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_platformFeeRecipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_platformFeeRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_delistingLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_delistingWindow\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"listings\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nftContract\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingType\",\"name\":\"listingType\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"enumIMarketplace.ListingStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minBidIncrement\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nextListingId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nftContract\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"onERC721Received\",\"outputs\":[{\"internalType\":\"bytes4\",\"name\":\"\",\"type\":\"bytes4\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paymentToken\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"payer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"bidAmount\",\"type\":\"uint256\"}],\"name\":\"placeBid\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"platformFeeRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"platformFeeRecipient\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proxiableUUID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"setTestTimestamp\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"listingId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"winner\",\"type\":\"address\"}],\"name\":\"settleAuction\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"testMode\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"testTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_delistingLimit\",\"type\":\"uint256\"}],\"name\":\"updateDelistingLimit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_delistingWindow\",\"type\":\"uint256\"}],\"name\":\"updateDelistingWindow\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftContract\",\"type\":\"address\"}],\"name\":\"updateNFTContract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_paymentToken\",\"type\":\"address\"}],\"name\":\"updatePaymentToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_platformFeeRate\",\"type\":\"uint256\"}],\"name\":\"updatePlatformFeeRate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_platformFeeRecipient\",\"type\":\"address\"}],\"name\":\"updatePlatformFeeRecipient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newImplementation\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"upgradeToAndCall\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"userListings\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}]",
 }
 
 // MarketplaceABI is the input ABI used to generate the binding from.
@@ -235,9 +236,10 @@ func (_Marketplace *MarketplaceCallerSession) UPGRADEINTERFACEVERSION() (string,
 
 // Bids is a free data retrieval call binding the contract method 0x7b3c4baa.
 //
-// Solidity: function bids(uint256 , uint256 ) view returns(address bidder, uint256 amount, uint256 timestamp, bool refunded)
+// Solidity: function bids(uint256 , uint256 ) view returns(address bidder, address payer, uint256 amount, uint256 timestamp, bool refunded)
 func (_Marketplace *MarketplaceCaller) Bids(opts *bind.CallOpts, arg0 *big.Int, arg1 *big.Int) (struct {
 	Bidder    common.Address
+	Payer     common.Address
 	Amount    *big.Int
 	Timestamp *big.Int
 	Refunded  bool
@@ -247,6 +249,7 @@ func (_Marketplace *MarketplaceCaller) Bids(opts *bind.CallOpts, arg0 *big.Int, 
 
 	outstruct := new(struct {
 		Bidder    common.Address
+		Payer     common.Address
 		Amount    *big.Int
 		Timestamp *big.Int
 		Refunded  bool
@@ -256,9 +259,10 @@ func (_Marketplace *MarketplaceCaller) Bids(opts *bind.CallOpts, arg0 *big.Int, 
 	}
 
 	outstruct.Bidder = *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-	outstruct.Amount = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.Timestamp = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
-	outstruct.Refunded = *abi.ConvertType(out[3], new(bool)).(*bool)
+	outstruct.Payer = *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
+	outstruct.Amount = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
+	outstruct.Timestamp = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
+	outstruct.Refunded = *abi.ConvertType(out[4], new(bool)).(*bool)
 
 	return *outstruct, err
 
@@ -266,9 +270,10 @@ func (_Marketplace *MarketplaceCaller) Bids(opts *bind.CallOpts, arg0 *big.Int, 
 
 // Bids is a free data retrieval call binding the contract method 0x7b3c4baa.
 //
-// Solidity: function bids(uint256 , uint256 ) view returns(address bidder, uint256 amount, uint256 timestamp, bool refunded)
+// Solidity: function bids(uint256 , uint256 ) view returns(address bidder, address payer, uint256 amount, uint256 timestamp, bool refunded)
 func (_Marketplace *MarketplaceSession) Bids(arg0 *big.Int, arg1 *big.Int) (struct {
 	Bidder    common.Address
+	Payer     common.Address
 	Amount    *big.Int
 	Timestamp *big.Int
 	Refunded  bool
@@ -278,9 +283,10 @@ func (_Marketplace *MarketplaceSession) Bids(arg0 *big.Int, arg1 *big.Int) (stru
 
 // Bids is a free data retrieval call binding the contract method 0x7b3c4baa.
 //
-// Solidity: function bids(uint256 , uint256 ) view returns(address bidder, uint256 amount, uint256 timestamp, bool refunded)
+// Solidity: function bids(uint256 , uint256 ) view returns(address bidder, address payer, uint256 amount, uint256 timestamp, bool refunded)
 func (_Marketplace *MarketplaceCallerSession) Bids(arg0 *big.Int, arg1 *big.Int) (struct {
 	Bidder    common.Address
+	Payer     common.Address
 	Amount    *big.Int
 	Timestamp *big.Int
 	Refunded  bool
@@ -397,7 +403,7 @@ func (_Marketplace *MarketplaceCallerSession) DelistingWindow() (*big.Int, error
 
 // GetBids is a free data retrieval call binding the contract method 0x131d9a27.
 //
-// Solidity: function getBids(uint256 listingId) view returns((address,uint256,uint256,bool)[])
+// Solidity: function getBids(uint256 listingId) view returns((address,address,uint256,uint256,bool)[])
 func (_Marketplace *MarketplaceCaller) GetBids(opts *bind.CallOpts, listingId *big.Int) ([]IMarketplaceBid, error) {
 	var out []interface{}
 	err := _Marketplace.contract.Call(opts, &out, "getBids", listingId)
@@ -414,14 +420,14 @@ func (_Marketplace *MarketplaceCaller) GetBids(opts *bind.CallOpts, listingId *b
 
 // GetBids is a free data retrieval call binding the contract method 0x131d9a27.
 //
-// Solidity: function getBids(uint256 listingId) view returns((address,uint256,uint256,bool)[])
+// Solidity: function getBids(uint256 listingId) view returns((address,address,uint256,uint256,bool)[])
 func (_Marketplace *MarketplaceSession) GetBids(listingId *big.Int) ([]IMarketplaceBid, error) {
 	return _Marketplace.Contract.GetBids(&_Marketplace.CallOpts, listingId)
 }
 
 // GetBids is a free data retrieval call binding the contract method 0x131d9a27.
 //
-// Solidity: function getBids(uint256 listingId) view returns((address,uint256,uint256,bool)[])
+// Solidity: function getBids(uint256 listingId) view returns((address,address,uint256,uint256,bool)[])
 func (_Marketplace *MarketplaceCallerSession) GetBids(listingId *big.Int) ([]IMarketplaceBid, error) {
 	return _Marketplace.Contract.GetBids(&_Marketplace.CallOpts, listingId)
 }
@@ -509,7 +515,7 @@ func (_Marketplace *MarketplaceCallerSession) GetDelistingRecord(user common.Add
 
 // GetHighestBid is a free data retrieval call binding the contract method 0x8f288644.
 //
-// Solidity: function getHighestBid(uint256 listingId) view returns((address,uint256,uint256,bool))
+// Solidity: function getHighestBid(uint256 listingId) view returns((address,address,uint256,uint256,bool))
 func (_Marketplace *MarketplaceCaller) GetHighestBid(opts *bind.CallOpts, listingId *big.Int) (IMarketplaceBid, error) {
 	var out []interface{}
 	err := _Marketplace.contract.Call(opts, &out, "getHighestBid", listingId)
@@ -526,14 +532,14 @@ func (_Marketplace *MarketplaceCaller) GetHighestBid(opts *bind.CallOpts, listin
 
 // GetHighestBid is a free data retrieval call binding the contract method 0x8f288644.
 //
-// Solidity: function getHighestBid(uint256 listingId) view returns((address,uint256,uint256,bool))
+// Solidity: function getHighestBid(uint256 listingId) view returns((address,address,uint256,uint256,bool))
 func (_Marketplace *MarketplaceSession) GetHighestBid(listingId *big.Int) (IMarketplaceBid, error) {
 	return _Marketplace.Contract.GetHighestBid(&_Marketplace.CallOpts, listingId)
 }
 
 // GetHighestBid is a free data retrieval call binding the contract method 0x8f288644.
 //
-// Solidity: function getHighestBid(uint256 listingId) view returns((address,uint256,uint256,bool))
+// Solidity: function getHighestBid(uint256 listingId) view returns((address,address,uint256,uint256,bool))
 func (_Marketplace *MarketplaceCallerSession) GetHighestBid(listingId *big.Int) (IMarketplaceBid, error) {
 	return _Marketplace.Contract.GetHighestBid(&_Marketplace.CallOpts, listingId)
 }
@@ -1119,25 +1125,25 @@ func (_Marketplace *MarketplaceCallerSession) Version() (string, error) {
 	return _Marketplace.Contract.Version(&_Marketplace.CallOpts)
 }
 
-// BuyItem is a paid mutator transaction binding the contract method 0x7383d709.
+// BuyItem is a paid mutator transaction binding the contract method 0x3504d935.
 //
-// Solidity: function buyItem(uint256 listingId, address buyer) returns()
-func (_Marketplace *MarketplaceTransactor) BuyItem(opts *bind.TransactOpts, listingId *big.Int, buyer common.Address) (*types.Transaction, error) {
-	return _Marketplace.contract.Transact(opts, "buyItem", listingId, buyer)
+// Solidity: function buyItem(uint256 listingId, address buyer, address payer) returns()
+func (_Marketplace *MarketplaceTransactor) BuyItem(opts *bind.TransactOpts, listingId *big.Int, buyer common.Address, payer common.Address) (*types.Transaction, error) {
+	return _Marketplace.contract.Transact(opts, "buyItem", listingId, buyer, payer)
 }
 
-// BuyItem is a paid mutator transaction binding the contract method 0x7383d709.
+// BuyItem is a paid mutator transaction binding the contract method 0x3504d935.
 //
-// Solidity: function buyItem(uint256 listingId, address buyer) returns()
-func (_Marketplace *MarketplaceSession) BuyItem(listingId *big.Int, buyer common.Address) (*types.Transaction, error) {
-	return _Marketplace.Contract.BuyItem(&_Marketplace.TransactOpts, listingId, buyer)
+// Solidity: function buyItem(uint256 listingId, address buyer, address payer) returns()
+func (_Marketplace *MarketplaceSession) BuyItem(listingId *big.Int, buyer common.Address, payer common.Address) (*types.Transaction, error) {
+	return _Marketplace.Contract.BuyItem(&_Marketplace.TransactOpts, listingId, buyer, payer)
 }
 
-// BuyItem is a paid mutator transaction binding the contract method 0x7383d709.
+// BuyItem is a paid mutator transaction binding the contract method 0x3504d935.
 //
-// Solidity: function buyItem(uint256 listingId, address buyer) returns()
-func (_Marketplace *MarketplaceTransactorSession) BuyItem(listingId *big.Int, buyer common.Address) (*types.Transaction, error) {
-	return _Marketplace.Contract.BuyItem(&_Marketplace.TransactOpts, listingId, buyer)
+// Solidity: function buyItem(uint256 listingId, address buyer, address payer) returns()
+func (_Marketplace *MarketplaceTransactorSession) BuyItem(listingId *big.Int, buyer common.Address, payer common.Address) (*types.Transaction, error) {
+	return _Marketplace.Contract.BuyItem(&_Marketplace.TransactOpts, listingId, buyer, payer)
 }
 
 // CancelListing is a paid mutator transaction binding the contract method 0x305a67a8.
@@ -1308,25 +1314,25 @@ func (_Marketplace *MarketplaceTransactorSession) Pause() (*types.Transaction, e
 	return _Marketplace.Contract.Pause(&_Marketplace.TransactOpts)
 }
 
-// PlaceBid is a paid mutator transaction binding the contract method 0xf1e2f348.
+// PlaceBid is a paid mutator transaction binding the contract method 0x48669371.
 //
-// Solidity: function placeBid(uint256 listingId, address bidder, uint256 bidAmount) returns()
-func (_Marketplace *MarketplaceTransactor) PlaceBid(opts *bind.TransactOpts, listingId *big.Int, bidder common.Address, bidAmount *big.Int) (*types.Transaction, error) {
-	return _Marketplace.contract.Transact(opts, "placeBid", listingId, bidder, bidAmount)
+// Solidity: function placeBid(uint256 listingId, address bidder, address payer, uint256 bidAmount) returns()
+func (_Marketplace *MarketplaceTransactor) PlaceBid(opts *bind.TransactOpts, listingId *big.Int, bidder common.Address, payer common.Address, bidAmount *big.Int) (*types.Transaction, error) {
+	return _Marketplace.contract.Transact(opts, "placeBid", listingId, bidder, payer, bidAmount)
 }
 
-// PlaceBid is a paid mutator transaction binding the contract method 0xf1e2f348.
+// PlaceBid is a paid mutator transaction binding the contract method 0x48669371.
 //
-// Solidity: function placeBid(uint256 listingId, address bidder, uint256 bidAmount) returns()
-func (_Marketplace *MarketplaceSession) PlaceBid(listingId *big.Int, bidder common.Address, bidAmount *big.Int) (*types.Transaction, error) {
-	return _Marketplace.Contract.PlaceBid(&_Marketplace.TransactOpts, listingId, bidder, bidAmount)
+// Solidity: function placeBid(uint256 listingId, address bidder, address payer, uint256 bidAmount) returns()
+func (_Marketplace *MarketplaceSession) PlaceBid(listingId *big.Int, bidder common.Address, payer common.Address, bidAmount *big.Int) (*types.Transaction, error) {
+	return _Marketplace.Contract.PlaceBid(&_Marketplace.TransactOpts, listingId, bidder, payer, bidAmount)
 }
 
-// PlaceBid is a paid mutator transaction binding the contract method 0xf1e2f348.
+// PlaceBid is a paid mutator transaction binding the contract method 0x48669371.
 //
-// Solidity: function placeBid(uint256 listingId, address bidder, uint256 bidAmount) returns()
-func (_Marketplace *MarketplaceTransactorSession) PlaceBid(listingId *big.Int, bidder common.Address, bidAmount *big.Int) (*types.Transaction, error) {
-	return _Marketplace.Contract.PlaceBid(&_Marketplace.TransactOpts, listingId, bidder, bidAmount)
+// Solidity: function placeBid(uint256 listingId, address bidder, address payer, uint256 bidAmount) returns()
+func (_Marketplace *MarketplaceTransactorSession) PlaceBid(listingId *big.Int, bidder common.Address, payer common.Address, bidAmount *big.Int) (*types.Transaction, error) {
+	return _Marketplace.Contract.PlaceBid(&_Marketplace.TransactOpts, listingId, bidder, payer, bidAmount)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -1653,14 +1659,15 @@ type MarketplaceAuctionSettled struct {
 	ListingId   *big.Int
 	Seller      common.Address
 	Winner      common.Address
+	Payer       common.Address
 	FinalPrice  *big.Int
 	PlatformFee *big.Int
 	Raw         types.Log // Blockchain specific contextual infos
 }
 
-// FilterAuctionSettled is a free log retrieval operation binding the contract event 0xf2c88560a571e69247330e22df504ac9cd88ebd638c975954fddf870a9039177.
+// FilterAuctionSettled is a free log retrieval operation binding the contract event 0xd2810f17db05e75181b305b02df7da39e2ee8b9470295d41b76cc9313f20241c.
 //
-// Solidity: event AuctionSettled(uint256 indexed listingId, address indexed seller, address indexed winner, uint256 finalPrice, uint256 platformFee)
+// Solidity: event AuctionSettled(uint256 indexed listingId, address indexed seller, address indexed winner, address payer, uint256 finalPrice, uint256 platformFee)
 func (_Marketplace *MarketplaceFilterer) FilterAuctionSettled(opts *bind.FilterOpts, listingId []*big.Int, seller []common.Address, winner []common.Address) (*MarketplaceAuctionSettledIterator, error) {
 
 	var listingIdRule []interface{}
@@ -1683,9 +1690,9 @@ func (_Marketplace *MarketplaceFilterer) FilterAuctionSettled(opts *bind.FilterO
 	return &MarketplaceAuctionSettledIterator{contract: _Marketplace.contract, event: "AuctionSettled", logs: logs, sub: sub}, nil
 }
 
-// WatchAuctionSettled is a free log subscription operation binding the contract event 0xf2c88560a571e69247330e22df504ac9cd88ebd638c975954fddf870a9039177.
+// WatchAuctionSettled is a free log subscription operation binding the contract event 0xd2810f17db05e75181b305b02df7da39e2ee8b9470295d41b76cc9313f20241c.
 //
-// Solidity: event AuctionSettled(uint256 indexed listingId, address indexed seller, address indexed winner, uint256 finalPrice, uint256 platformFee)
+// Solidity: event AuctionSettled(uint256 indexed listingId, address indexed seller, address indexed winner, address payer, uint256 finalPrice, uint256 platformFee)
 func (_Marketplace *MarketplaceFilterer) WatchAuctionSettled(opts *bind.WatchOpts, sink chan<- *MarketplaceAuctionSettled, listingId []*big.Int, seller []common.Address, winner []common.Address) (event.Subscription, error) {
 
 	var listingIdRule []interface{}
@@ -1733,9 +1740,9 @@ func (_Marketplace *MarketplaceFilterer) WatchAuctionSettled(opts *bind.WatchOpt
 	}), nil
 }
 
-// ParseAuctionSettled is a log parse operation binding the contract event 0xf2c88560a571e69247330e22df504ac9cd88ebd638c975954fddf870a9039177.
+// ParseAuctionSettled is a log parse operation binding the contract event 0xd2810f17db05e75181b305b02df7da39e2ee8b9470295d41b76cc9313f20241c.
 //
-// Solidity: event AuctionSettled(uint256 indexed listingId, address indexed seller, address indexed winner, uint256 finalPrice, uint256 platformFee)
+// Solidity: event AuctionSettled(uint256 indexed listingId, address indexed seller, address indexed winner, address payer, uint256 finalPrice, uint256 platformFee)
 func (_Marketplace *MarketplaceFilterer) ParseAuctionSettled(log types.Log) (*MarketplaceAuctionSettled, error) {
 	event := new(MarketplaceAuctionSettled)
 	if err := _Marketplace.contract.UnpackLog(event, "AuctionSettled", log); err != nil {
@@ -1816,15 +1823,16 @@ func (it *MarketplaceBidPlacedIterator) Close() error {
 type MarketplaceBidPlaced struct {
 	ListingId      *big.Int
 	Bidder         common.Address
+	Payer          common.Address
 	Amount         *big.Int
 	PreviousBidder common.Address
 	RefundAmount   *big.Int
 	Raw            types.Log // Blockchain specific contextual infos
 }
 
-// FilterBidPlaced is a free log retrieval operation binding the contract event 0x2e296671c28b83e813c76e2acf7481f5a2cc46aaeb9bcf33b3e048f50e9c33e9.
+// FilterBidPlaced is a free log retrieval operation binding the contract event 0xf8fc7d70cb5501c48859cbd3d0ab31bfe064e6084a477381fc32eca5783319d3.
 //
-// Solidity: event BidPlaced(uint256 indexed listingId, address indexed bidder, uint256 amount, address indexed previousBidder, uint256 refundAmount)
+// Solidity: event BidPlaced(uint256 indexed listingId, address indexed bidder, address payer, uint256 amount, address indexed previousBidder, uint256 refundAmount)
 func (_Marketplace *MarketplaceFilterer) FilterBidPlaced(opts *bind.FilterOpts, listingId []*big.Int, bidder []common.Address, previousBidder []common.Address) (*MarketplaceBidPlacedIterator, error) {
 
 	var listingIdRule []interface{}
@@ -1848,9 +1856,9 @@ func (_Marketplace *MarketplaceFilterer) FilterBidPlaced(opts *bind.FilterOpts, 
 	return &MarketplaceBidPlacedIterator{contract: _Marketplace.contract, event: "BidPlaced", logs: logs, sub: sub}, nil
 }
 
-// WatchBidPlaced is a free log subscription operation binding the contract event 0x2e296671c28b83e813c76e2acf7481f5a2cc46aaeb9bcf33b3e048f50e9c33e9.
+// WatchBidPlaced is a free log subscription operation binding the contract event 0xf8fc7d70cb5501c48859cbd3d0ab31bfe064e6084a477381fc32eca5783319d3.
 //
-// Solidity: event BidPlaced(uint256 indexed listingId, address indexed bidder, uint256 amount, address indexed previousBidder, uint256 refundAmount)
+// Solidity: event BidPlaced(uint256 indexed listingId, address indexed bidder, address payer, uint256 amount, address indexed previousBidder, uint256 refundAmount)
 func (_Marketplace *MarketplaceFilterer) WatchBidPlaced(opts *bind.WatchOpts, sink chan<- *MarketplaceBidPlaced, listingId []*big.Int, bidder []common.Address, previousBidder []common.Address) (event.Subscription, error) {
 
 	var listingIdRule []interface{}
@@ -1899,9 +1907,9 @@ func (_Marketplace *MarketplaceFilterer) WatchBidPlaced(opts *bind.WatchOpts, si
 	}), nil
 }
 
-// ParseBidPlaced is a log parse operation binding the contract event 0x2e296671c28b83e813c76e2acf7481f5a2cc46aaeb9bcf33b3e048f50e9c33e9.
+// ParseBidPlaced is a log parse operation binding the contract event 0xf8fc7d70cb5501c48859cbd3d0ab31bfe064e6084a477381fc32eca5783319d3.
 //
-// Solidity: event BidPlaced(uint256 indexed listingId, address indexed bidder, uint256 amount, address indexed previousBidder, uint256 refundAmount)
+// Solidity: event BidPlaced(uint256 indexed listingId, address indexed bidder, address payer, uint256 amount, address indexed previousBidder, uint256 refundAmount)
 func (_Marketplace *MarketplaceFilterer) ParseBidPlaced(log types.Log) (*MarketplaceBidPlaced, error) {
 	event := new(MarketplaceBidPlaced)
 	if err := _Marketplace.contract.UnpackLog(event, "BidPlaced", log); err != nil {
@@ -1982,13 +1990,14 @@ func (it *MarketplaceBidRefundedIterator) Close() error {
 type MarketplaceBidRefunded struct {
 	ListingId *big.Int
 	Bidder    common.Address
+	Payer     common.Address
 	Amount    *big.Int
 	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterBidRefunded is a free log retrieval operation binding the contract event 0xa59312996dc68b7f0224b341fed75d5afeb3bb20624107d37942d14f59428156.
+// FilterBidRefunded is a free log retrieval operation binding the contract event 0x41da1dc44711a406471e0deb66bc8bf75abc3d9704eef9c5265dc587e0c03a87.
 //
-// Solidity: event BidRefunded(uint256 indexed listingId, address indexed bidder, uint256 amount)
+// Solidity: event BidRefunded(uint256 indexed listingId, address indexed bidder, address payer, uint256 amount)
 func (_Marketplace *MarketplaceFilterer) FilterBidRefunded(opts *bind.FilterOpts, listingId []*big.Int, bidder []common.Address) (*MarketplaceBidRefundedIterator, error) {
 
 	var listingIdRule []interface{}
@@ -2007,9 +2016,9 @@ func (_Marketplace *MarketplaceFilterer) FilterBidRefunded(opts *bind.FilterOpts
 	return &MarketplaceBidRefundedIterator{contract: _Marketplace.contract, event: "BidRefunded", logs: logs, sub: sub}, nil
 }
 
-// WatchBidRefunded is a free log subscription operation binding the contract event 0xa59312996dc68b7f0224b341fed75d5afeb3bb20624107d37942d14f59428156.
+// WatchBidRefunded is a free log subscription operation binding the contract event 0x41da1dc44711a406471e0deb66bc8bf75abc3d9704eef9c5265dc587e0c03a87.
 //
-// Solidity: event BidRefunded(uint256 indexed listingId, address indexed bidder, uint256 amount)
+// Solidity: event BidRefunded(uint256 indexed listingId, address indexed bidder, address payer, uint256 amount)
 func (_Marketplace *MarketplaceFilterer) WatchBidRefunded(opts *bind.WatchOpts, sink chan<- *MarketplaceBidRefunded, listingId []*big.Int, bidder []common.Address) (event.Subscription, error) {
 
 	var listingIdRule []interface{}
@@ -2053,9 +2062,9 @@ func (_Marketplace *MarketplaceFilterer) WatchBidRefunded(opts *bind.WatchOpts, 
 	}), nil
 }
 
-// ParseBidRefunded is a log parse operation binding the contract event 0xa59312996dc68b7f0224b341fed75d5afeb3bb20624107d37942d14f59428156.
+// ParseBidRefunded is a log parse operation binding the contract event 0x41da1dc44711a406471e0deb66bc8bf75abc3d9704eef9c5265dc587e0c03a87.
 //
-// Solidity: event BidRefunded(uint256 indexed listingId, address indexed bidder, uint256 amount)
+// Solidity: event BidRefunded(uint256 indexed listingId, address indexed bidder, address payer, uint256 amount)
 func (_Marketplace *MarketplaceFilterer) ParseBidRefunded(log types.Log) (*MarketplaceBidRefunded, error) {
 	event := new(MarketplaceBidRefunded)
 	if err := _Marketplace.contract.UnpackLog(event, "BidRefunded", log); err != nil {
@@ -2271,14 +2280,15 @@ type MarketplaceItemSold struct {
 	ListingId   *big.Int
 	Seller      common.Address
 	Buyer       common.Address
+	Payer       common.Address
 	Price       *big.Int
 	PlatformFee *big.Int
 	Raw         types.Log // Blockchain specific contextual infos
 }
 
-// FilterItemSold is a free log retrieval operation binding the contract event 0xd2b8648ec6ff6bd9ed10162d6ec424ae792c12820a475e8ef52f23fd7da4f1eb.
+// FilterItemSold is a free log retrieval operation binding the contract event 0x341f1f9189f9fe657e10ddf17dbca6d71dbc1bc76481e1f2c74727810135e8de.
 //
-// Solidity: event ItemSold(uint256 indexed listingId, address indexed seller, address indexed buyer, uint256 price, uint256 platformFee)
+// Solidity: event ItemSold(uint256 indexed listingId, address indexed seller, address indexed buyer, address payer, uint256 price, uint256 platformFee)
 func (_Marketplace *MarketplaceFilterer) FilterItemSold(opts *bind.FilterOpts, listingId []*big.Int, seller []common.Address, buyer []common.Address) (*MarketplaceItemSoldIterator, error) {
 
 	var listingIdRule []interface{}
@@ -2301,9 +2311,9 @@ func (_Marketplace *MarketplaceFilterer) FilterItemSold(opts *bind.FilterOpts, l
 	return &MarketplaceItemSoldIterator{contract: _Marketplace.contract, event: "ItemSold", logs: logs, sub: sub}, nil
 }
 
-// WatchItemSold is a free log subscription operation binding the contract event 0xd2b8648ec6ff6bd9ed10162d6ec424ae792c12820a475e8ef52f23fd7da4f1eb.
+// WatchItemSold is a free log subscription operation binding the contract event 0x341f1f9189f9fe657e10ddf17dbca6d71dbc1bc76481e1f2c74727810135e8de.
 //
-// Solidity: event ItemSold(uint256 indexed listingId, address indexed seller, address indexed buyer, uint256 price, uint256 platformFee)
+// Solidity: event ItemSold(uint256 indexed listingId, address indexed seller, address indexed buyer, address payer, uint256 price, uint256 platformFee)
 func (_Marketplace *MarketplaceFilterer) WatchItemSold(opts *bind.WatchOpts, sink chan<- *MarketplaceItemSold, listingId []*big.Int, seller []common.Address, buyer []common.Address) (event.Subscription, error) {
 
 	var listingIdRule []interface{}
@@ -2351,9 +2361,9 @@ func (_Marketplace *MarketplaceFilterer) WatchItemSold(opts *bind.WatchOpts, sin
 	}), nil
 }
 
-// ParseItemSold is a log parse operation binding the contract event 0xd2b8648ec6ff6bd9ed10162d6ec424ae792c12820a475e8ef52f23fd7da4f1eb.
+// ParseItemSold is a log parse operation binding the contract event 0x341f1f9189f9fe657e10ddf17dbca6d71dbc1bc76481e1f2c74727810135e8de.
 //
-// Solidity: event ItemSold(uint256 indexed listingId, address indexed seller, address indexed buyer, uint256 price, uint256 platformFee)
+// Solidity: event ItemSold(uint256 indexed listingId, address indexed seller, address indexed buyer, address payer, uint256 price, uint256 platformFee)
 func (_Marketplace *MarketplaceFilterer) ParseItemSold(log types.Log) (*MarketplaceItemSold, error) {
 	event := new(MarketplaceItemSold)
 	if err := _Marketplace.contract.UnpackLog(event, "ItemSold", log); err != nil {

@@ -128,6 +128,12 @@
       },
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "payer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
         "name": "finalPrice",
         "type": "uint256"
@@ -155,6 +161,12 @@
         "indexed": true,
         "internalType": "address",
         "name": "bidder",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "payer",
         "type": "address"
       },
       {
@@ -192,6 +204,12 @@
         "indexed": true,
         "internalType": "address",
         "name": "bidder",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "payer",
         "type": "address"
       },
       {
@@ -236,6 +254,12 @@
         "indexed": true,
         "internalType": "address",
         "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "payer",
         "type": "address"
       },
       {
@@ -414,6 +438,11 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "payer",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
@@ -442,6 +471,11 @@
       {
         "internalType": "address",
         "name": "buyer",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "payer",
         "type": "address"
       }
     ],
@@ -636,6 +670,11 @@
             "type": "address"
           },
           {
+            "internalType": "address",
+            "name": "payer",
+            "type": "address"
+          },
+          {
             "internalType": "uint256",
             "name": "amount",
             "type": "uint256"
@@ -716,6 +755,11 @@
           {
             "internalType": "address",
             "name": "bidder",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "payer",
             "type": "address"
           },
           {
@@ -1074,6 +1118,11 @@
       {
         "internalType": "address",
         "name": "bidder",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "payer",
         "type": "address"
       },
       {

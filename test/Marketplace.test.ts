@@ -88,11 +88,12 @@ describe("Marketplace", function () {
     const sellerBalanceBefore = await usdt.balanceOf(seller.address);
     const platformBalanceBefore = await usdt.balanceOf(deployer.address);
 
-    await expect(marketplace.connect(deployer).buyItem(listingId, buyer.address))
+    await expect(marketplace.connect(deployer).buyItem(listingId, buyer.address, buyer.address))
       .to.emit(marketplace, "ItemSold")
       .withArgs(
         listingId,
         seller.address,
+        buyer.address,
         buyer.address,
         price,
         price.mul(platformFeeRate).div(10000)
@@ -108,6 +109,42 @@ describe("Marketplace", function () {
 
     expect(sellerBalanceAfter.sub(sellerBalanceBefore)).to.equal(sellerAmount);
     expect(platformBalanceAfter.sub(platformBalanceBefore)).to.equal(platformFee);
+  });
+
+  it("一口价购买由第三方支付", async () => {
+    const price = ethers.utils.parseEther("100");
+    const tokenId = await mintToSeller();
+    const listingType = 0;
+    const tx = await marketplace
+      .connect(deployer)
+      .createListing(seller.address, tokenId, listingType, price, 0, 0);
+    const receipt = await tx.wait();
+    const listingId = receipt.events?.find((e: any) => e.event === "ListingCreated")?.args?.listingId?.toNumber();
+    expect(await cpnft.ownerOf(tokenId)).to.equal(marketplace.address);
+    await usdt.connect(bidder1).faucet();
+    await usdt.connect(bidder1).approve(marketplace.address, price);
+    const sellerBefore = await usdt.balanceOf(seller.address);
+    const platformBefore = await usdt.balanceOf(deployer.address);
+    const payerBefore = await usdt.balanceOf(bidder1.address);
+    await expect(marketplace.connect(deployer).buyItem(listingId, buyer.address, bidder1.address))
+      .to.emit(marketplace, "ItemSold")
+      .withArgs(
+        listingId,
+        seller.address,
+        buyer.address,
+        bidder1.address,
+        price,
+        price.mul(platformFeeRate).div(10000)
+      );
+    expect(await cpnft.ownerOf(tokenId)).to.equal(buyer.address);
+    const fee = price.mul(platformFeeRate).div(10000);
+    const sellerAmount = price.sub(fee);
+    const sellerAfter = await usdt.balanceOf(seller.address);
+    const platformAfter = await usdt.balanceOf(deployer.address);
+    const payerAfter = await usdt.balanceOf(bidder1.address);
+    expect(sellerAfter.sub(sellerBefore)).to.equal(sellerAmount);
+    expect(platformAfter.sub(platformBefore)).to.equal(fee);
+    expect(payerBefore.sub(payerAfter)).to.equal(price);
   });
 
   it("拍卖加价、退款与结算流程", async () => {
@@ -132,17 +169,17 @@ describe("Marketplace", function () {
     await usdt.connect(bidder2).approve(marketplace.address, ethers.utils.parseEther("1000"));
 
     const bid1 = ethers.utils.parseEther("60");
-    await expect(marketplace.connect(deployer).placeBid(listingId, bidder1.address, bid1))
+    await expect(marketplace.connect(deployer).placeBid(listingId, bidder1.address, bidder1.address, bid1))
       .to.emit(marketplace, "BidPlaced")
-      .withArgs(listingId, bidder1.address, bid1, ethers.constants.AddressZero, 0);
+      .withArgs(listingId, bidder1.address, bidder1.address, bid1, ethers.constants.AddressZero, 0);
 
     const minNextBid = bid1.add(bid1.mul(minBidIncBps).div(10000)); // 66
     const bid2 = minNextBid;
-    await expect(marketplace.connect(deployer).placeBid(listingId, bidder2.address, bid2))
+    await expect(marketplace.connect(deployer).placeBid(listingId, bidder2.address, bidder2.address, bid2))
       .to.emit(marketplace, "BidRefunded")
-      .withArgs(listingId, bidder1.address, bid1)
+      .withArgs(listingId, bidder1.address, bidder1.address, bid1)
       .and.to.emit(marketplace, "BidPlaced")
-      .withArgs(listingId, bidder2.address, bid2, bidder1.address, bid1);
+      .withArgs(listingId, bidder2.address, bidder2.address, bid2, bidder1.address, bid1);
 
     const bidder1BalanceAfterRefund = await usdt.balanceOf(bidder1.address);
     expect(bidder1BalanceAfterRefund).to.be.gte(bid1);
@@ -160,6 +197,7 @@ describe("Marketplace", function () {
         listingId,
         seller.address,
         bidder2.address,
+        bidder2.address,
         bid2,
         bid2.mul(platformFeeRate).div(10000)
       );
@@ -174,6 +212,58 @@ describe("Marketplace", function () {
     expect(platformBalanceAfter.sub(platformBalanceBefore)).to.equal(platformFee);
   });
 
+  it("拍卖出价由第三方支付与退款回第三方", async () => {
+    const startPrice = ethers.utils.parseEther("50");
+    const tokenId = await mintToSeller();
+    const listingType = 1;
+    const duration = 3600;
+    const minBidIncBps = 1000;
+    const tx = await marketplace
+      .connect(deployer)
+      .createListing(seller.address, tokenId, listingType, startPrice, duration, minBidIncBps);
+    const receipt = await tx.wait();
+    const listingId = receipt.events?.find((e: any) => e.event === "ListingCreated")?.args?.listingId?.toNumber();
+    await usdt.connect(buyer).faucet();
+    await usdt.connect(bidder2).faucet();
+    await usdt.connect(buyer).approve(marketplace.address, ethers.utils.parseEther("1000"));
+    await usdt.connect(bidder2).approve(marketplace.address, ethers.utils.parseEther("1000"));
+    const bid1 = ethers.utils.parseEther("60");
+    const payer1Before = await usdt.balanceOf(buyer.address);
+    await expect(marketplace.connect(deployer).placeBid(listingId, bidder1.address, buyer.address, bid1))
+      .to.emit(marketplace, "BidPlaced")
+      .withArgs(listingId, bidder1.address, buyer.address, bid1, ethers.constants.AddressZero, 0);
+    const minNextBid = bid1.add(bid1.mul(minBidIncBps).div(10000));
+    const bid2 = minNextBid;
+    await expect(marketplace.connect(deployer).placeBid(listingId, bidder2.address, bidder2.address, bid2))
+      .to.emit(marketplace, "BidRefunded")
+      .withArgs(listingId, bidder1.address, buyer.address, bid1)
+      .and.to.emit(marketplace, "BidPlaced")
+      .withArgs(listingId, bidder2.address, bidder2.address, bid2, bidder1.address, bid1);
+    const payer1After = await usdt.balanceOf(buyer.address);
+    expect(payer1After.sub(payer1Before)).to.equal(0);
+    await marketplace.connect(deployer).enableTestMode((await ethers.provider.getBlock("latest")).timestamp);
+    const currentTs = await marketplace.getCurrentTimestamp();
+    await marketplace.connect(deployer).setTestTimestamp(currentTs.add(duration));
+    const sellerBefore = await usdt.balanceOf(seller.address);
+    const platformBefore = await usdt.balanceOf(deployer.address);
+    await expect(marketplace.connect(deployer).settleAuction(listingId, ethers.constants.AddressZero))
+      .to.emit(marketplace, "AuctionSettled")
+      .withArgs(
+        listingId,
+        seller.address,
+        bidder2.address,
+        bidder2.address,
+        bid2,
+        bid2.mul(platformFeeRate).div(10000)
+      );
+    expect(await cpnft.ownerOf(tokenId)).to.equal(bidder2.address);
+    const fee = bid2.mul(platformFeeRate).div(10000);
+    const sellerAmount = bid2.sub(fee);
+    const sellerAfter = await usdt.balanceOf(seller.address);
+    const platformAfter = await usdt.balanceOf(deployer.address);
+    expect(sellerAfter.sub(sellerBefore)).to.equal(sellerAmount);
+    expect(platformAfter.sub(platformBefore)).to.equal(fee);
+  });
   it("取消上架频率限制", async () => {
     const price = ethers.utils.parseEther("10");
 
@@ -267,18 +357,18 @@ describe("Marketplace", function () {
     await usdt.connect(bidder1).approve(marketplace.address, ethers.utils.parseEther("1000"));
 
     await expect(
-      marketplace.connect(deployer).placeBid(listingId, bidder1.address, ethers.utils.parseEther("9"))
+      marketplace.connect(deployer).placeBid(listingId, bidder1.address, bidder1.address, ethers.utils.parseEther("9"))
     ).to.be.revertedWith("Bid must be at least starting price");
 
     const bid1 = ethers.utils.parseEther("10");
-    await marketplace.connect(deployer).placeBid(listingId, bidder1.address, bid1);
+    await marketplace.connect(deployer).placeBid(listingId, bidder1.address, bidder1.address, bid1);
 
     await usdt.connect(bidder2).faucet();
     await usdt.connect(bidder2).approve(marketplace.address, ethers.utils.parseEther("1000"));
 
     const tooLow = ethers.utils.parseEther("10.5");
     await expect(
-      marketplace.connect(deployer).placeBid(listingId, bidder2.address, tooLow)
+      marketplace.connect(deployer).placeBid(listingId, bidder2.address, bidder2.address, tooLow)
     ).to.be.revertedWith("Bid amount too low");
   });
 
@@ -307,7 +397,7 @@ describe("Marketplace", function () {
     const receipt = await tx.wait();
     const listingId = receipt.events?.find((e: any) => e.event === "ListingCreated")?.args?.listingId?.toNumber();
     await marketplace.connect(deployer).pause();
-    await expect(marketplace.connect(deployer).buyItem(listingId, buyer.address)).to.be.reverted;
+    await expect(marketplace.connect(deployer).buyItem(listingId, buyer.address, buyer.address)).to.be.reverted;
     await marketplace.connect(deployer).unpause();
   });
 

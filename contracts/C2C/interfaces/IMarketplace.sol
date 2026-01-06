@@ -40,6 +40,7 @@ interface IMarketplace {
     
     struct Bid {
         address bidder;
+        address payer;
         uint256 amount;
         uint256 timestamp;
         bool refunded;  // Packed with timestamp to save gas
@@ -68,6 +69,7 @@ interface IMarketplace {
         uint256 indexed listingId,
         address indexed seller,
         address indexed buyer,
+        address payer,
         uint256 price,
         uint256 platformFee
     );
@@ -75,6 +77,7 @@ interface IMarketplace {
     event BidPlaced(
         uint256 indexed listingId,
         address indexed bidder,
+        address payer,
         uint256 amount,
         address indexed previousBidder,
         uint256 refundAmount
@@ -84,6 +87,7 @@ interface IMarketplace {
         uint256 indexed listingId,
         address indexed seller,
         address indexed winner,
+        address payer,
         uint256 finalPrice,
         uint256 platformFee
     );
@@ -91,6 +95,7 @@ interface IMarketplace {
     event BidRefunded(
         uint256 indexed listingId,
         address indexed bidder,
+        address payer,
         uint256 amount
     );
     
@@ -109,9 +114,9 @@ interface IMarketplace {
     
     function cancelListing(uint256 listingId) external;
     
-    function buyItem(uint256 listingId, address buyer) external;
+    function buyItem(uint256 listingId, address buyer, address payer) external;
     
-    function placeBid(uint256 listingId, address bidder, uint256 bidAmount) external;
+    function placeBid(uint256 listingId, address bidder, address payer, uint256 bidAmount) external;
     
     function settleAuction(uint256 listingId, address winner) external;
     
@@ -120,4 +125,10 @@ interface IMarketplace {
     function getBids(uint256 listingId) external view returns (Bid[] memory);
     
     function getHighestBid(uint256 listingId) external view returns (Bid memory);
+    
+    // Admin configuration setters
+    function updatePlatformFeeRecipient(address _platformFeeRecipient) external;
+    function updatePlatformFeeRate(uint256 _platformFeeRate) external;
+    function updateDelistingLimit(uint256 _delistingLimit) external;
+    function updateDelistingWindow(uint256 _delistingWindow) external;
 }
