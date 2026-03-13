@@ -840,17 +840,104 @@ interface HistoryItem {
 | 存款/取款 | 任意用户 |
 | 锁仓/解锁 CPOT | 任意用户 |
 | 注入收益 | `REWARD_DEPOSITOR_ROLE`（后台服务账户） |
-| 暂停/恢复 | `DEFAULT_ADMIN_ROLE`（多签） |
+| 暂停/恢复 | `DEFAULT_ADMIN_ROLE` |
 | 更新参数（APY上限、最小存款等） | `DEFAULT_ADMIN_ROLE` |
-| **提取 TVL 主池** | **❌ 任何角色均不可直接提取** |
+| 发起紧急提款 | `DEFAULT_ADMIN_ROLE` + emergencyMode 开启 |
+| 执行紧急提款 | `DEFAULT_ADMIN_ROLE` + timelock 到期 |
 
 ### 12.2 关键约束
 
-- TVL 主池资产只能通过用户赎回流程流出
 - 收益注入只能通过 `depositRewards()` 路径进入，不得与主池混淆
 - veCPOT 不可转让、不可出售
 - Boost 叠加有上限（`MAX_BOOST_BPS = 2000`，即 20%）
 - Phase 2 NFT Boost 为只读（不需要用户再次授权或 approve）
+- 紧急提款有 timelock 保护，不可绕过（详见 12.4）
+
+### 12.4 紧急提款机制
+
+#### 设计目标
+
+在合约出现严重风险时，允许 admin 将资金转移到安全地址，同时给用户足够时间知情并自行赎回。
+
+#### 合约接口
+
+```solidity
+// Step 1: 开启紧急模式（同时暂停新存款）
+function setEmergencyMode(bool enabled) external onlyRole(DEFAULT_ADMIN_ROLE);
+
+// Step 2: 发起提款申请（必须已开启 emergencyMode）
+function initiateEmergencyWithdraw(
+    uint256 amount,
+    address to
+) external onlyRole(DEFAULT_ADMIN_ROLE);
+
+// Step 3: timelock 到期后执行
+function executeEmergencyWithdraw() external onlyRole(DEFAULT_ADMIN_ROLE);
+
+// 取消未执行的申请
+function cancelEmergencyWithdraw() external onlyRole(DEFAULT_ADMIN_ROLE);
+```
+
+#### 流程说明
+
+```
+admin 调用 setEmergencyMode(true)
+  → 合约暂停新存款
+  → emit EmergencyModeSet(true, block.timestamp)
+  → 链上公开可见，用户可自行赎回
+
+admin 调用 initiateEmergencyWithdraw(amount, to)
+  → 记录 PendingWithdraw { amount, to, executeAfter: now + EMERGENCY_TIMELOCK }
+  → emit EmergencyWithdrawInitiated(amount, to, executeAfter)
+
+[等待 EMERGENCY_TIMELOCK 时间]
+
+admin 调用 executeEmergencyWithdraw()
+  → 验证 block.timestamp >= executeAfter
+  → 转出 amount USDT 至 to 地址
+  → emit EmergencyWithdrawExecuted(amount, to)
+```
+
+#### 参数
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `EMERGENCY_TIMELOCK` | 24 小时 | admin 发起申请到可执行的最短等待时间 |
+| `to` | 任意地址 | 由 admin 在发起时指定，无地址白名单限制 |
+| `amount` | ≤ vault 当前余额 | 不可超出合约实际持有量 |
+
+#### 数据结构
+
+```solidity
+bool public emergencyMode;
+
+struct PendingWithdraw {
+    uint256 amount;
+    address to;
+    uint256 executeAfter; // block.timestamp + EMERGENCY_TIMELOCK
+    bool exists;
+}
+
+PendingWithdraw public pendingEmergencyWithdraw;
+
+uint256 public constant EMERGENCY_TIMELOCK = 24 hours;
+```
+
+#### 关键事件
+
+```solidity
+event EmergencyModeSet(bool enabled, uint256 timestamp);
+event EmergencyWithdrawInitiated(uint256 amount, address to, uint256 executeAfter);
+event EmergencyWithdrawExecuted(uint256 amount, address to, uint256 timestamp);
+event EmergencyWithdrawCancelled(uint256 timestamp);
+```
+
+#### 用户保护机制
+
+1. `EmergencyModeSet` 事件发出后，用户可通过区块链浏览器或前端提醒知悉
+2. 24 小时窗口期内，用户仍可正常赎回（取款功能不暂停，只暂停存款）
+3. 申请发出后 admin 可随时取消（`cancelEmergencyWithdraw`）
+4. 所有操作全程链上可查，无隐式后门
 
 ### 12.3 升级约束
 
