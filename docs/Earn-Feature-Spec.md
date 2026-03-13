@@ -180,10 +180,12 @@ function setBoostController(address boost) external onlyOwner;
 
 ### 3.2 锁仓
 
+每次锁仓创建一个独立仓位，返回 `lockId`，用户可同时持有多个不同周期的仓位。
+
 #### 接口
 
 ```solidity
-function lock(uint256 amount, uint256 durationDays) external;
+function lock(uint256 amount, uint256 durationDays) external returns (uint256 lockId);
 ```
 
 > `durationDays` 取值：30 / 90 / 180 / 360
@@ -191,86 +193,109 @@ function lock(uint256 amount, uint256 durationDays) external;
 #### 逻辑
 
 1. 从 `msg.sender` 转入 `amount` CPOT
-2. 计算 `unlockTime = block.timestamp + durationDays * 1 days`
-3. 计算 veCPOT 积分（见 3.5 节）
-4. 记录 `LockPosition`
-5. emit `LockedCPOT(user, amount, unlockTime, veAmount)`
+2. 生成递增 `lockId`（每个用户独立计数）
+3. 计算 `unlockTime = block.timestamp + durationDays * 1 days`
+4. 计算该仓位的 veCPOT 积分（见 3.5 节）
+5. 追加到 `lockPositions[user]` 数组
+6. emit `LockedCPOT(user, lockId, amount, unlockTime, veAmount, durationDays)`
 
 #### 前端调用序列
 
 ```
-1. 用户选择档位（30/90/180/360天）
-2. 读取 locker.previewVeCPOT(amount, duration) → 展示 veCPOT 积分
-3. 读取 vault.getUserBoostBps(user) after → 展示锁仓后年化
+1. 用户选择档位（30/90/180/360天）+ 输入金额
+2. 读取 locker.previewVeCPOT(amount, duration) → 展示新仓位 veCPOT
+3. 读取 locker.previewBoostBps(user, duration) → 展示锁仓后年化
+   （若新档位 > 当前最高档位，boost 会提升；否则不变）
 4. 调用 CPOT.approve(lockerAddress, amount)
-5. 调用 locker.lock(amount, durationDays)
+5. 调用 locker.lock(amount, durationDays) → 获得 lockId
 6. 监听 LockedCPOT 事件
-7. 刷新页面加速数据
+7. 刷新锁仓列表和加速数据
 ```
 
 ### 3.3 解锁
 
+每个仓位独立解锁，通过 `lockId` 指定。
+
 #### 接口
 
 ```solidity
-function unlock() external;
+function unlock(uint256 lockId) external;
 ```
 
 #### 逻辑
 
-1. 验证 `block.timestamp >= position.unlockTime`
-2. 将 CPOT 原路退回 `msg.sender`
-3. 清除 `LockPosition`
-4. veCPOT 积分归零（影响 Boost 系数）
-5. emit `UnlockedCPOT(user, amount)`
+1. 验证 `lockPositions[msg.sender][lockId]` 存在且归属正确
+2. 验证 `block.timestamp >= position.unlockTime`
+3. 将该仓位的 CPOT 原路退回 `msg.sender`
+4. 从 `lockPositions[user]` 数组中移除该仓位
+5. 重新计算用户的 veCPOT 总量和 boost（可能因最高档位改变而降低）
+6. emit `UnlockedCPOT(user, lockId, amount)`
 
-### 3.4 增量锁仓
+> **注意**：解锁单个仓位后，如果该仓位恰好是时长最长的那个，boost 会自动降级到剩余仓位的最高档位。
 
-用户可在锁仓期内追加锁仓：
+### 3.4 向已有仓位追加金额
+
+用户可向某个特定 `lockId` 追加 CPOT，解锁时间不变：
 
 ```solidity
-function lockMore(uint256 additionalAmount) external;
+function lockMore(uint256 lockId, uint256 additionalAmount) external;
 ```
 
-> 追加时以当前剩余时间重新计算 veCPOT，不延长或缩短解锁时间。
+> 追加后以当前仓位剩余时间重新计算该仓位的 veCPOT，不延长或缩短解锁时间。
 
 ### 3.5 veCPOT 计算规则
 
+**单个仓位**：
+
 ```
-veCPOT = amount × (durationDays / 360)
+position.veAmount = amount × (durationDays / 360)
 ```
 
-示例：
+**用户总 veCPOT = 所有活跃仓位的 veAmount 之和**：
 
-| 锁仓量 | 时长 | veCPOT |
-|--------|------|--------|
-| 5,000 CPOT | 30天 | 416.7 |
-| 5,000 CPOT | 90天 | 1,250 |
-| 5,000 CPOT | 180天 | 2,500 |
-| 5,000 CPOT | 360天 | 5,000 |
+```
+totalVeCPOT(user) = Σ position[i].veAmount  （仅计算 unlockTime > now 的仓位）
+```
+
+示例（多仓位叠加）：
+
+| 仓位 | 锁仓量 | 时长 | veAmount |
+|------|--------|------|---------|
+| Lock #1 | 5,000 CPOT | 360天 | 5,000 |
+| Lock #2 | 2,000 CPOT | 90天 | 500 |
+| Lock #3 | 1,000 CPOT | 30天 | 83 |
+| **合计** | **8,000 CPOT** | — | **5,583** |
 
 ### 3.6 APY Boost 换算
 
-veCPOT → Earn APY boost（基点，`bps`，1% = 100 bps）：
+**Boost 取所有活跃仓位中时长最长那一档**，与数量和 veCPOT 总量无关：
 
-| 锁仓时长 | APY 加成 |
-|---------|---------|
+```
+maxDuration(user) = max(position[i].durationDays)  （仅活跃仓位）
+boostBps(user)    = durationBoostBps[maxDuration]
+```
+
+| 锁仓时长（最长活跃仓位） | APY 加成 |
+|------------------------|---------|
+| 无活跃仓位 | +0% |
 | 30天 | +1.0% |
 | 90天 | +2.0% |
 | 180天 | +3.5% |
 | 360天 | +5.0% |
 
-> **说明**：Boost 档位由 `durationDays` 决定，与 `amount` 无关（原型实现逻辑）。  
-> 如需更精细的线性模型，可按 `veCPOT` 积分绝对值分档，Phase 1-2 使用简单档位即可。
+**示例**：用户同时持有 30天、90天、360天三个仓位 → boost = +5.0%（取 360天）  
+**解锁 360天仓位后** → boost 降为 +2.0%（剩余最长为 90天）
 
 #### 只读接口
 
 ```solidity
-function getVeCPOT(address user) external view returns (uint256);
+function getTotalVeCPOT(address user) external view returns (uint256);
 function getBoostBps(address user) external view returns (uint256);
-function getLockPosition(address user) external view returns (LockPosition memory);
+function getLockPositions(address user) external view returns (LockPosition[] memory);
+function getLockPosition(address user, uint256 lockId) external view returns (LockPosition memory);
 function previewVeCPOT(uint256 amount, uint256 durationDays) external view returns (uint256);
-function previewBoostBps(uint256 durationDays) external view returns (uint256);
+function previewBoostBps(address user, uint256 newDurationDays) external view returns (uint256);
+// 返回：若新增 newDurationDays 的仓位后，用户 boost 会变为多少
 ```
 
 ### 3.7 CPP 奖励
@@ -293,13 +318,35 @@ function getPendingCPP(address user) external view returns (uint256);
 
 ```solidity
 struct LockPosition {
+    uint256 lockId;       // 仓位 ID（用户维度递增）
     uint256 amount;       // 锁仓 CPOT 数量
+    uint256 veAmount;     // 对应 veCPOT 积分
     uint256 startTime;    // 开始时间戳
     uint256 unlockTime;   // 解锁时间戳
     uint256 durationDays; // 锁仓天数（30/90/180/360）
 }
 
-mapping(address => LockPosition) public lockPositions;
+// 每个用户有独立的仓位数组
+mapping(address => LockPosition[]) public lockPositions;
+
+// 用户下一个 lockId（递增计数器）
+mapping(address => uint256) public nextLockId;
+```
+
+#### 辅助计算函数（内部）
+
+```solidity
+function _getMaxDuration(address user) internal view returns (uint256) {
+    uint256 max = 0;
+    for (uint256 i = 0; i < lockPositions[user].length; i++) {
+        if (block.timestamp < lockPositions[user][i].unlockTime) {
+            if (lockPositions[user][i].durationDays > max) {
+                max = lockPositions[user][i].durationDays;
+            }
+        }
+    }
+    return max;
+}
 ```
 
 ---
@@ -308,12 +355,14 @@ mapping(address => LockPosition) public lockPositions;
 
 ### 4.1 产品规则
 
-Phase 2 采用**持有即加成**模式：
+Phase 2 采用**持有即加成、取最高等级**模式：
 
-- 用户持有 CPNFT 即自动计入 boost，无需额外操作
-- 不要求重新质押 NFT（避免与现有 `Staking` 冲突）
-- 同一地址最多计算 **1 个 NFT** 的 boost（Phase 2，后续可扩展）
-- boost 取最高等级 NFT
+- 用户持有任意数量 CPNFT，系统自动取**等级最高的那一张**计算 boost
+- 持有数量不影响 boost 大小，多张 NFT **不叠加**
+- 无需额外质押操作，持有即生效（避免与现有 `Staking` 冲突）
+- 用户换入更高等级 NFT 后，boost 自动升级；卖出所有 NFT 后，boost 归零
+
+> **示例**：用户持有 L1 + L3 + L2 三张，boost = L3 对应的 +2.0%，而非三张相加。
 
 ### 4.2 Boost 对照表
 
@@ -339,10 +388,13 @@ function getActiveNFT(address user) external view returns (uint256 tokenId, uint
 ```
 1. 读取 CPNFT.balanceOf(user)
 2. 如果余额 = 0，返回 boostBps = 0
-3. 遍历用户持有的 tokenId（最多查询 N 个）
-4. 取最高 level 的 tokenId
-5. 按 boost 对照表返回 boostBps
+3. 遍历用户持有的所有 tokenId（建议设置最大遍历数 MAX_SCAN = 20，防止 gas 超限）
+4. 找出 level 最高的 tokenId（多张取最高，不累加）
+5. 按 boost 对照表返回该 level 对应的 boostBps
 ```
+
+> **注意**：`getNFTBoostBps` 为 view 函数，链下调用无 gas 限制；  
+> 若需在链上被其他合约调用（如 Vault 计算实时 APY），需控制遍历上限避免 out-of-gas。
 
 ### 4.4 NFT 等级来源
 
@@ -455,10 +507,10 @@ event RewardsDeposited(address indexed sender, uint256 usdtAmount, uint256 times
 event CPPRewardsDeposited(address indexed sender, uint256 cppAmount, uint256 timestamp);
 
 // VeCPOTLocker
-event LockedCPOT(address indexed user, uint256 amount, uint256 unlockTime, uint256 veAmount, uint256 durationDays);
-event UnlockedCPOT(address indexed user, uint256 amount, uint256 timestamp);
+event LockedCPOT(address indexed user, uint256 lockId, uint256 amount, uint256 unlockTime, uint256 veAmount, uint256 durationDays);
+event UnlockedCPOT(address indexed user, uint256 lockId, uint256 amount, uint256 timestamp);
 event CPPRewardClaimed(address indexed user, uint256 amount, uint256 timestamp);
-event MoreCPOTLocked(address indexed user, uint256 additionalAmount, uint256 newVeAmount);
+event MoreCPOTLocked(address indexed user, uint256 lockId, uint256 additionalAmount, uint256 newVeAmount);
 ```
 
 ---
@@ -586,10 +638,36 @@ event MoreCPOTLocked(address indexed user, uint256 additionalAmount, uint256 new
 
 #### 数据联动
 
-- 成功后：收益加速卡片中 veCPOT 的 +N% badge 更新
-- APY 明细中 veCPOT 一行数值更新
-- 总资产卡片年化数字更新
+- 成功后：锁仓列表追加新条目
+- 若新仓位时长 > 当前最高时长：boost badge 升级，APY 明细更新，总资产年化更新
+- 若新仓位时长 ≤ 当前最高时长：boost 不变（无需刷新年化）
 - 最近记录顶部追加 `🔒 锁仓 CPOT N,NNN CPOT`
+
+### 9.3.1 锁仓列表展示
+
+位于"收益加速"卡片的 veCPOT 区块内，格式如下：
+
+```
+锁仓 CPOT                           +5.0%  [新增锁仓]
+─────────────────────────────────────────────────────
+Lock #1  5,000 CPOT  解锁于 6月1日          [6月1日解锁]（灰色 disabled）
+Lock #2  2,000 CPOT  解锁于 3月20日  已到期  [解锁]（高亮可点击）
+Lock #3  1,000 CPOT  解锁于 12月1日         [12月1日解锁]（灰色 disabled）
+```
+
+#### 解锁按钮规则
+
+| 状态 | 按钮文案 | 样式 |
+|------|---------|------|
+| 未到期 | "X月X日解锁" / "Unlocks X" | 灰色 disabled |
+| 已到期 | "解锁" / "Unlock" | 高亮，可点击 |
+| 点击中 | "···" | loading disabled |
+| 解锁成功 | 该行从列表中移除，追加历史记录 `🔓 解锁 CPOT N,NNN CPOT` |
+
+#### 解锁后 boost 变化
+
+- 解锁后重新取剩余活跃仓位的最高时长档位
+- 若最高档位降低，boost badge / APY 明细 / 总资产年化自动联动更新
 
 ### 9.4 NFT 信息 Sheet
 
