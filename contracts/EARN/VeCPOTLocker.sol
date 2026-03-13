@@ -10,15 +10,16 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title VeCPOTLocker
- * @notice Lock CPOT to earn veCPOT weight and receive an APY boost on Chapool Earn.
+ * @notice Lock CPOT to earn veCPOT weight and receive a CPP reward boost on Chapool Earn.
  *
  *  This contract is a BOOST PROVIDER ONLY.
  *  CPP reward distribution and claiming are handled entirely by ChapoolEarnVault.
  *
  *  Key design points:
  *  - Each lock() call creates an independent position (lockId), allowing multiple concurrent locks.
- *  - veCPOT = sum of all active positions' veAmount.
- *  - APY boost = tier of the LONGEST active lock duration (not cumulative).
+ *  - veCPOT = sum of all active positions' (amount × durationDays / 360).
+ *  - Boost (bps) = min(totalVeCPOT_units × boostPerVeUnit, maxVecpotBoostBps).
+ *    Both lock amount AND duration contribute — more CPOT locked longer → more boost.
  *  - After any lock state change, the vault's syncBoost(user) is called to update
  *    the global weighted-USDT accumulator in ChapoolEarnVault.
  */
@@ -39,11 +40,11 @@ contract VeCPOTLocker is
     uint256 public constant DURATION_180 = 180;
     uint256 public constant DURATION_360 = 360;
 
-    // Boost in basis points per duration tier
-    uint256 public constant BOOST_30_BPS  = 100;  // +1.0%
-    uint256 public constant BOOST_90_BPS  = 200;  // +2.0%
-    uint256 public constant BOOST_180_BPS = 350;  // +3.5%
-    uint256 public constant BOOST_360_BPS = 500;  // +5.0%
+    /// @dev Precision divisor for the boost formula.
+    ///      boostBps = (veUnits × boostPerVeUnit) / BOOST_VE_PRECISION
+    ///      At default boostPerVeUnit=1 this means 1 bps per 10 veCPOT units,
+    ///      requiring 10× more CPOT to reach the same boost compared to precision=1.
+    uint256 public constant BOOST_VE_PRECISION = 10;
 
     // =========================================================
     // STRUCTS
@@ -68,6 +69,13 @@ contract VeCPOTLocker is
     /// @notice ChapoolEarnVault — notified after every lock state change
     address public vault;
 
+    /// @notice Boost earned per 1 veCPOT unit (1 unit = 1e18 wei), in basis points.
+    ///         Default: 1 bps per veCPOT unit. Admin-tunable.
+    uint256 public boostPerVeUnit;
+
+    /// @notice Maximum CPOT boost cap in basis points (default 500 = +5%).
+    uint256 public maxVecpotBoostBps;
+
     mapping(address => LockPosition[]) public lockPositions;
     mapping(address => uint256) public nextLockId;
 
@@ -86,6 +94,7 @@ contract VeCPOTLocker is
     event UnlockedCPOT(address indexed user, uint256 lockId, uint256 amount, uint256 timestamp);
     event MoreCPOTLocked(address indexed user, uint256 lockId, uint256 additionalAmount, uint256 newVeAmount);
     event VaultSet(address indexed vault);
+    event BoostParamsSet(uint256 boostPerVeUnit, uint256 maxVecpotBoostBps);
 
     // =========================================================
     // INITIALIZER
@@ -109,6 +118,10 @@ contract VeCPOTLocker is
         __ReentrancyGuard_init();
 
         cpot = IERC20(_cpot);
+
+        // Default: 1 bps per veCPOT unit, capped at +5%
+        boostPerVeUnit    = 1;
+        maxVecpotBoostBps = 500;
     }
 
     // =========================================================
@@ -209,10 +222,12 @@ contract VeCPOTLocker is
     }
 
     /**
-     * @notice APY boost in bps — determined by the longest active lock duration.
+     * @notice Boost in bps based on total veCPOT.
+     *         boostBps = min(totalVeCPOT_units × boostPerVeUnit, maxVecpotBoostBps)
+     *         where totalVeCPOT_units = totalVeCPOT / 1e18.
      */
     function getBoostBps(address user) external view returns (uint256) {
-        return _boostBpsForDuration(_getMaxDuration(user));
+        return _calcBoostBps(_calcTotalVeCPOT(user));
     }
 
     /**
@@ -246,17 +261,18 @@ contract VeCPOTLocker is
     }
 
     /**
-     * @notice Preview boost if user adds a new lock with newDurationDays.
+     * @notice Preview boost if user adds a new lock of `additionalAmount` for `durationDays`.
+     *         Returns the projected total boost bps (current positions + hypothetical new lock).
      */
-    function previewBoostBps(address user, uint256 newDurationDays)
+    function previewBoostBps(address user, uint256 additionalAmount, uint256 durationDays)
         external
         view
         returns (uint256)
     {
-        _requireValidDurationPure(newDurationDays);
-        uint256 currentMax = _getMaxDuration(user);
-        uint256 effectiveMax = newDurationDays > currentMax ? newDurationDays : currentMax;
-        return _boostBpsForDuration(effectiveMax);
+        _requireValidDurationPure(durationDays);
+        uint256 currentVe  = _calcTotalVeCPOT(user);
+        uint256 newVe      = _calcVeAmount(additionalAmount, durationDays);
+        return _calcBoostBps(currentVe + newVe);
     }
 
     // =========================================================
@@ -266,6 +282,19 @@ contract VeCPOTLocker is
     function setVault(address _vault) external onlyOwner {
         vault = _vault;
         emit VaultSet(_vault);
+    }
+
+    /**
+     * @notice Tune the veCPOT boost formula parameters.
+     * @param _boostPerVeUnit    Bps earned per 1 veCPOT unit (1e18 wei = 1 unit).
+     * @param _maxVecpotBoostBps Maximum CPOT boost cap in bps.
+     */
+    function setBoostParams(uint256 _boostPerVeUnit, uint256 _maxVecpotBoostBps) external onlyOwner {
+        require(_boostPerVeUnit > 0, "Zero coeff");
+        require(_maxVecpotBoostBps > 0 && _maxVecpotBoostBps <= 2000, "Invalid cap");
+        boostPerVeUnit    = _boostPerVeUnit;
+        maxVecpotBoostBps = _maxVecpotBoostBps;
+        emit BoostParamsSet(_boostPerVeUnit, _maxVecpotBoostBps);
     }
 
     function _authorizeUpgrade(address newImpl) internal override onlyOwner {}
@@ -325,21 +354,14 @@ contract VeCPOTLocker is
         }
     }
 
-    function _getMaxDuration(address user) internal view returns (uint256 maxD) {
-        LockPosition[] storage positions = lockPositions[user];
-        for (uint256 i = 0; i < positions.length; i++) {
-            if (positions[i].active && block.timestamp < positions[i].unlockTime) {
-                if (positions[i].durationDays > maxD) maxD = positions[i].durationDays;
-            }
-        }
-    }
-
-    function _boostBpsForDuration(uint256 d) internal pure returns (uint256) {
-        if (d >= DURATION_360) return BOOST_360_BPS;
-        if (d >= DURATION_180) return BOOST_180_BPS;
-        if (d >= DURATION_90)  return BOOST_90_BPS;
-        if (d >= DURATION_30)  return BOOST_30_BPS;
-        return 0;
+    /**
+     * @dev boostBps = min((veUnits × boostPerVeUnit) / BOOST_VE_PRECISION, maxVecpotBoostBps)
+     *      Default: 1 bps per 10 veCPOT units → need 5,000 veCPOT units to reach +5% cap.
+     */
+    function _calcBoostBps(uint256 totalVe) internal view returns (uint256) {
+        uint256 veUnits = totalVe / 1e18;
+        uint256 bps     = (veUnits * boostPerVeUnit) / BOOST_VE_PRECISION;
+        return bps > maxVecpotBoostBps ? maxVecpotBoostBps : bps;
     }
 
     function _requireValidDuration(uint256 d) internal pure {

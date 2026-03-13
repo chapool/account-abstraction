@@ -14,11 +14,11 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
  *  - Each user may register ONE "active" tokenId as their boost NFT.
  *  - Ownership is verified at read time: if the NFT is sold, boost automatically returns to 0.
  *  - Multiple NFTs are NOT cumulative — only the registered (or highest held) NFT counts.
- *  - NFT levels map to APY boosts:
+ *  - NFT levels map to CPP boost:
  *      NORMAL / C  → 0 bps
- *      B (L1)      → 50 bps  (+0.5%)
- *      A (L2)      → 100 bps (+1.0%)
- *      S (L3)      → 200 bps (+2.0%)
+ *      B (L1)      → 10 bps  (+0.1%)
+ *      A (L2)      → 20 bps  (+0.2%)
+ *      S (L3)      → 50 bps  (+0.5%)
  *      SS (L4)     → 350 bps (+3.5%)
  *      SSS         → 500 bps (+5.0%, future tier)
  *
@@ -53,11 +53,11 @@ contract NFTBoostController is
     // Readable constants
     uint256 public constant BOOST_NORMAL_BPS = 0;    // NORMAL
     uint256 public constant BOOST_C_BPS      = 0;    // C
-    uint256 public constant BOOST_B_BPS      = 50;   // B  = L1
-    uint256 public constant BOOST_A_BPS      = 100;  // A  = L2
-    uint256 public constant BOOST_S_BPS      = 200;  // S  = L3
-    uint256 public constant BOOST_SS_BPS     = 350;  // SS = L4
-    uint256 public constant BOOST_SSS_BPS    = 500;  // SSS (future)
+    uint256 public constant BOOST_B_BPS      = 10;   // B  = L1  (+0.1%)
+    uint256 public constant BOOST_A_BPS      = 20;   // A  = L2  (+0.2%)
+    uint256 public constant BOOST_S_BPS      = 50;   // S  = L3  (+0.5%)
+    uint256 public constant BOOST_SS_BPS     = 350;  // SS = L4  (+3.5%)
+    uint256 public constant BOOST_SSS_BPS    = 500;  // SSS      (+5.0%, future)
 
     // =========================================================
     // STORAGE
