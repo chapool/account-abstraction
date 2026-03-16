@@ -1,0 +1,55 @@
+{
+  "network": "opbnb",
+  "chainId": 204,
+  "deployer": "0x895907643D90bb8BF7aC3A5CCE5480372Ad17615",
+  "entryPoint": "0xd7A612c343896249021236FfDa1c844770352e6e",
+  "usdtAddress": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
+  "isLocalTest": false,
+  "timestamp": "2025-12-02T02:46:15.447Z",
+  "contracts": {
+    "EntryPoint": "0xd7A612c343896249021236FfDa1c844770352e6e",
+    "CPPToken": "0xF31bFa70e441B437edb8287b2CC1a17796B92ab3",
+    "GasPriceOracle": "0x4D863A07d748e1cb35920c51538625E0AdD793bf",
+    "MasterAggregator": "0xd57e3E7F78d1f450Fd12209528148ABCEA8d21F4",
+    "SessionKeyManager": "0x57C9B47267f1565f0D9b311E119977804B8dd848",
+    "AccountManager": "0xA2854FaC865501DDE5F64577a1B4a4D0186eF251",
+    "GasPaymaster": "0x205D51246067c754E8823Db707bCDcF67e929103",
+    "CPNFT": "0x2d3A1b0fD28D8358643b4822B475bF435F2611cb",
+    "StakingConfig": "0xbce8521A7919947A5A14f03782B9135C190eC05c",
+    "Staking": "0xD8d733e352887185ea8Cb60e5173a3c68B69Fc37",
+    "StakingReader": "0x0fcA3DC0af2E220A7CDf5A7D86E26D5C1F5Acc8a",
+    "BatchTransfer": "0x084aE2B355BA05353Ce3a1E8B67B321ec619bCe3",
+    "Payment": "0xEe83640f0ed07d36E799531CC6d87FB4CDcCaC13",
+    "Marketplace": "0x6374aD0E4adab392dFeE60304a16ADc569f06703"
+  },
+  "configUpdates": [
+    {
+      "type": "rewards",
+      "timestamp": "2025-12-11T03:03:30.335Z",
+      "transactionHash": "0xb86ae7e085283860df4918fe5c887e68237e52de2e6b89408d4bd1628a360de8",
+      "blockNumber": 93886289,
+      "rewards": {
+        "C": "1.0",
+        "B": "3.0",
+        "A": "5.0",
+        "S": "15.0",
+        "SS": "35.0",
+        "SSS": "658.0"
+      }
+    },
+    {
+      "type": "rewards",
+      "timestamp": "2025-12-11T05:45:20.916Z",
+      "transactionHash": "0xbe977fad221791fc3247388e06ca9f94180a794f8dea858c8cdd163aa9f0fc8c",
+      "blockNumber": 93905709,
+      "rewards": {
+        "C": "5.0",
+        "B": "20.0",
+        "A": "30.0",
+        "S": "50.0",
+        "SS": "100.0",
+        "SSS": "690.0"
+      }
+    }
+  ]
+}

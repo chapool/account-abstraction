@@ -1,0 +1,16 @@
+{
+  "network": "opbnb",
+  "chainId": 204,
+  "marketplaceProxy": "0x6374aD0E4adab392dFeE60304a16ADc569f06703",
+  "implementation": "0x716efF1C789cD8808656b5654D6C4A538dB20876",
+  "executor": "0x895907643D90bb8BF7aC3A5CCE5480372Ad17615",
+  "config": {
+    "cpnftAddress": "0x2d3A1b0fD28D8358643b4822B475bF435F2611cb",
+    "paymentToken": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
+    "platformFeeRecipient": "0xEe83640f0ed07d36E799531CC6d87FB4CDcCaC13",
+    "platformFeeRate": 500,
+    "delistingLimit": 3,
+    "delistingWindow": 86400
+  },
+  "timestamp": "2026-01-12T08:13:00.474Z"
+}

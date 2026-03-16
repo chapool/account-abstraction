@@ -1,0 +1,9 @@
+{
+  "network": "opbnb",
+  "chainId": 204,
+  "marketplace": "0x6374aD0E4adab392dFeE60304a16ADc569f06703",
+  "previousLimit": "3",
+  "newLimit": "99999",
+  "executor": "0xb5eb06fAAaaB2964b5e8C1318eB8dB18F8f8F38D",
+  "timestamp": "2026-03-05T09:30:39.127Z"
+}

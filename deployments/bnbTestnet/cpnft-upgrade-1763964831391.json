@@ -1,0 +1,15 @@
+{
+  "network": "bnbTestnet",
+  "chainId": 97,
+  "proxyAddress": "0x01cFBE9CC049d3De77184c2Add57Eba012a96222",
+  "oldImplementation": "0xCb130E0D8291F694c263E4947b0ba48Bd050e845",
+  "newImplementation": "0x47453540476a0573FBa7dF9AFa75f3FD13360A8b",
+  "oldVersion": "1.0.0",
+  "newVersion": "1.0.0",
+  "upgradeMethod": "upgradeToAndCall",
+  "upgradeTx": "0xdb7c41491d974cd27b09495c8d70c93f5f18ab65ec05b7719375a951e6102d7d",
+  "blockNumber": 74570440,
+  "gasUsed": "37332",
+  "timestamp": "2025-11-24T06:13:51.391Z",
+  "deployer": "0xeA04842dBc32E2b8b3334b54C470e86e941e8a0d"
+}

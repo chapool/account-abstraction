@@ -1,0 +1,13 @@
+{
+  "stakingProxy": "0xD8d733e352887185ea8Cb60e5173a3c68B69Fc37",
+  "stakingImplementation": "0xfF226A6D5A8F3Ff5E621cD9C1564310beC65509f",
+  "previousImplementation": "0xaDF81b605b0Fea49D354A654B4Cf5eaA7539fe78",
+  "lastUpgrade": "2026-01-04T02:16:18.939Z",
+  "upgradeNote": "Removed 50 NFT limit from batchStake and batchUnstake",
+  "upgradeMethod": "upgradeToAndCall (UUPS)",
+  "proxyType": "UUPS",
+  "network": "opbnb",
+  "chainId": 204,
+  "transactionHash": "0xf1600343d3d5e14b02d6e84f14d3984dcdeea289c416abd0dd2e625a8b38e776",
+  "blockNumber": 98027826
+}

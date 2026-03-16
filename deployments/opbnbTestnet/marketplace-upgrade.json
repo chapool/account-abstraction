@@ -1,0 +1,10 @@
+{
+  "network": "opbnbTestnet",
+  "chainId": 5611,
+  "marketplaceProxy": "0x56D067c36Eb553A69EeEAc472D6198eD9cF14FDd",
+  "previousImplementation": "0x5bC0c655Cf166f1F86481e9BDD74d1036128235b",
+  "newImplementation": "0x4cdb1E137aE5c4d8D7CaB16CAc7355aD4CDEa30b",
+  "transactionHash": "0xa1cc4e248e2d3ac95909a292d6d9b83a8c2633e584e9163445ca93458279f808",
+  "executor": "0xb5eb06fAAaaB2964b5e8C1318eB8dB18F8f8F38D",
+  "timestamp": "2026-01-09T07:45:28.540Z"
+}

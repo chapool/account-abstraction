@@ -1,0 +1,12 @@
+{
+  "network": "opbnb",
+  "chainId": 204,
+  "cpnftProxy": "0x2d3A1b0fD28D8358643b4822B475bF435F2611cb",
+  "previousImplementation": "0x9265652471352D4cd19b7a8Df5C471B5C8Fc7382",
+  "newImplementation": "0x16Ad370fe7c13d71560B04343D050015445C3258",
+  "previousVersion": "1.0.0",
+  "newVersion": "1.0.0",
+  "transactionHash": "0x3da61b088a39f8ecdc7a4385a41c59e5c0d5524a11b34ccd9eed908f28649b6e",
+  "executor": "0x895907643D90bb8BF7aC3A5CCE5480372Ad17615",
+  "timestamp": "2026-01-20T10:02:00.972Z"
+}

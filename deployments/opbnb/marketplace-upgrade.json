@@ -1,0 +1,12 @@
+{
+  "network": "opbnb",
+  "chainId": 204,
+  "marketplaceProxy": "0x6374aD0E4adab392dFeE60304a16ADc569f06703",
+  "previousImplementation": "0x716efF1C789cD8808656b5654D6C4A538dB20876",
+  "newImplementation": "0x0593c763CFf51FeADDD3086798fE7B6f6f5669c0",
+  "previousVersion": "1.0.1",
+  "newVersion": "1.0.1",
+  "transactionHash": "0xd3a8d2af4132cc5a47a8e157a16a1fccf96cb71d7919c6d98ef748710d6b7929",
+  "executor": "0xb5eb06fAAaaB2964b5e8C1318eB8dB18F8f8F38D",
+  "timestamp": "2026-03-03T10:22:47.549Z"
+}

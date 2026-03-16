@@ -1,0 +1,9 @@
+{
+  "network": "opbnbTestnet",
+  "chainId": 5611,
+  "marketplace": "0x56D067c36Eb553A69EeEAc472D6198eD9cF14FDd",
+  "previousLimit": 3,
+  "newLimit": 5,
+  "executor": "0xb5eb06fAAaaB2964b5e8C1318eB8dB18F8f8F38D",
+  "timestamp": "2026-01-09T02:09:26.419Z"
+}
