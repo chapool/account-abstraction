@@ -55,6 +55,11 @@ userCPP/秒       = rewardRate × userWeightedUSDT / totalWeightedUSDT
 - CPP 奖励：按加权 USDT 比例持续累积，用户手动 `claimCPP()` 领取，mint 到 AA 账户
 - 1 CPP = 0.002 USDT（参考换算，CPP 可在站内消费或充值 U 卡）
 
+**收益来源与 CPP 使用闭环（供前端/产品说明使用）：**
+
+- **收入注入**：Chapool 平台的收入或手续费会按规则转化为 CPP 排放量，由运营通过 `ChapoolRewardDistributor` 调用 `setVaultRewardRate(cppPerSecond)` 注入到 `ChapoolEarnVault`；金库内用户按加权 USDT 比例分享这部分 CPP。
+- **CPP 使用**：用户从 Earn 领取的 CPP 可充值进 **UCard**，用于取现或线下/站内消费，形成「平台收入 → CPP 注入金库 → 用户领取 → UCard 消费/取现」的闭环。
+
 ### 1.2 新增合约清单
 
 | 合约 | 类型 | Phase | 核心职责 |
@@ -770,6 +775,33 @@ event BoostDeactivated(address indexed user, uint256 indexed tokenId);
 
 > 参考实现：`frontend-prototype/src/App.tsx`  
 > 设计原则：用户视角文案，不使用 PM 语言。
+
+**Earn 产品说明（可用于关于/帮助或首屏折叠说明）：**
+
+- Chapool 的平台收入或手续费会转化为 CPP，注入 Earn 金库（`ChapoolEarnVault`），按您的存款权重分配给您。
+- 您领取的 CPP 可充值进 **UCard**，用于取现或线下/站内消费。
+
+---
+
+#### 收益规则说明（用户向，可用于「如何计算收益」/ 帮助折叠区）
+
+以下文案供前端在「收益规则说明」或帮助区展示，便于用户理解：
+
+1. **收益从哪来？**  
+   平台将部分收入或手续费折算成 CPP，按周期注入 Earn 金库；您存入的 USDT 越多、占比越高，分到的 CPP 越多。
+
+2. **怎么算我的那份？**  
+   - 先按您的 **存款金额** 算一个「权重」：存款越多，权重越大。  
+   - 若您 **锁仓 CPOT** 或 **持有/激活指定 NFT**，还会在权重上再加一层「加速」，让您分到的 CPP 比例更高。  
+   - 金库每秒都会按「您的权重 ÷ 全网总权重」把当秒产生的 CPP 记在您名下，所以存得越久、领得越多。
+
+3. **什么时候能拿到？**  
+   收益会持续累加在「待领取 CPP」里，**需要您主动点击「领取」** 才会发到您的账户；领取后可用于站内消费或充值 UCard 取现/消费。
+
+4. **一句话总结**  
+   多存、多锁 CPOT 或激活 NFT 可提高您的分配比例；收益按秒累积，随时可领取，领到的 CPP 可充 UCard 用。
+
+---
 
 ### 9.1 页面结构（单页滚动）
 

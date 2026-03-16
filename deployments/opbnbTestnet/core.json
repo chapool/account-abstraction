@@ -1,0 +1,53 @@
+{
+  "network": "opbnbTestnet",
+  "chainId": 5611,
+  "deployer": "0xeA04842dBc32E2b8b3334b54C470e86e941e8a0d",
+  "entryPoint": "0x44484D3380A8D0C7555D9a4d2064db14f6A24FBb",
+  "timestamp": "2025-12-04T05:45:48.563Z",
+  "contracts": {
+    "CPPToken": "0x2AB38D1fc6Dd71d79AEa3b279F25965267383393",
+    "GasPriceOracle": "0xA276f1b6E9081145Ac664cC719071cdF3d4afC81",
+    "MasterAggregator": "0xbFB0fc1a06316E4aea46b8Ff3955AbC2fc35c4D3",
+    "SessionKeyManager": "0xD1827078B369ef987b84D477F21eC83Df26871d5",
+    "AccountManager": "0x043FBF4A20540a67200A9f084a8E27Cff0167519",
+    "GasPaymaster": "0xA5dE405f354A06c465463E63A7f455f0FE16eC22",
+    "CPNFT": "0x27593d4Fed6c4B812Ae8e2B64e38d8B039c8Fb91",
+    "StakingConfig": "0x7b6d0d61aFA7aD5EFb452270160bD35a0F610f2e",
+    "Staking": "0xD69ECEdCf8E4ad5d173fD473A07B56DfD42f016e",
+    "StakingReader": "0x01cFBE9CC049d3De77184c2Add57Eba012a96222",
+    "BatchTransfer": "0xb499a0D78BE79d2fCeE49dA07cB09c0150a8Cb63",
+    "MockUSDT": "0x1950cDE2DECb98Ee93a1D636fA923Fe8a3f09094",
+    "Payment": "0x8ab3CD39295CF002103c183963e527f2536949Df",
+    "Marketplace": "0x56D067c36Eb553A69EeEAc472D6198eD9cF14FDd"
+  },
+  "configUpdates": [
+    {
+      "type": "rewards",
+      "timestamp": "2025-12-11T02:56:25.579Z",
+      "transactionHash": "0x822f16cc1f4215ab78e3e39bafd652c7d23b8108a9eb264fa109ca7b182a91be",
+      "blockNumber": 106449818,
+      "rewards": {
+        "C": "1.0",
+        "B": "3.0",
+        "A": "5.0",
+        "S": "15.0",
+        "SS": "35.0",
+        "SSS": "658.0"
+      }
+    },
+    {
+      "type": "rewards",
+      "timestamp": "2025-12-11T05:45:05.457Z",
+      "transactionHash": "0xd08edbe8050ab25f2ed2f57f55c04341b9e24e150f1437fdeb9f8aa9c4c3e02a",
+      "blockNumber": 106490295,
+      "rewards": {
+        "C": "5.0",
+        "B": "20.0",
+        "A": "30.0",
+        "S": "50.0",
+        "SS": "100.0",
+        "SSS": "690.0"
+      }
+    }
+  ]
+}

@@ -10,9 +10,15 @@ import 'solidity-coverage'
 import * as fs from 'fs'
 import * as dotenv from 'dotenv'
 
-// Load environment variables
+// Load environment variables based on network
 if (process.env.NODE_ENV === 'production' || process.env.SEPOLIA) {
   dotenv.config({ path: '.env.sepolia' })
+} else if (process.env.HARDHAT_NETWORK === 'opbnbTestnet' || process.env.NETWORK === 'opbnbTestnet') {
+  dotenv.config({ path: '.env.opBNBTestnet' })
+} else if (process.env.HARDHAT_NETWORK === 'opbnb' || process.env.NETWORK === 'opbnb') {
+  dotenv.config({ path: '.env.opBNB' })
+} else if (process.env.HARDHAT_NETWORK === 'bnbTestnet' || process.env.NETWORK === 'bnbTestnet') {
+  dotenv.config({ path: '.env.bnbTestnet' })
 } else {
   dotenv.config()
 }
@@ -35,12 +41,17 @@ function getNetwork1 (url: string): { url: string, accounts: { mnemonic: string 
 }
 
 function getNetwork (name: string): { url: string, accounts: { mnemonic: string } } {
-  // Use Alchemy by default for Sepolia, fallback to Infura
-  const defaultSepoliaUrl = 'https://eth-sepolia.g.alchemy.com/v2/CDpjLA10IDFcyjqnNHlVE'
+  // RPC URLs should be configured via environment variables
+  // For Sepolia: use SEPOLIA_RPC_URL or ETH_SEPOLIA_RPC_URL
+  // For other networks: use INFURA_ID or network-specific RPC URL env vars
   const url = process.env.SEPOLIA_RPC_URL || 
-              (name === 'sepolia' ? defaultSepoliaUrl : `https://${name}.infura.io/v3/${process.env.INFURA_ID}`)
+              process.env.ETH_SEPOLIA_RPC_URL ||
+              (name === 'sepolia' ? undefined : `https://${name}.infura.io/v3/${process.env.INFURA_ID}`)
+  if (!url) {
+    // Return a placeholder config instead of throwing error to allow other networks to work
+    return { url: 'http://localhost:8545', accounts: { mnemonic } }
+  }
   return getNetwork1(url)
-  // return getNetwork1(`wss://${name}.infura.io/ws/v3/${process.env.INFURA_ID}`)
 }
 
 function getNetworkWithPrivateKey (url: string, privateKey: string): { url: string, accounts: string[] } {
@@ -86,18 +97,72 @@ const config: HardhatUserConfig = {
     sepolia: getNetwork('sepolia'),
     proxy: getNetwork1('http://localhost:8545'),
     sepoliaCustom: {
-      url: process.env.ETH_RPC_URL || process.env.SEPOLIA_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/CDpjLA10IDFcyjqnNHlVE',
+      url: process.env.ETH_RPC_URL || process.env.SEPOLIA_RPC_URL || process.env.ETH_SEPOLIA_RPC_URL || 'http://localhost:8545',
       chainId: 11155111,
-      gasPrice: 20000000000,
+      gasPrice: process.env.SEPOLIA_GAS_PRICE ? parseInt(process.env.SEPOLIA_GAS_PRICE, 10) : 20000000000,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      timeout: 60000
+      timeout: process.env.NETWORK_TIMEOUT ? parseInt(process.env.NETWORK_TIMEOUT, 10) : 60000
     },
+    // BNB Chain Testnet (BSC Testnet) - Chain ID: 97
+    // This is the primary testnet for BNB Smart Chain (BSC) development
+    // RPC endpoint: Configure via BSC_TESTNET_RPC_URL or BNB_TESTNET_RPC_URL environment variable
+    // Block explorer: https://testnet.bscscan.com
     bnbTestnet: {
-      url: 'https://bnb-testnet.g.alchemy.com/v2/CDpjLA10IDFcyjqnNHlVE',
+      url: process.env.BSC_TESTNET_RPC_URL || process.env.BNB_TESTNET_RPC_URL || 'http://localhost:8545',
       chainId: 97,
-      gasPrice: 20000000000,
-      accounts: ['0x7afae63a6cbe2fad617ede265676aa02d61b91cd8ca817bffbcd0fbb67e1f18a'],
-      timeout: 60000
+      gasPrice: process.env.BSC_TESTNET_GAS_PRICE || process.env.BNB_TESTNET_GAS_PRICE 
+        ? parseInt(process.env.BSC_TESTNET_GAS_PRICE || process.env.BNB_TESTNET_GAS_PRICE || '20000000000', 10) 
+        : 20000000000,
+      accounts: process.env.PRIVATE_KEY 
+        ? [process.env.PRIVATE_KEY]
+        : process.env.MNEMONIC 
+          ? { 
+              mnemonic: process.env.MNEMONIC,
+              initialIndex: parseInt(process.env.ACCOUNT_INDEX || '0', 10),
+              count: 1
+            }
+          : [],
+      timeout: process.env.NETWORK_TIMEOUT ? parseInt(process.env.NETWORK_TIMEOUT, 10) : 60000
+    },
+    // opBNB Mainnet - Chain ID: 204
+    // opBNB is an optimistic rollup on BNB Chain, providing enhanced scalability
+    // This network is actively used for production deployments on BNB Chain ecosystem
+    // RPC endpoint: Configure via OPBNB_RPC_URL or OPBNB_MAINNET_RPC_URL environment variable
+    // Block explorer: https://opbnb.bscscan.com
+    opbnb: {
+      url: process.env.OPBNB_RPC_URL || process.env.OPBNB_MAINNET_RPC_URL || 'https://opbnb-mainnet.nodereal.io/v1/e59b1bd6360a4cdf9a39530a77e815ca',
+      chainId: 204,
+      gasPrice: process.env.OPBNB_GAS_PRICE ? parseInt(process.env.OPBNB_GAS_PRICE, 10) : 1000000000, // 1 gwei for opBNB
+      accounts: process.env.PRIVATE_KEY 
+        ? [process.env.PRIVATE_KEY]
+        : process.env.MNEMONIC 
+          ? { 
+              mnemonic: process.env.MNEMONIC,
+              initialIndex: parseInt(process.env.ACCOUNT_INDEX || '0', 10),
+              count: 1
+            }
+          : [],
+      timeout: process.env.NETWORK_TIMEOUT ? parseInt(process.env.NETWORK_TIMEOUT, 10) : 60000
+    },
+    // opBNB Testnet - Chain ID: 5611
+    // Testnet for opBNB development and testing
+    // RPC endpoint: Configure via OPBNB_TESTNET_RPC_URL environment variable
+    opbnbTestnet: {
+      url: process.env.OPBNB_TESTNET_RPC_URL || 'https://opbnb-testnet.nodereal.io/v1/e59b1bd6360a4cdf9a39530a77e815ca',
+      chainId: 5611,
+      gasPrice: process.env.OPBNB_TESTNET_GAS_PRICE || process.env.OPBNB_GAS_PRICE
+        ? parseInt(process.env.OPBNB_TESTNET_GAS_PRICE || process.env.OPBNB_GAS_PRICE || '1000000000', 10)
+        : 1000000000, // 1 gwei for opBNB
+      accounts: process.env.PRIVATE_KEY 
+        ? [process.env.PRIVATE_KEY]
+        : process.env.MNEMONIC 
+          ? { 
+              mnemonic: process.env.MNEMONIC,
+              initialIndex: parseInt(process.env.ACCOUNT_INDEX || '0', 10),
+              count: 1
+            }
+          : [],
+      timeout: process.env.NETWORK_TIMEOUT ? parseInt(process.env.NETWORK_TIMEOUT, 10) : 60000
     }
   },
   mocha: {
@@ -112,3 +177,4 @@ if (process.env.COVERAGE != null) {
 }
 
 export default config
+

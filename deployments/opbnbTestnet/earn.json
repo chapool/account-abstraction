@@ -1,0 +1,20 @@
+{
+  "network": "opbnbTestnet",
+  "chainId": 5611,
+  "deployer": "0xb5eb06fAAaaB2964b5e8C1318eB8dB18F8f8F38D",
+  "timestamp": "2026-03-16T02:30:38.564Z",
+  "contracts": {
+    "MockCPOT": "0xDECC4966A5fe63fF0c8f8545AEAB025390195b5d",
+    "ChapoolEarnVault": "0xe57E96e423306847990877b8334BDB711efdfD10",
+    "VeCPOTLocker": "0xfF226A6D5A8F3Ff5E621cD9C1564310beC65509f",
+    "NFTBoostController": "0xC6366FbE6A7C1a0b7053EDc3E91232Da6d884946",
+    "ChapoolRewardDistributor": "0x385D801f556e676bd22e40B8bd1388C46833EC3a",
+    "ChapoolVaultReader": "0x5895A836679AaFeD205cD6689627aC8160860b82"
+  },
+  "coreRef": {
+    "CPPToken": "0x2AB38D1fc6Dd71d79AEa3b279F25965267383393",
+    "AccountManager": "0x043FBF4A20540a67200A9f084a8E27Cff0167519",
+    "CPNFT": "0x27593d4Fed6c4B812Ae8e2B64e38d8B039c8Fb91",
+    "MockUSDT": "0x1950cDE2DECb98Ee93a1D636fA923Fe8a3f09094"
+  }
+}

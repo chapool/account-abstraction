@@ -313,4 +313,99 @@ describe("Earn System — Sample Data Scenarios", function () {
       expect(dash.vecpotBoostBps).to.equal(125); // veUnits=1250, (1250×1)/10 = 125 bps
     });
   });
+
+  describe("Emergency withdrawal", function () {
+    const EMERGENCY_TIMELOCK = 24 * 60 * 60; // 24 hours
+    const emergencyAmount = parse("1000");
+
+    it("should revert initiateEmergencyWithdraw when not in emergency mode", async function () {
+      await usdt.connect(userA).approve(vault.address, emergencyAmount);
+      await vault.connect(userA).deposit(emergencyAmount, userA.address);
+      await expect(
+        vault.connect(owner).initiateEmergencyWithdraw(emergencyAmount, owner.address)
+      ).to.be.revertedWith("Not in emergency mode");
+    });
+
+    it("should set emergency mode and pause deposits", async function () {
+      await vault.connect(owner).setEmergencyMode(true);
+      expect(await vault.emergencyMode()).to.equal(true);
+      expect(await vault.paused()).to.equal(true);
+      await expect(
+        vault.connect(userB).deposit(parse("100"), userB.address)
+      ).to.be.reverted;
+    });
+
+    it("should initiate emergency withdraw and emit event", async function () {
+      await usdt.connect(userA).approve(vault.address, emergencyAmount);
+      await vault.connect(userA).deposit(emergencyAmount, userA.address);
+      await vault.connect(owner).setEmergencyMode(true);
+
+      const tx = await vault.connect(owner).initiateEmergencyWithdraw(emergencyAmount, owner.address);
+      const receipt = await tx.wait();
+      const executeAfter = (await ethers.provider.getBlock(receipt.blockNumber)).timestamp + EMERGENCY_TIMELOCK;
+      await expect(tx).to.emit(vault, "EmergencyWithdrawInitiated").withArgs(emergencyAmount, owner.address, executeAfter);
+
+      const pw = await vault.pendingEmergencyWithdraw();
+      expect(pw.amount).to.equal(emergencyAmount);
+      expect(pw.to).to.equal(owner.address);
+      expect(pw.pending).to.equal(true);
+    });
+
+    it("should revert executeEmergencyWithdraw before timelock", async function () {
+      await usdt.connect(userA).approve(vault.address, emergencyAmount);
+      await vault.connect(userA).deposit(emergencyAmount, userA.address);
+      await vault.connect(owner).setEmergencyMode(true);
+      await vault.connect(owner).initiateEmergencyWithdraw(emergencyAmount, owner.address);
+
+      await expect(vault.connect(owner).executeEmergencyWithdraw()).to.be.revertedWith(
+        "Timelock not elapsed"
+      );
+    });
+
+    it("should allow cancelEmergencyWithdraw and clear pending", async function () {
+      await usdt.connect(userA).approve(vault.address, emergencyAmount);
+      await vault.connect(userA).deposit(emergencyAmount, userA.address);
+      await vault.connect(owner).setEmergencyMode(true);
+      await vault.connect(owner).initiateEmergencyWithdraw(emergencyAmount, owner.address);
+
+      await vault.connect(owner).cancelEmergencyWithdraw();
+      const pw = await vault.pendingEmergencyWithdraw();
+      expect(pw.pending).to.equal(false);
+      expect(pw.amount).to.equal(0);
+    });
+
+    it("should initiate and execute after timelock", async function () {
+      await usdt.connect(userA).approve(vault.address, emergencyAmount);
+      await vault.connect(userA).deposit(emergencyAmount, userA.address);
+      await vault.connect(owner).setEmergencyMode(true);
+      await vault.connect(owner).initiateEmergencyWithdraw(emergencyAmount, owner.address);
+
+      await ethers.provider.send("evm_increaseTime", [EMERGENCY_TIMELOCK + 1]);
+      await ethers.provider.send("evm_mine", []);
+
+      const ownerBefore = await usdt.balanceOf(owner.address);
+      await expect(vault.connect(owner).executeEmergencyWithdraw())
+        .to.emit(vault, "EmergencyWithdrawExecuted");
+      const ownerAfter = await usdt.balanceOf(owner.address);
+      expect(ownerAfter.sub(ownerBefore)).to.equal(emergencyAmount);
+    });
+
+    it("should revert execute when no pending withdraw", async function () {
+      await expect(vault.connect(owner).executeEmergencyWithdraw()).to.be.revertedWith(
+        "No pending withdraw"
+      );
+    });
+
+    it("should allow setEmergencyMode(false) and clear pending if any", async function () {
+      await usdt.connect(userD).approve(vault.address, parse("500"));
+      await vault.connect(userD).deposit(parse("500"), userD.address);
+      await vault.connect(owner).setEmergencyMode(true);
+      await vault.connect(owner).initiateEmergencyWithdraw(parse("500"), userD.address);
+      await vault.connect(owner).setEmergencyMode(false);
+      expect(await vault.emergencyMode()).to.equal(false);
+      expect(await vault.paused()).to.equal(false);
+      const pw = await vault.pendingEmergencyWithdraw();
+      expect(pw.pending).to.equal(false);
+    });
+  });
 });
